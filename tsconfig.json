@@ -24,6 +24,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@gradient365/types": [
+        "./src/types/grabit.ts"
       ]
     },
     "target": "ES2017"

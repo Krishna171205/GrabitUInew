@@ -31,7 +31,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@gradient365/types'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' }
