@@ -1,13 +1,26 @@
 'use client';
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import type { GrabitCafe } from '@/types/grabit';
 import dynamic from 'next/dynamic';
 import type { CafeEntry } from '@/components/CafeCircularGallery';
-import { TestimonialsSection } from '@/components/ui/testimonials-columns';
-import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
-import { ContainerScroll } from '@/components/ui/container-scroll-animation';
+
+// Below-fold heavy components — deferred so they never block initial paint
+const ContainerScroll = dynamic(
+  () => import('@/components/ui/container-scroll-animation').then(m => ({ default: m.ContainerScroll })),
+  { ssr: false, loading: () => <div style={{ height: '60rem' }} /> },
+);
+const TestimonialsSection = dynamic(
+  () => import('@/components/ui/testimonials-columns').then((m) => ({ default: m.TestimonialsSection })),
+  { ssr: false, loading: () => <div style={{ minHeight: 400 }} /> },
+);
+const ReadyToJoinRitual = dynamic(
+  () => import('@/components/ReadyToJoinRitual').then((m) => ({ default: m.ReadyToJoinRitual })),
+  // ssr: false — GSAP relies on window/document, cannot run on server
+  { ssr: false, loading: () => <div style={{ height: '100vh' }} /> },
+);
 
 const CafeCircularGallery = dynamic(() => import('@/components/CafeCircularGallery'), {
   ssr: false,
@@ -218,7 +231,7 @@ export default function LandingClient({ cafes }: Props) {
       {/* ── Top App Bar ───────────────────────────────────────────────────── */}
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-sm">
         <nav className="flex justify-between items-center px-6 h-20 w-full max-w-7xl mx-auto">
-          <img alt="Grabit Logo" className="h-12 w-auto" src="/grabit-logo.svg" style={{ mixBlendMode: 'multiply' }} />
+          <Image src="/grabit-logo.svg" alt="Grabit Logo" width={96} height={48} priority className="h-12 w-auto" style={{ mixBlendMode: 'multiply' }} />
           <div className="hidden md:flex items-center gap-8 font-label text-sm tracking-widest uppercase">
             <a
               className="font-bold hover:opacity-80 transition-opacity duration-300 text-primary"
@@ -263,11 +276,18 @@ export default function LandingClient({ cafes }: Props) {
 
         {/* ── Hero — Mobile: full-bleed image + gradient overlay ──────────── */}
         <section className="relative lg:hidden min-h-[88dvh] overflow-hidden">
-          <div className="absolute inset-0">
-            <img
-              alt="Premium latte art in a ceramic cup"
-              className="w-full h-full object-cover"
+          <motion.div
+            className="absolute inset-0"
+            initial={{ scale: 1.08, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <Image
               src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=90"
+              alt="Premium latte art in a ceramic cup"
+              fill
+              priority
+              className="object-cover"
             />
             <div
               className="absolute inset-0"
@@ -276,29 +296,43 @@ export default function LandingClient({ cafes }: Props) {
                   'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.82) 100%)',
               }}
             />
-          </div>
-          <div className="absolute inset-x-0 bottom-0 px-6 pb-10">
-            <span
+          </motion.div>
+          <motion.div
+            key={heroKey}
+            className="absolute inset-x-0 bottom-0 px-6 pb-10"
+            initial="hidden"
+            animate="visible"
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12, delayChildren: 0.35 } } }}
+          >
+            <motion.span
+              variants={heroItemVariants}
               className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-4 text-white"
               style={{ backgroundColor: '#FF6B00' }}
             >
               Freshly Brewed Convenience
-            </span>
-            <h1 className="text-4xl font-headline font-extrabold leading-[1.1] tracking-tighter mb-4 text-white">
+            </motion.span>
+            <motion.h1
+              variants={heroItemVariants}
+              className="text-4xl font-headline font-extrabold leading-[1.1] tracking-tighter mb-4 text-white"
+            >
               Order Ahead.<br />
               <span style={{ color: '#ff8533' }}>Skip the Queue.</span>
-            </h1>
-            <p className="text-white/80 text-base mb-8 leading-relaxed max-w-sm">
+            </motion.h1>
+            <motion.p
+              variants={heroItemVariants}
+              className="text-white/80 text-base mb-8 leading-relaxed max-w-sm"
+            >
               Connect to the city&apos;s finest baristas for a seamless pick-up experience.
-            </p>
-            <button
+            </motion.p>
+            <motion.button
+              variants={heroItemVariants}
               onClick={() => scrollTo('cafe-search')}
               className="w-full bg-primary text-white py-5 rounded-full font-bold text-lg transition-all duration-300 hover:bg-primary-dim"
               style={{ boxShadow: '0 20px 40px rgba(156,63,0,0.35)' }}
             >
               Find your cafe
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </section>
 
         {/* ── Hero — Desktop: side-by-side grid ────────────────────────────── */}
@@ -351,10 +385,12 @@ export default function LandingClient({ cafes }: Props) {
 
             <motion.div className="relative" variants={heroItemVariants}>
               <div className="relative w-full aspect-square rounded-[3rem] overflow-hidden shadow-2xl rotate-3 scale-105">
-                <img
-                  alt="Premium latte art in a ceramic cup"
-                  className="w-full h-full object-cover"
+                <Image
                   src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=90"
+                  alt="Premium latte art in a ceramic cup"
+                  fill
+                  priority
+                  className="object-cover"
                 />
               </div>
               <motion.div
@@ -465,10 +501,16 @@ export default function LandingClient({ cafes }: Props) {
           <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
 
             <div className="relative">
-              <h2 className="text-4xl lg:text-5xl font-headline font-extrabold mb-12 leading-tight">
+              <motion.h2
+                className="text-4xl lg:text-5xl font-headline font-extrabold mb-12 leading-tight"
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+              >
                 From browse to<br />
                 <span className="text-primary-container">pickup in minutes.</span>
-              </h2>
+              </motion.h2>
               <div className="space-y-12">
                 {STEPS.map((step, i) => (
                   <motion.div
@@ -495,22 +537,28 @@ export default function LandingClient({ cafes }: Props) {
             <div className="relative hidden lg:grid grid-cols-2 gap-4">
               <div className="space-y-4 pt-12">
                 {STEPS_IMAGES.slice(0, 2).map((img) => (
-                  <img
-                    key={img.src}
-                    alt={img.alt}
-                    className={`rounded-3xl ${img.h} w-full object-cover shadow-2xl`}
-                    src={img.src}
-                  />
+                  <div key={img.src} className={`relative ${img.h} w-full rounded-3xl overflow-hidden shadow-2xl`}>
+                    <Image
+                      src={img.src}
+                      alt={img.alt}
+                      fill
+                      loading="lazy"
+                      className="object-cover rounded-3xl"
+                    />
+                  </div>
                 ))}
               </div>
               <div className="space-y-4">
                 {STEPS_IMAGES.slice(2).map((img) => (
-                  <img
-                    key={img.src}
-                    alt={img.alt}
-                    className={`rounded-3xl ${img.h} w-full object-cover shadow-2xl`}
-                    src={img.src}
-                  />
+                  <div key={img.src} className={`relative ${img.h} w-full rounded-3xl overflow-hidden shadow-2xl`}>
+                    <Image
+                      src={img.src}
+                      alt={img.alt}
+                      fill
+                      loading="lazy"
+                      className="object-cover rounded-3xl"
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -536,7 +584,7 @@ export default function LandingClient({ cafes }: Props) {
             <div className="w-full h-full flex flex-col bg-white rounded-xl overflow-hidden font-body select-none">
               {/* Status bar */}
               <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-zinc-100">
-                <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">grabit.in</span>
+                <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">grabit365.com</span>
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span className="text-xs font-semibold text-emerald-600">Open</span>
@@ -544,7 +592,7 @@ export default function LandingClient({ cafes }: Props) {
               </div>
               {/* Cafe header */}
               <div className="relative h-28 md:h-40 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=85" alt="Cafe" className="w-full h-full object-cover" />
+                <Image src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=85" alt="Cafe" fill loading="lazy" className="object-cover" />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
                 <div className="absolute bottom-3 left-4 text-white">
                   <p className="text-lg md:text-2xl font-bold leading-tight">The Raydee Cafe</p>
@@ -571,7 +619,9 @@ export default function LandingClient({ cafes }: Props) {
                   { name: 'Matcha Latte', desc: 'Ceremonial grade, oat milk', price: '₹320', img: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=200&q=80', hot: false },
                 ].map((item) => (
                   <div key={item.name} className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors">
-                    <img src={item.img} alt={item.name} className="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover flex-shrink-0" />
+                    <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden flex-shrink-0">
+                      <Image src={item.img} alt={item.name} fill loading="lazy" className="object-cover" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-sm text-zinc-800 truncate">{item.name}</p>

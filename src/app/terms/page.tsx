@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default function TermsPage() {
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-sm">
         <div className="flex items-center justify-between px-6 h-16 max-w-7xl mx-auto">
           <Link href="/">
-            <img alt="Grabit" className="h-9 w-auto" src="/grabit-logo.svg" />
+            <Image src="/grabit-logo.svg" alt="Grabit" width={120} height={36} priority className="h-9 w-auto" />
           </Link>
           <Link href="/" className="text-sm font-bold text-primary hover:opacity-70 transition-opacity">
             ← Back to home
@@ -72,7 +73,7 @@ export default function TermsPage() {
 
           <Section id="acceptance" title="Acceptance of Terms">
             <p>
-              By accessing or using Grabit (the app, website at grabit.in, or any associated service), you agree to be bound by these Terms of Service and our{' '}
+              By accessing or using Grabit (the app, website at grabit365.com, or any associated service), you agree to be bound by these Terms of Service and our{' '}
               <Link href="/privacy" className="text-primary font-semibold hover:underline">Privacy Policy</Link>.
             </p>
             <p>
@@ -100,7 +101,7 @@ export default function TermsPage() {
               <li>Your account is tied to a single Indian mobile number. One phone number = one account.</li>
               <li>You are responsible for maintaining the security of your OTP codes. Never share an OTP with anyone.</li>
               <li>Grabit will never call or message you asking for your OTP. If someone does, it is a scam.</li>
-              <li>If you suspect unauthorised access to your account, contact us immediately at <strong>support@grabit.in</strong>.</li>
+              <li>If you suspect unauthorised access to your account, contact us immediately at <strong>support@grabit365.com</strong>.</li>
             </ul>
           </Section>
 
@@ -171,8 +172,8 @@ export default function TermsPage() {
           <Section id="contact" title="Contact">
             <p>Questions about these terms?</p>
             <ul>
-              <li>Email: <strong>legal@grabit.in</strong></li>
-              <li>Support: <strong>support@grabit.in</strong></li>
+              <li>Email: <strong>legal@grabit365.com</strong></li>
+              <li>Support: <strong>support@grabit365.com</strong></li>
               <li>Company: KineticTechno Solutions Pvt. Ltd., India</li>
               <li>Response time: within 5 business days</li>
             </ul>

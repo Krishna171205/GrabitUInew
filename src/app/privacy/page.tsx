@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export default function PrivacyPage() {
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-sm">
         <div className="flex items-center justify-between px-6 h-16 max-w-7xl mx-auto">
           <Link href="/">
-            <img alt="Grabit" className="h-9 w-auto" src="/grabit-logo.svg" />
+            <Image src="/grabit-logo.svg" alt="Grabit" width={120} height={36} priority className="h-9 w-auto" />
           </Link>
           <Link href="/" className="text-sm font-bold text-primary hover:opacity-70 transition-opacity">
             ← Back to home
@@ -118,7 +119,7 @@ export default function PrivacyPage() {
               <li><strong>Deletion</strong> — Request deletion of your account and associated data. We will comply within 30 days, except where data must be retained for legal or tax purposes (e.g., payment records for 7 years under Indian financial regulation).</li>
               <li><strong>Opt out of WhatsApp notifications</strong> — Go to Profile → Notifications and toggle off WhatsApp alerts.</li>
             </ul>
-            <p>To exercise any of these rights, email <strong>privacy@grabit.in</strong>.</p>
+            <p>To exercise any of these rights, email <strong>privacy@grabit365.com</strong>.</p>
           </Section>
 
           <Section id="cookies" title="Cookies">
@@ -133,7 +134,7 @@ export default function PrivacyPage() {
           <Section id="contact" title="Contact Us">
             <p>For privacy concerns, data requests, or anything in this policy:</p>
             <ul>
-              <li>Email: <strong>privacy@grabit.in</strong></li>
+              <li>Email: <strong>privacy@grabit365.com</strong></li>
               <li>Response time: within 5 business days</li>
               <li>Company: KineticTechno Solutions Pvt. Ltd., India</li>
             </ul>
