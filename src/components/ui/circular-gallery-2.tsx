@@ -264,6 +264,7 @@ class Media {
         uniform vec2 uPlaneSizes;
         uniform sampler2D tMap;
         uniform float uBorderRadius;
+        uniform float uTime;
         varying vec2 vUv;
 
         float roundedBoxSDF(vec2 p, vec2 b, float r) {
@@ -281,10 +282,42 @@ class Media {
             vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
           );
           vec4 color = texture2D(tMap, uv);
+
           float d = roundedBoxSDF(vUv - 0.5, vec2(0.5 - uBorderRadius), uBorderRadius);
           float edgeSmooth = 0.002;
           float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
-          gl_FragColor = vec4(color.rgb, alpha);
+
+          /* ── Rotating orange border ring ── */
+          float PI = 3.14159265;
+          float borderW = 0.012;
+
+          /* Ring occupies the strip: -borderW <= d <= 0 */
+          float borderMask = smoothstep(-borderW - 0.003, -borderW + 0.005, d)
+                           * (1.0 - smoothstep(-0.004, 0.004, d));
+
+          /* Angle from card centre drives the sweep */
+          vec2 centered = vUv - 0.5;
+          float angle = atan(centered.y, centered.x);
+
+          /* Sweep head travels counter-clockwise */
+          float sweepHead = mod(-uTime * 0.65, PI * 2.0) - PI;
+          float angDiff   = mod(angle - sweepHead + PI * 3.0, PI * 2.0);
+
+          /* ~130° bright arc fading over ~90° tail */
+          float arcBright = PI * 0.72;
+          float arcFade   = PI * 0.50;
+          float sweep = 0.0;
+          if (angDiff < arcBright) {
+            sweep = 1.0;
+          } else if (angDiff < arcBright + arcFade) {
+            sweep = 1.0 - (angDiff - arcBright) / arcFade;
+          }
+          sweep = sweep * sweep;
+
+          vec3 orange = vec3(1.0, 0.42, 0.0);
+          float intensity = sweep * borderMask;
+
+          gl_FragColor = vec4(mix(color.rgb, orange, intensity * 0.94), alpha);
         }
       `,
       uniforms: {

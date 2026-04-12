@@ -1,10 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import type { GrabitCafe } from '@/types/grabit';
 import dynamic from 'next/dynamic';
 import type { CafeEntry } from '@/components/CafeCircularGallery';
+import { TestimonialsSection } from '@/components/ui/testimonials-columns';
+import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
+import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 
 const CafeCircularGallery = dynamic(() => import('@/components/CafeCircularGallery'), {
   ssr: false,
@@ -151,6 +154,22 @@ const COMING_SOON_CAFES = [
   { id: 'soon-12', name: 'The Piano Man Jazz Club',location: 'Safdarjung, Delhi' },
 ];
 
+const heroContainerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.28, delayChildren: 0.05 } },
+};
+const heroLeftVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.09 } },
+};
+const heroItemVariants = {
+  hidden: { opacity: 0, y: 72, scale: 0.96 },
+  visible: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { type: 'spring' as const, stiffness: 260, damping: 22 },
+  },
+};
+
 export default function LandingClient({ cafes }: Props) {
   const [search, setSearch] = useState('');
 
@@ -181,6 +200,18 @@ export default function LandingClient({ cafes }: Props) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const { scrollY } = useScroll();
+  const [heroKey, setHeroKey] = useState(0);
+  const hasScrolledDown = useRef(false);
+
+  useMotionValueEvent(scrollY, 'change', (y) => {
+    if (y > 300) hasScrolledDown.current = true;
+    if (y < 80 && hasScrolledDown.current) {
+      hasScrolledDown.current = false;
+      setHeroKey((k) => k + 1);
+    }
+  });
+
   return (
     <div className="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container">
 
@@ -202,6 +233,13 @@ export default function LandingClient({ cafes }: Props) {
               href="#"
             >
               How it works
+            </a>
+            <a
+              className="text-zinc-600 hover:opacity-80 transition-opacity duration-300"
+              onClick={(e) => { e.preventDefault(); scrollTo('testimonials'); }}
+              href="#"
+            >
+              Reviews
             </a>
             <a
               className="text-zinc-600 hover:opacity-80 transition-opacity duration-300"
@@ -265,23 +303,36 @@ export default function LandingClient({ cafes }: Props) {
 
         {/* ── Hero — Desktop: side-by-side grid ────────────────────────────── */}
         <section className="relative hidden lg:flex min-h-[795px] items-center overflow-hidden px-6 lg:px-20">
-          <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center relative z-10">
-            <div>
-              <span
+          <motion.div
+            key={heroKey}
+            className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center relative z-10"
+            variants={heroContainerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={heroLeftVariants}>
+              <motion.span
                 className="inline-block px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase mb-6 text-white"
                 style={{ backgroundColor: '#FF6B00' }}
+                variants={heroItemVariants}
               >
                 Freshly Brewed Convenience
-              </span>
-              <h1 className="text-5xl lg:text-[5rem] font-headline font-extrabold leading-[1.1] tracking-tighter mb-8 text-on-surface">
+              </motion.span>
+              <motion.h1
+                className="text-5xl lg:text-[5rem] font-headline font-extrabold leading-[1.1] tracking-tighter mb-8 text-on-surface"
+                variants={heroItemVariants}
+              >
                 Order Ahead.<br />
                 <span className="text-primary italic">Skip the Queue.</span>
-              </h1>
-              <p className="text-on-surface-variant text-xl max-w-lg mb-10 leading-relaxed">
+              </motion.h1>
+              <motion.p
+                className="text-on-surface-variant text-xl max-w-lg mb-10 leading-relaxed"
+                variants={heroItemVariants}
+              >
                 Curate your morning ritual without the wait. Grabit connects you to the city&apos;s finest
                 baristas for a seamless pick-up experience.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              </motion.p>
+              <motion.div className="flex flex-col sm:flex-row gap-4" variants={heroItemVariants}>
                 <button
                   onClick={() => scrollTo('cafe-search')}
                   className="bg-gradient-to-br from-primary to-primary-container text-white px-10 py-5 rounded-full font-bold text-lg hover:scale-105 transition-all duration-300"
@@ -295,10 +346,10 @@ export default function LandingClient({ cafes }: Props) {
                 >
                   How it works
                 </button>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
-            <div className="relative">
+            <motion.div className="relative" variants={heroItemVariants}>
               <div className="relative w-full aspect-square rounded-[3rem] overflow-hidden shadow-2xl rotate-3 scale-105">
                 <img
                   alt="Premium latte art in a ceramic cup"
@@ -309,9 +360,9 @@ export default function LandingClient({ cafes }: Props) {
               <motion.div
                 className="absolute -bottom-8 -left-8 p-6 rounded-3xl shadow-2xl max-w-xs -rotate-2 cursor-pointer"
                 style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
-                initial={{ y: 80, opacity: 0, scale: 0.5, filter: 'blur(8px)' }}
-                animate={{ y: 0, opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                transition={{ type: 'spring', stiffness: 180, damping: 16, delay: 0.75 }}
+                initial={{ opacity: 0, scale: 0.7, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                transition={{ type: 'spring', stiffness: 180, damping: 16, delay: 0.5 }}
                 whileHover={{
                   y: -8,
                   scale: 1.07,
@@ -336,8 +387,8 @@ export default function LandingClient({ cafes }: Props) {
                 </div>
               </motion.div>
 
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
           <div className="absolute top-0 right-0 w-1/2 h-full bg-surface-container-low -z-10 rounded-l-[10rem] opacity-50" />
         </section>
 
@@ -466,59 +517,107 @@ export default function LandingClient({ cafes }: Props) {
           </div>
         </section>
 
-        {/* ── CTA ──────────────────────────────────────────────────────────── */}
-        <section className="py-24 px-6">
-          <div className="max-w-5xl mx-auto rounded-[3.5rem] bg-primary overflow-hidden relative p-12 lg:p-24 text-center">
-            <div className="relative z-10">
-              <h2 className="text-3xl lg:text-5xl font-headline font-extrabold text-white mb-8 tracking-tighter">
-                Ready to join the ritual?
-              </h2>
-              <p className="text-white/80 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
-                Get exclusive offers from local cafes and be the first to know about new artisan partnerships.
-              </p>
-              <form
-                className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto"
-                onSubmit={(e) => e.preventDefault()}
-              >
-                <div className="flex-grow flex items-center bg-white rounded-full overflow-hidden h-16">
-                  <span className="pl-6 pr-3 text-on-surface-variant font-bold text-base select-none border-r border-zinc-200 h-7 flex items-center">
-                    +91
-                  </span>
-                  <input
-                    className="flex-1 h-full px-4 bg-transparent text-on-surface focus:outline-none text-base"
-                    placeholder="Mobile number"
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                  />
+        {/* ── App Showcase (ContainerScroll) ───────────────────────────────── */}
+        <section className="bg-surface-container-low overflow-hidden">
+          <ContainerScroll
+            titleComponent={
+              <div className="mb-6">
+                <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-4 text-white" style={{ backgroundColor: '#FF6B00' }}>
+                  The Experience
+                </span>
+                <h2 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface leading-tight">
+                  Order in seconds.<br />
+                  <span className="text-primary italic">Pick up in minutes.</span>
+                </h2>
+              </div>
+            }
+          >
+            {/* ── Grabit app UI mockup ── */}
+            <div className="w-full h-full flex flex-col bg-white rounded-xl overflow-hidden font-body select-none">
+              {/* Status bar */}
+              <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-zinc-100">
+                <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">grabit.in</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-semibold text-emerald-600">Open</span>
                 </div>
-                <button
-                  type="submit"
-                  className="h-16 px-10 bg-zinc-900 text-white font-bold rounded-full hover:bg-zinc-800 transition-colors shadow-xl whitespace-nowrap"
-                >
-                  Get Early Access
+              </div>
+              {/* Cafe header */}
+              <div className="relative h-28 md:h-40 overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=85" alt="Cafe" className="w-full h-full object-cover" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
+                <div className="absolute bottom-3 left-4 text-white">
+                  <p className="text-lg md:text-2xl font-bold leading-tight">The Raydee Cafe</p>
+                  <p className="text-xs text-white/70">DTU, Delhi · 15 min prep · ⭐ 4.8</p>
+                </div>
+              </div>
+              {/* Category tabs */}
+              <div className="flex gap-1 px-4 py-2 border-b border-zinc-100 overflow-x-auto">
+                {['Drinks', 'Food', 'Specials', 'Desserts'].map((tab, i) => (
+                  <button
+                    key={tab}
+                    className="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all"
+                    style={i === 0 ? { background: '#FF6B00', color: '#fff' } : { background: '#f4f4f5', color: '#52525b' }}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              {/* Menu items */}
+              <div className="flex-1 overflow-auto px-4 py-3 space-y-3">
+                {[
+                  { name: 'Cold Brew', desc: 'Smooth 12-hour steeped cold brew', price: '₹220', img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=200&q=80', hot: false },
+                  { name: 'Flat White', desc: 'Double ristretto, silky microfoam', price: '₹280', img: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=200&q=80', hot: true },
+                  { name: 'Matcha Latte', desc: 'Ceremonial grade, oat milk', price: '₹320', img: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=200&q=80', hot: false },
+                ].map((item) => (
+                  <div key={item.name} className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors">
+                    <img src={item.img} alt={item.name} className="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm text-zinc-800 truncate">{item.name}</p>
+                        {item.hot && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">HOT</span>}
+                      </div>
+                      <p className="text-xs text-zinc-400 truncate">{item.desc}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span className="text-sm font-bold text-zinc-800">{item.price}</span>
+                      <button className="w-7 h-7 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ background: '#FF6B00' }}>+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Bottom CTA */}
+              <div className="px-4 py-3 border-t border-zinc-100">
+                <button className="w-full py-3 rounded-full font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #FF6B00, #ff8c00)' }}>
+                  View Cart · ₹500 → Pick up @ 10:30 AM
                 </button>
-              </form>
+              </div>
             </div>
-            <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary-container/30 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-          </div>
+          </ContainerScroll>
         </section>
+
+        {/* ── Testimonials ─────────────────────────────────────────────────── */}
+        <div className="-mt-40 md:-mt-72">
+          <TestimonialsSection />
+        </div>
+
+        {/* ── Scroll-down hint before cinematic reveal ─────────────────────── */}
+        <button
+          className="flex flex-col items-center gap-0 py-20 w-full select-none cursor-pointer group"
+          onClick={() => document.getElementById('join-ritual')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <span
+            className="text-xs uppercase font-light mb-6 transition-opacity duration-300 group-hover:opacity-60"
+            style={{ color: 'rgba(0,0,0,0.22)', letterSpacing: '0.4em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            Scroll down to join
+          </span>
+          <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.18), transparent)' }} />
+        </button>
 
       </main>
 
-      {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <footer className="bg-zinc-100 py-12 px-6 w-full">
-        <div className="flex flex-col items-center text-center space-y-4 w-full max-w-7xl mx-auto">
-          <div className="text-lg font-bold text-zinc-900 mb-2 font-headline italic">Grabit</div>
-          <div className="flex gap-8 text-sm text-zinc-500 mb-4">
-            <a className="hover:text-zinc-900 transition-colors" href="/privacy">Privacy</a>
-            <a className="hover:text-zinc-900 transition-colors" href="/terms">Terms</a>
-            <a className="hover:text-zinc-900 transition-colors" href="#">Locations</a>
-          </div>
-          <p className="text-sm text-zinc-500">© 2025 Grabit. Crafted for the Urban Alchemist.</p>
-        </div>
-      </footer>
+      <ReadyToJoinRitual />
 
     </div>
   );
