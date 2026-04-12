@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { CircularGallery, type GalleryItem } from '@/components/ui/circular-gallery-2';
 
 export type CafeEntry =
@@ -43,39 +42,35 @@ export default function CafeCircularGallery({ items }: Props) {
   return (
     <div className="relative w-full h-[340px] sm:h-[440px] lg:h-[520px]">
 
-      {/* ── Moving orange border ──────────────────────────────────────────
-          CSS mask technique: the conic-gradient fills the element, but the
-          mask punches out the content area, leaving only the 4px border ring
-          visible. No inner fill div, no background-color matching needed.
-      ─────────────────────────────────────────────────────────────────── */}
-      <motion.div
-        className="absolute pointer-events-none"
+      {/* ── Rotating orange border around the whole component ─────────── */}
+      {/* @property lets us animate the conic-gradient start angle directly —
+          the element itself never rotates, so no diagonal overflow at corners */}
+      <style>{`
+        @property --gallery-sweep {
+          syntax: '<angle>';
+          inherits: false;
+          initial-value: 0deg;
+        }
+        @keyframes gallery-border-spin {
+          to { --gallery-sweep: 360deg; }
+        }
+        .gallery-border-ring {
+          animation: gallery-border-spin 6s linear infinite;
+        }
+      `}</style>
+      <div
+        className="gallery-border-ring absolute pointer-events-none"
         style={{
           inset: 0,
           borderRadius: 28,
-          padding: 4,
+          padding: 2,
           background:
-            'conic-gradient(from 0deg, #ff6b00 0deg, #ffaa00 50deg, rgba(255,107,0,0.15) 90deg, transparent 130deg, transparent 300deg, rgba(255,107,0,0.15) 330deg, #ff6b00 360deg)',
-          // Mask: show only the 4px padding ring, punch out the content centre
-          WebkitMask:
-            'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            'conic-gradient(from var(--gallery-sweep), #ff6b00 0deg, #ffaa00 40deg, rgba(255,107,0,0.12) 80deg, transparent 120deg, transparent 290deg, rgba(255,107,0,0.12) 320deg, #ff6b00 360deg)',
+          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
           WebkitMaskComposite: 'destination-out',
           mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
           maskComposite: 'exclude',
           zIndex: 10,
-        }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
-      />
-
-      {/* Subtle static base border so the shape is always visible */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          inset: 0,
-          borderRadius: 28,
-          border: '1.5px solid rgba(255,107,0,0.12)',
-          zIndex: 9,
         }}
       />
 
