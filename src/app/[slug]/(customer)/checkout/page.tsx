@@ -89,7 +89,7 @@ export default function CheckoutPage() {
       <div style={{ padding: '80px 16px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
         <p style={{ color: 'var(--g-muted)', marginBottom: '24px' }}>Nothing in your cart</p>
         <Link
-          href={`/${slug}/menu`}
+          href={`/${slug}`}
           style={{
             display: 'inline-block',
             background: 'var(--g-amber)',

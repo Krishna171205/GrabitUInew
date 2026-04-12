@@ -1,5 +1,51 @@
 @import "tailwindcss";
 
+@theme {
+  /* Brand colors */
+  --color-primary: #FF6B00;
+  --color-primary-dim: #e66000;
+  --color-primary-container: #ff8533;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #401500;
+  --color-secondary: #904800;
+  --color-secondary-container: #ffc69f;
+  --color-on-secondary-container: #723700;
+  --color-on-secondary-fixed: #552800;
+
+  /* Surface / background */
+  --color-background: #f6f6f9;
+  --color-on-background: #2d2f31;
+  --color-surface: #f6f6f9;
+  --color-on-surface: #2d2f31;
+  --color-on-surface-variant: #5a5c5e;
+  --color-surface-container: #e7e8eb;
+  --color-surface-container-low: #f0f0f3;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #e1e2e6;
+  --color-surface-bright: #f6f6f9;
+
+  /* Utility */
+  --color-outline: #757779;
+  --color-outline-variant: #acadaf;
+  --color-tertiary-container: #fbb423;
+  --color-on-tertiary-container: #523700;
+
+  /* Grabit legacy tokens (used by [slug]/ routes) */
+  --color-g-amber: #ff6b00;
+  --color-g-amber-tint: #fff8f0;
+  --color-g-surface: #f5f5f7;
+  --color-g-text: #1d1d1f;
+  --color-g-muted: rgba(0,0,0,0.48);
+  --color-g-border: rgba(0,0,0,0.06);
+  --color-g-wa-green: #25d366;
+
+  /* Font families */
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+}
+
+/* Legacy CSS custom properties — used by [slug]/ route inline styles */
 :root {
   --g-amber: #ff6b00;
   --g-amber-tint: #fff8f0;
@@ -16,18 +62,30 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 body {
-  font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  font-family: "Manrope", -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
   background: var(--g-white);
   color: var(--g-text);
   -webkit-font-smoothing: antialiased;
+  min-height: max(884px, 100dvh);
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-family: 'Material Symbols Outlined';
+  font-size: inherit;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
 }

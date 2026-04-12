@@ -1,15 +1,18 @@
 import type { NextConfig } from 'next';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const securityHeaders = [
   // XSS: only allow scripts from self + Cashfree SDK + Supabase
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://sdk.cashfree.com",
-      "style-src 'self' 'unsafe-inline'",
+      // 'unsafe-eval' needed in dev: Next.js wraps HMR/dynamic chunks in eval() for source maps
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://sdk.cashfree.com`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
+      "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cashfree.com https://sandbox.cashfree.com",
       "frame-src https://sdk.cashfree.com",
       "object-src 'none'",

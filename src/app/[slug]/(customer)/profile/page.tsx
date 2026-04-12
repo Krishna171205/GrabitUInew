@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [topItems, setTopItems] = useState<TopItem[]>([]);
+  const [cafeName, setCafeName] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -39,6 +40,7 @@ export default function ProfilePage() {
       })
       .then(menuData => {
         const cid = menuData?.cafe?.id;
+        setCafeName(menuData?.cafe?.name ?? '');
         if (cid) {
           return fetch(`/api/proxy/grabit/orders/top-items?cafeId=${cid}`).then(r => r.json()).then(setTopItems);
         }
@@ -185,7 +187,7 @@ export default function ProfilePage() {
       {topItems.length > 0 && (
         <div style={{ padding: '20px', borderBottom: '1px solid var(--g-border)' }}>
           <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--g-muted)', marginBottom: '12px' }}>
-            Top Orders at {slug}
+            Top Orders at {cafeName || slug}
           </p>
           {topItems.map((item, i) => (
             <div key={item.menu_item_id} style={{

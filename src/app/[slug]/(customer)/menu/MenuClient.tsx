@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/types';
 import { useCart } from '@/store/cart';
 
@@ -98,20 +99,31 @@ export default function MenuClient({ slug, cafe, items }: Props) {
       </div>
 
       {/* Floating cart CTA */}
-      {cartCount > 0 && (
-        <div style={{
-          position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 100, width: 'calc(100% - 48px)', maxWidth: '432px'
-        }}>
-          <Link href={`/${slug}/cart`} style={{
-            display: 'block', background: 'var(--g-amber)', color: '#fff',
-            padding: '16px 24px', borderRadius: '980px', fontWeight: 700, fontSize: '16px',
-            textAlign: 'center', boxShadow: 'rgba(255,107,0,0.38) 0 6px 18px'
-          }}>
-            View Cart · {cartCount} item{cartCount > 1 ? 's' : ''} · ₹{total()}
-          </Link>
-        </div>
-      )}
+      <AnimatePresence>
+        {cartCount > 0 && (
+          <motion.div
+            key="view-cart"
+            initial={{ y: 80, opacity: 0, scale: 0.85 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 80, opacity: 0, scale: 0.85 }}
+            transition={{ type: 'spring', damping: 12, stiffness: 100 }}
+            style={{
+              position: 'fixed', bottom: '24px', left: 0, right: 0,
+              display: 'flex', justifyContent: 'center', zIndex: 100, padding: '0 24px'
+            }}
+          >
+            <motion.div whileTap={{ scale: 0.92 }} style={{ width: '100%', maxWidth: '432px' }}>
+              <Link href={`/${slug}/cart`} style={{
+                display: 'block', background: 'var(--g-amber)', color: '#fff',
+                padding: '16px 24px', borderRadius: '980px', fontWeight: 700, fontSize: '16px',
+                textAlign: 'center', boxShadow: 'rgba(255,107,0,0.38) 0 6px 18px'
+              }}>
+                View Cart · {cartCount} item{cartCount > 1 ? 's' : ''} · ₹{total()}
+              </Link>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
