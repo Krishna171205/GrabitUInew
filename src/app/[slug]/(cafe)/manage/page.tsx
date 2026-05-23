@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { BottomTabs } from './BottomTabs';
 import { supabase } from '@/lib/supabase';
-import type { GrabitOrderWithItems } from '@gradient365/types';
+import type { GrabitOrderWithItems } from '@gradient365/gradient-commons';
 
 const STATUS_LABELS: Record<string, string> = {
   new_order: 'New',

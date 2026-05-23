@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import MenuClient from './MenuClient';
-import type { GrabitCafe, GrabitMenuItem } from '@gradient365/types';
+import type { GrabitCafe, GrabitMenuItem } from '@gradient365/gradient-commons';
 
 export default async function MenuPage({
   params

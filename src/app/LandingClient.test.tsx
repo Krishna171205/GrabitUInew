@@ -11,7 +11,7 @@
 
 // import { render, screen, fireEvent } from '@testing-library/react';
 // import LandingClient from './LandingClient';
-// import type { GrabitCafe } from '@gradient365/types';
+// import type { GrabitCafe } from '@gradient365/gradient-commons';
 
 // const makeCafe = (overrides: Partial<GrabitCafe> = {}): GrabitCafe => ({
 //   id: 1,

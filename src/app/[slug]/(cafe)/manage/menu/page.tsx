@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { GrabitMenuItem } from '@gradient365/types';
+import type { GrabitMenuItem } from '@gradient365/gradient-commons';
 import { BottomTabs } from '../BottomTabs';
 
 const CATEGORIES = ['drinks', 'food', 'specials', 'desserts'] as const;

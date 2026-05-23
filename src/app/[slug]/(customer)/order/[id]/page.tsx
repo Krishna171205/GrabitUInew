@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import type { GrabitOrderWithItems, GrabitOrderStatus } from '@gradient365/types';
+import type { GrabitOrderWithItems, GrabitOrderStatus } from '@gradient365/gradient-commons';
 
 const STATUS_LABELS: Record<GrabitOrderStatus, string> = {
   pending: 'Awaiting payment',

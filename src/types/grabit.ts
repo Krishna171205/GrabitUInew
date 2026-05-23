@@ -1,4 +1,4 @@
-// Vendored from @gradient365/types — kept in sync with types/src/grabit.ts
+// Vendored from @gradient365/gradient-commons — kept in sync with gradient-commons/src/grabit.ts
 // Having this local copy lets Vercel build without needing the monorepo root.
 
 export type GrabitOrderStatus =

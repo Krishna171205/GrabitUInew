@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { GrabitCartItem } from '@gradient365/types';
+import type { GrabitCartItem } from '@gradient365/gradient-commons';
 
 interface CartState {
   cafeSlug: string | null;

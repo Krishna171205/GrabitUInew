@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
-import type { GrabitAvailableSlot } from '@gradient365/types';
+import type { GrabitAvailableSlot } from '@gradient365/gradient-commons';
 
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();

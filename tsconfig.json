@@ -25,7 +25,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@gradient365/types": [
+      "@gradient365/gradient-commons": [
         "./src/types/grabit.ts"
       ]
     },

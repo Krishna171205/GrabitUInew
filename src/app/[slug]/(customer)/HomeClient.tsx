@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/types';
+import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
 
 interface TopItem {

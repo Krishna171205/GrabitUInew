@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { GrabitOrderWithItems } from '@gradient365/types';
+import type { GrabitOrderWithItems } from '@gradient365/gradient-commons';
 
 export default function AnalyticsPage() {
   const { slug } = useParams<{ slug: string }>();
