@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import type { GrabitOrderWithItems, GrabitOrderStatus } from '@gradient365/gradient-commons';
 
 const STATUS_LABELS: Record<GrabitOrderStatus, string> = {
@@ -28,25 +27,15 @@ export default function OrderPage() {
       })
       .catch(() => setLoading(false));
 
-    const channel = supabase
-      .channel(`order-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'grabit_orders',
-          filter: `id=eq.${id}`,
-        },
-        (payload) => {
-          setOrder((prev) => (prev ? { ...prev, ...payload.new } : null));
-        }
-      )
-      .subscribe();
+    // Live updates via polling the backend (RDS-backed), replacing Supabase Realtime.
+    const poll = setInterval(() => {
+      fetch(`/api/proxy/grabit/orders/${id}`)
+        .then((res) => res.json())
+        .then((data) => setOrder(data))
+        .catch(() => {});
+    }, 4000);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => clearInterval(poll);
   }, [id]);
 
   if (loading) {

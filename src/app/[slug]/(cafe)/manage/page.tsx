@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { BottomTabs } from './BottomTabs';
-import { supabase } from '@/lib/supabase';
 import type { GrabitOrderWithItems } from '@gradient365/gradient-commons';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -76,12 +75,9 @@ export default function ManagePage() {
 
   useEffect(() => {
     if (!cafeId) return;
-    const channel = supabase
-      .channel(`cafe-orders-${cafeId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'grabit_orders', filter: `cafe_id=eq.${cafeId}` },
-        () => { loadOrders(cafeId); })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Live updates via polling the backend (RDS-backed), replacing Supabase Realtime.
+    const poll = setInterval(() => { loadOrders(cafeId); }, 5000);
+    return () => clearInterval(poll);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cafeId]);
 
