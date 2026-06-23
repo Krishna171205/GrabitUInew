@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 const testimonials = [
@@ -108,15 +109,16 @@ export function TestimonialsColumn({
               <div
                 key={i}
                 className="p-8 rounded-3xl border border-outline-variant/30 bg-surface-container-lowest shadow-lg max-w-xs w-full"
-                style={{ boxShadow: "0 8px 32px rgba(255,107,0,0.07)" }}
+                style={{ boxShadow: "0 8px 32px rgba(183,18,42,0.07)" }}
               >
                 <p className="text-sm leading-relaxed text-on-surface-variant">{text}</p>
                 <div className="flex items-center gap-3 mt-5">
-                  <img
+                  <Image
                     width={40}
                     height={40}
                     src={image}
                     alt={name}
+                    loading="lazy"
                     className="h-10 w-10 rounded-full object-cover flex-shrink-0"
                   />
                   <div className="flex flex-col">

@@ -65,7 +65,7 @@ export default function CafeCircularGallery({ items }: Props) {
           borderRadius: 28,
           padding: 2,
           background:
-            'conic-gradient(from var(--gallery-sweep), #ff6b00 0deg, #ffaa00 40deg, rgba(255,107,0,0.12) 80deg, transparent 120deg, transparent 290deg, rgba(255,107,0,0.12) 320deg, #ff6b00 360deg)',
+            'conic-gradient(from var(--gallery-sweep), #b7122a 0deg, #ffaa00 40deg, rgba(183,18,42,0.12) 80deg, transparent 120deg, transparent 290deg, rgba(183,18,42,0.12) 320deg, #b7122a 360deg)',
           WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
           WebkitMaskComposite: 'destination-out',
           mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',

@@ -1,16 +1,51 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
 import type { GrabitAvailableSlot } from '@gradient365/gradient-commons';
+import { TopBar, Card, Photo, FoodMark, QtyStepper, Button, Icon } from '@/components/ui/kit';
+
+interface SlotsData { slots: GrabitAvailableSlot[]; label: string | null; }
+
+const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
+
+/* Swipe-to-delete row (pointer drag reveals a delete action). */
+function SwipeRow({ children, onDelete }: { children: ReactNode; onDelete: () => void }) {
+  const [dx, setDx] = useState(0);
+  const start = useRef<number | null>(null);
+  const open = useRef(false);
+  const onDown = (e: React.PointerEvent) => { start.current = e.clientX - (open.current ? -72 : 0); e.currentTarget.setPointerCapture(e.pointerId); };
+  const onMove = (e: React.PointerEvent) => {
+    if (start.current == null) return;
+    setDx(Math.max(-84, Math.min(0, e.clientX - start.current)));
+  };
+  const onUp = () => {
+    if (start.current == null) return;
+    const o = dx < -42; open.current = o; setDx(o ? -72 : 0); start.current = null;
+  };
+  return (
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--r-lg)' }}>
+      <button onClick={onDelete} aria-label="Remove" style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 72, border: 'none', background: 'var(--error)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+        {Icon.trash({ size: 22 })}
+      </button>
+      <div
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+        style={{ transform: `translateX(${dx}px)`, transition: start.current == null ? 'transform .28s var(--ease-spring)' : 'none', touchAction: 'pan-y', background: 'var(--surface)' }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { items, removeItem, updateQty, total, clearCart } = useCart();
+  const { items, updateQty, total } = useCart();
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   function dateStr(offsetDays: number) {
     const d = new Date();
@@ -18,170 +53,138 @@ export default function CartPage() {
     return d.toISOString().split('T')[0];
   }
 
-  const { data: slotsData, isLoading: slotsLoading } = useQuery({
-    queryKey: ['slots', slug],
-    queryFn: async () => {
-      // Try today first, fall back to tomorrow if no slots remain
-      const todayRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(0)}`);
-      if (!todayRes.ok) throw new Error('Failed to load slots');
-      const todayData = await todayRes.json() as { slots: GrabitAvailableSlot[] };
-      if (todayData.slots.length > 0) return { slots: todayData.slots, label: null };
-
-      const tomorrowRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(1)}`);
-      if (!tomorrowRes.ok) return { slots: [], label: null };
-      const tomorrowData = await tomorrowRes.json() as { slots: GrabitAvailableSlot[] };
-      return { slots: tomorrowData.slots, label: 'Tomorrow' };
-    },
-    enabled: items.length > 0
-  });
+  useEffect(() => {
+    if (items.length === 0) return;
+    setSlotsLoading(true);
+    (async () => {
+      try {
+        const todayRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(0)}`);
+        if (!todayRes.ok) throw new Error('slots fetch failed');
+        const todayData = await todayRes.json() as { slots: GrabitAvailableSlot[] };
+        if (todayData.slots.length > 0) {
+          setSlotsData({ slots: todayData.slots, label: null });
+          return;
+        }
+        const tomorrowRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(1)}`);
+        const tomorrowData = tomorrowRes.ok
+          ? await tomorrowRes.json() as { slots: GrabitAvailableSlot[] }
+          : { slots: [] };
+        setSlotsData({ slots: tomorrowData.slots, label: 'Tomorrow' });
+      } catch {
+        setSlotsData({ slots: [], label: null });
+      } finally {
+        setSlotsLoading(false);
+      }
+    })();
+  }, [slug, items.length]);
 
   if (items.length === 0) {
     return (
-      <div style={{ padding: '80px 16px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
-        <p style={{ fontSize: '20px', marginBottom: '8px' }}>🛒</p>
-        <p style={{ color: 'var(--g-muted)', marginBottom: '24px' }}>Your cart is empty</p>
-        <Link href={`/${slug}`} style={{
-          display: 'inline-block', background: 'var(--g-amber)', color: '#fff',
-          padding: '12px 24px', borderRadius: '980px', fontWeight: 600
-        }}>
-          Browse menu
-        </Link>
+      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
+        <TopBar title="Your order" onBack={() => router.push(`/${slug}`)} />
+        <div style={{ padding: '60px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'var(--surface-container)', display: 'grid', placeItems: 'center', color: 'var(--muted-2)' }}>
+            {Icon.bag({ size: 44, sw: 1.4 })}
+          </div>
+          <div>
+            <div className="t-title">Your cart is empty</div>
+            <div className="t-caption" style={{ marginTop: 6, maxWidth: 240 }}>Add a few things from the menu and pick a pickup slot.</div>
+          </div>
+          <Link href={`/${slug}`}><Button icon={Icon.menu({ size: 20 })}>Browse the menu</Button></Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 0 140px' }}>
-      {/* Nav */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: '1px solid var(--g-border)', padding: '0 16px', height: '48px',
-        display: 'flex', alignItems: 'center', gap: '12px'
-      }}>
-        <Link href={`/${slug}`} style={{ fontSize: '14px', color: 'var(--g-muted)' }}>←</Link>
-        <span style={{ fontWeight: 700, fontSize: '16px' }}>Your order</span>
-      </nav>
+    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative', paddingBottom: 188 }}>
+      <TopBar title="Your order" onBack={() => router.push(`/${slug}`)} />
 
-      <div style={{ padding: '16px' }}>
-        {/* Cart items */}
-        <div style={{ background: 'var(--g-surface)', borderRadius: '14px', overflow: 'hidden', marginBottom: '24px' }}>
-          {items.map((item, idx) => (
-            <div key={item.menu_item_id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '14px 16px',
-              borderBottom: idx < items.length - 1 ? '1px solid var(--g-border)' : 'none'
-            }}>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontWeight: 600, fontSize: '15px', marginBottom: '2px' }}>{item.name}</p>
-                <p style={{ fontSize: '13px', color: 'var(--g-muted)' }}>₹{item.price} each</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button onClick={() => updateQty(item.menu_item_id, item.quantity - 1)} style={qtyBtn}>−</button>
-                  <span style={{ fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>{item.quantity}</span>
-                  <button onClick={() => updateQty(item.menu_item_id, item.quantity + 1)} style={qtyBtn}>+</button>
+      <div style={{ padding: '6px 20px 0' }}>
+        {/* Line items */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {items.map(item => (
+            <SwipeRow key={item.menu_item_id} onDelete={() => updateQty(item.menu_item_id, 0)}>
+              <Card style={{ display: 'flex', gap: 12, alignItems: 'center', boxShadow: 'none' }}>
+                <Photo seed={item.menu_item_id} src={item.image_url || undefined} label={item.name} style={{ width: 56, height: 56, flex: 'none' }} radius="var(--r-md)" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FoodMark veg size={13} /><span className="t-label">{item.name}</span></div>
+                  <div className="t-price tabular" style={{ marginTop: 5, fontSize: 15 }}>{inr(item.price * item.quantity)}</div>
                 </div>
-                <span style={{ fontWeight: 700, minWidth: '60px', textAlign: 'right' }}>
-                  ₹{(item.price * item.quantity).toFixed(0)}
-                </span>
-              </div>
-            </div>
+                <QtyStepper value={item.quantity} onChange={(v) => updateQty(item.menu_item_id, v)} size="sm" />
+              </Card>
+            </SwipeRow>
           ))}
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            padding: '14px 16px', borderTop: '1px solid var(--g-border)',
-            fontWeight: 700, fontSize: '17px'
-          }}>
-            <span>Total</span>
-            <span>₹{total()}</span>
-          </div>
         </div>
+        <div className="t-caption" style={{ textAlign: 'center', margin: '10px 0 18px' }}>Swipe a row left to remove</div>
 
         {/* Slot picker */}
-        <h2 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '4px' }}>
-          Pick a pickup slot
-          {slotsData?.label && (
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--g-amber)', marginLeft: '8px' }}>
-              · {slotsData.label}
-            </span>
-          )}
-        </h2>
-        <p style={{ fontSize: '12px', color: 'var(--g-muted)', margin: '4px 0 12px' }}>
-          Slots are 5 minutes apart · Max {slotsData?.slots[0]?.max_count ?? 5} orders per slot
-        </p>
-        {slotsLoading && (
-          <p style={{ color: 'var(--g-muted)', fontSize: '14px' }}>Loading slots…</p>
-        )}
-        {!slotsLoading && slotsData?.slots.length === 0 && (
-          <p style={{ color: 'var(--g-muted)', fontSize: '14px' }}>
-            No slots available. Try again tomorrow.
-          </p>
-        )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 12px', color: 'var(--primary)' }}>
+          {Icon.clock({ size: 20 })}
+          <span className="t-subtitle" style={{ color: 'var(--on-surface)' }}>Pickup slot</span>
+          <span className="t-caption" style={{ marginLeft: 'auto' }}>
+            5-min windows{slotsData?.label ? ` · ${slotsData.label}` : ''}
+          </span>
+        </div>
+        {slotsLoading && <p className="t-caption">Loading slots…</p>}
+        {!slotsLoading && slotsData?.slots.length === 0 && <p className="t-caption">No slots available. Try again tomorrow.</p>}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {slotsData?.slots.map(slot => {
             const full = slot.available_count === 0;
-            const selected = selectedSlot === slot.slot_start;
+            const sel = selectedSlot === slot.slot_start;
             const minsFromNow = Math.round((new Date(slot.slot_start).getTime() - Date.now()) / 60000);
-            // For today: show relative ("5 mins"). For tomorrow: show clock time ("8:00 AM")
             const label = slotsData?.label
               ? new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-              : minsFromNow < 60
-                ? `${minsFromNow} mins`
-                : `${Math.floor(minsFromNow / 60)}h ${minsFromNow % 60}m`;
+              : minsFromNow < 60 ? `${minsFromNow} mins` : `${Math.floor(minsFromNow / 60)}h ${minsFromNow % 60}m`;
             return (
               <button
                 key={slot.slot_start}
                 disabled={full}
                 onClick={() => setSelectedSlot(slot.slot_start)}
                 style={{
-                  padding: '14px 8px', borderRadius: '12px', textAlign: 'center',
-                  cursor: full ? 'not-allowed' : 'pointer',
-                  background: selected ? 'var(--g-amber)' : 'var(--g-surface)',
-                  color: selected ? '#fff' : full ? 'var(--g-muted)' : 'var(--g-text)',
-                  border: selected ? '2px solid var(--g-amber)' : '1.5px solid var(--g-border)',
-                  opacity: full ? 0.45 : 1,
-                  fontFamily: 'inherit'
+                  position: 'relative', padding: '11px 6px 9px', borderRadius: 'var(--r-md)', cursor: full ? 'not-allowed' : 'pointer',
+                  border: `1px solid ${sel ? 'var(--primary)' : full ? 'var(--hairline)' : 'var(--hairline-strong)'}`,
+                  background: sel ? 'var(--primary)' : full ? 'var(--surface-low)' : 'var(--surface-card)',
+                  color: sel ? '#fff' : full ? 'var(--muted-2)' : 'var(--on-surface)', opacity: full ? 0.7 : 1,
+                  animation: sel ? 'pop-in .26s var(--ease-spring)' : 'none', transition: 'border-color .15s, background .15s',
                 }}
               >
-                <p style={{ fontSize: '15px', fontWeight: 700, marginBottom: '2px' }}>{label}</p>
-                <p style={{ fontSize: '11px', fontWeight: 500, color: selected ? 'rgba(255,255,255,0.8)' : 'var(--g-muted)' }}>
+                <div className="tabular" style={{ fontSize: 13.5, fontWeight: 700 }}>{label}</div>
+                <div className="tabular" style={{ fontSize: 11, marginTop: 3, fontWeight: 600, color: sel ? 'rgba(255,255,255,0.9)' : full ? 'var(--muted-2)' : slot.available_count <= 1 ? 'var(--warning)' : 'var(--success)' }}>
                   {full ? 'Full' : `${slot.available_count} left`}
-                </p>
+                </div>
               </button>
             );
           })}
         </div>
+
+        {/* Bill */}
+        <div className="t-subtitle" style={{ margin: '24px 0 12px' }}>Bill summary</div>
+        <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 16, fontWeight: 700 }}>Total</span>
+            <span className="tabular" style={{ fontSize: 18, fontWeight: 700 }}>{inr(total())}</span>
+          </div>
+        </Card>
       </div>
 
-      {/* Proceed CTA */}
-      <div style={{
-        position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-        width: 'calc(100% - 48px)', maxWidth: '432px', zIndex: 100
-      }}>
-        <button
+      {/* Dock CTA */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', padding: '12px 20px 16px', background: 'linear-gradient(to top, var(--surface) 70%, transparent)' }}>
+        <div style={{ marginBottom: 8 }}>
+          {selectedSlot
+            ? <div className="t-caption" style={{ textAlign: 'center', color: 'var(--on-surface)' }}>Pickup slot selected</div>
+            : <div className="t-caption" style={{ textAlign: 'center', color: 'var(--warning)' }}>Pick a pickup slot to continue</div>}
+        </div>
+        <Button
+          full
           disabled={!selectedSlot}
-          onClick={() => {
-            sessionStorage.setItem('grabit_slot', selectedSlot!);
-            router.push(`/${slug}/checkout`);
-          }}
-          style={{
-            width: '100%', padding: '16px', background: selectedSlot ? 'var(--g-amber)' : 'var(--g-surface)',
-            color: selectedSlot ? '#fff' : 'var(--g-muted)', border: 'none', borderRadius: '980px',
-            fontSize: '16px', fontWeight: 700, cursor: selectedSlot ? 'pointer' : 'not-allowed',
-            boxShadow: selectedSlot ? 'rgba(255,107,0,0.38) 0 6px 18px' : 'none'
-          }}
+          onClick={() => { sessionStorage.setItem('grabit_slot', selectedSlot!); router.push(`/${slug}/checkout`); }}
+          style={{ justifyContent: 'space-between' }}
         >
-          {selectedSlot ? 'Choose payment →' : 'Pick a slot to continue'}
-        </button>
+          <span className="tabular">{inr(total())}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>Continue to Pay {Icon.chevR({ size: 18 })}</span>
+        </Button>
       </div>
     </div>
   );
 }
-
-const qtyBtn: React.CSSProperties = {
-  width: '28px', height: '28px', borderRadius: '50%',
-  border: '1px solid var(--g-border)', background: 'white',
-  fontSize: '16px', cursor: 'pointer', display: 'flex',
-  alignItems: 'center', justifyContent: 'center'
-};

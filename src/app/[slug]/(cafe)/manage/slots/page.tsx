@@ -1,56 +1,64 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { BottomTabs } from '../BottomTabs';
+import { useParams } from 'next/navigation';
+import { useCafeId } from '../../CafeProvider';
+import { StaffChrome, Button, Icon } from '@/components/ui/kit';
+
+interface SlotConfig {
+  opening_time: string;
+  closing_time: string;
+  slot_duration_minutes: number;
+  max_orders_per_slot: number;
+  min_advance_minutes: number;
+  cutoff_before_close_minutes: number;
+}
+
+const DEFAULTS: SlotConfig = {
+  opening_time: '08:00',
+  closing_time: '22:00',
+  slot_duration_minutes: 15,
+  max_orders_per_slot: 5,
+  min_advance_minutes: 20,
+  cutoff_before_close_minutes: 30,
+};
 
 export default function SlotConfigPage() {
   const { slug } = useParams<{ slug: string }>();
-  const router = useRouter();
+  const cafeId = useCafeId();
 
-  const [cafeId, setCafeId] = useState<number | null>(null);
-  const [config, setConfig] = useState({
-    opening_time: '08:00',
-    closing_time: '22:00',
-    cutoff_before_close_minutes: 30,
-  });
+  const [config, setConfig] = useState<SlotConfig>(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function init() {
+    if (!cafeId) return;
+    async function loadConfig() {
       try {
-        const res = await fetch('/api/proxy/grabit/auth/me');
-        if (res.status === 401) { router.push(`/${slug}/manage/login`); return; }
-        const data = await res.json();
-        setCafeId(data.cafeId);
-
-        // Fetch current config
-        const cfgRes = await fetch(`/api/proxy/grabit/slots/config/${data.cafeId}`);
+        const cfgRes = await fetch(`/api/proxy/grabit/slots/config/${cafeId}`);
         if (cfgRes.ok) {
           const cfg = await cfgRes.json();
           setConfig({
-            opening_time: cfg.opening_time?.slice(0, 5) ?? '08:00',
-            closing_time: cfg.closing_time?.slice(0, 5) ?? '22:00',
-            cutoff_before_close_minutes: cfg.cutoff_before_close_minutes ?? 30,
+            opening_time: cfg.opening_time?.slice(0, 5) ?? DEFAULTS.opening_time,
+            closing_time: cfg.closing_time?.slice(0, 5) ?? DEFAULTS.closing_time,
+            slot_duration_minutes: cfg.slot_duration_minutes ?? DEFAULTS.slot_duration_minutes,
+            max_orders_per_slot: cfg.max_orders_per_slot ?? DEFAULTS.max_orders_per_slot,
+            min_advance_minutes: cfg.min_advance_minutes ?? DEFAULTS.min_advance_minutes,
+            cutoff_before_close_minutes: cfg.cutoff_before_close_minutes ?? DEFAULTS.cutoff_before_close_minutes,
           });
         }
-      } catch {
-        router.push(`/${slug}/manage/login`);
       } finally {
         setLoading(false);
       }
     }
-    init();
-  }, [slug, router]);
+    loadConfig();
+  }, [cafeId]);
 
   async function saveConfig(e: React.FormEvent) {
     e.preventDefault();
     if (!cafeId) return;
-    setSaving(true);
-    setError('');
-    setSaved(false);
+    setSaving(true); setError(''); setSaved(false);
     try {
       const res = await fetch(`/api/proxy/grabit/slots/config/${cafeId}`, {
         method: 'PATCH',
@@ -67,111 +75,136 @@ export default function SlotConfigPage() {
     }
   }
 
+  function step(key: keyof SlotConfig, delta: number, min: number, max: number) {
+    setConfig(p => ({ ...p, [key]: Math.min(max, Math.max(min, (p[key] as number) + delta)) }));
+  }
+
+  const totalSlots = Math.round(
+    ((parseInt(config.closing_time) - parseInt(config.opening_time)) * 60) / config.slot_duration_minutes
+  );
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--g-surface)' }}>
-      {/* Top bar */}
-      <div style={{
-        background: 'var(--g-text)', color: '#fff', height: '52px',
-        display: 'flex', alignItems: 'center', padding: '0 20px', flexShrink: 0
-      }}>
-        <span style={{ fontSize: '17px', fontWeight: 700 }}>Order Hours</span>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 16px 40px' }}>
+    <StaffChrome
+      slug={slug}
+      active="slots"
+      title="Slot configuration"
+      sub={`${Number.isFinite(totalSlots) && totalSlots > 0 ? totalSlots : '—'} pickup windows/day · ${config.max_orders_per_slot} each`}
+    >
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 40px' }}>
         {loading ? (
-          <p style={{ color: 'var(--g-muted)' }}>Loading…</p>
+          <p style={{ color: 'var(--muted)' }}>Loading…</p>
         ) : (
-          <form onSubmit={saveConfig}>
-            {/* Start accepting orders */}
-            <ConfigCard
-              label="Start accepting orders"
-              hint="Customers can start placing orders from this time"
-            >
-              <input
-                type="time"
-                value={config.opening_time}
-                onChange={e => setConfig(p => ({ ...p, opening_time: e.target.value }))}
-                style={timeInputStyle}
-              />
-            </ConfigCard>
-
-            {/* Stop accepting orders */}
-            <ConfigCard
-              label="Stop accepting orders"
-              hint="No new orders can be placed after this time"
-            >
-              <input
-                type="time"
-                value={config.closing_time}
-                onChange={e => setConfig(p => ({ ...p, closing_time: e.target.value }))}
-                style={timeInputStyle}
-              />
-            </ConfigCard>
-
-            {/* Cutoff buffer */}
-            <ConfigCard
-              label="Stop bookings before close"
-              hint={`No new orders within the last ${config.cutoff_before_close_minutes} minutes of closing`}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button type="button" onClick={() => setConfig(p => ({ ...p, cutoff_before_close_minutes: Math.max(0, p.cutoff_before_close_minutes - 5) }))} style={stepBtn}>−</button>
-                <span style={{ fontSize: '28px', fontWeight: 800, minWidth: '48px', textAlign: 'center' }}>
-                  {config.cutoff_before_close_minutes}
-                </span>
-                <button type="button" onClick={() => setConfig(p => ({ ...p, cutoff_before_close_minutes: Math.min(120, p.cutoff_before_close_minutes + 5) }))} style={stepBtn}>+</button>
-                <span style={{ fontSize: '14px', color: 'var(--g-muted)', fontWeight: 500 }}>minutes</span>
+          <form onSubmit={saveConfig} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Operating hours */}
+            <Panel title="Operating hours" icon={Icon.clock}>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                <Field label="Start accepting orders" hint="Customers can book pickup slots from this time">
+                  <input type="time" value={config.opening_time}
+                    onChange={e => setConfig(p => ({ ...p, opening_time: e.target.value }))}
+                    style={timeInputStyle} />
+                </Field>
+                <Field label="Stop accepting orders" hint="No new orders after this time">
+                  <input type="time" value={config.closing_time}
+                    onChange={e => setConfig(p => ({ ...p, closing_time: e.target.value }))}
+                    style={timeInputStyle} />
+                </Field>
               </div>
-            </ConfigCard>
+            </Panel>
 
-            {error && <p style={{ color: '#d93025', fontSize: '14px', marginBottom: '12px' }}>{error}</p>}
-            {saved && <p style={{ color: '#1a8a3c', fontSize: '14px', marginBottom: '12px' }}>Saved ✓</p>}
+            {/* Slot rules */}
+            <Panel title="Slot rules" icon={Icon.slots}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <RuleRow label="Slot duration" desc="Length of each pickup window">
+                  <Stepper value={config.slot_duration_minutes} unit="min"
+                    onDec={() => step('slot_duration_minutes', -5, 5, 60)}
+                    onInc={() => step('slot_duration_minutes', 5, 5, 60)} />
+                </RuleRow>
+                <RuleRow label="Max orders per slot" desc="How many orders can share one window">
+                  <Stepper value={config.max_orders_per_slot} unit="orders"
+                    onDec={() => step('max_orders_per_slot', -1, 1, 50)}
+                    onInc={() => step('max_orders_per_slot', 1, 1, 50)} />
+                </RuleRow>
+                <RuleRow label="Minimum advance booking" desc="Earliest a customer can pick up from now">
+                  <Stepper value={config.min_advance_minutes} unit="min"
+                    onDec={() => step('min_advance_minutes', -5, 0, 120)}
+                    onInc={() => step('min_advance_minutes', 5, 0, 120)} />
+                </RuleRow>
+                <RuleRow label="Stop bookings before close" desc={`No new orders within last ${config.cutoff_before_close_minutes} min of closing`}>
+                  <Stepper value={config.cutoff_before_close_minutes} unit="min"
+                    onDec={() => step('cutoff_before_close_minutes', -5, 0, 120)}
+                    onInc={() => step('cutoff_before_close_minutes', 5, 0, 120)} />
+                </RuleRow>
+              </div>
+            </Panel>
 
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                width: '100%', padding: '14px',
-                background: saving ? 'rgba(255,107,0,0.6)' : 'var(--g-amber)',
-                color: '#fff', fontSize: '16px', fontWeight: 700,
-                border: 'none', borderRadius: '999px',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit'
-              }}
-            >
-              {saving ? 'Saving…' : 'Save Changes'}
-            </button>
+            {error && <p style={{ color: 'var(--error)', fontSize: 14 }}>{error}</p>}
+            {saved && <p style={{ color: 'var(--success)', fontSize: 14, fontWeight: 600 }}>Saved ✓</p>}
+
+            <Button type="submit" disabled={saving} full size="lg">
+              {saving ? 'Saving…' : 'Save changes'}
+            </Button>
           </form>
         )}
       </div>
+    </StaffChrome>
+  );
+}
 
-      <BottomTabs slug={slug} active="slots" />
+function Panel({ title, icon, children }: { title: string; icon: (typeof Icon)[string]; children: React.ReactNode }) {
+  return (
+    <div style={{ background: 'var(--surface-card)', borderRadius: 'var(--r-lg)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-card)', padding: 22 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
+        <span style={{ color: 'var(--primary)' }}>{icon({ size: 20 })}</span>
+        <span className="t-headline-card" style={{ fontSize: 16 }}>{title}</span>
+      </div>
+      {children}
     </div>
   );
 }
 
-function ConfigCard({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', borderRadius: '16px', padding: '18px 16px', marginBottom: '12px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-      <p style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--g-muted)', marginBottom: '12px' }}>
-        {label}
-      </p>
+    <div style={{ flex: 1, minWidth: 200 }}>
+      <div className="t-label" style={{ fontSize: 14 }}>{label}</div>
+      <div className="t-caption" style={{ margin: '3px 0 11px' }}>{hint}</div>
       {children}
-      <p style={{ fontSize: '12px', color: 'var(--g-muted)', marginTop: '8px' }}>{hint}</p>
+    </div>
+  );
+}
+
+function RuleRow({ label, desc, children }: { label: string; desc: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+      <div>
+        <div className="t-label" style={{ fontSize: 14 }}>{label}</div>
+        <div className="t-caption" style={{ marginTop: 3 }}>{desc}</div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Stepper({ value, unit, onDec, onInc }: { value: number; unit: string; onDec: () => void; onInc: () => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+      <button type="button" onClick={onDec} style={stepBtn}>{Icon.minus({ size: 18 })}</button>
+      <span className="tabular" style={{ minWidth: 52, textAlign: 'center', fontSize: 22, fontWeight: 800 }}>{value}</span>
+      <button type="button" onClick={onInc} style={stepBtn}>{Icon.plus({ size: 18 })}</button>
+      <span className="t-caption" style={{ minWidth: 44 }}>{unit}</span>
     </div>
   );
 }
 
 const timeInputStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 14px', fontSize: '22px', fontWeight: 700,
-  border: '1.5px solid var(--g-border)', borderRadius: '10px',
-  background: 'var(--g-surface)', color: 'var(--g-text)',
-  outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box'
+  width: '100%', padding: '12px 14px', fontSize: 22, fontWeight: 700,
+  border: '1px solid var(--hairline-strong)', borderRadius: 'var(--r-sm)',
+  background: 'var(--surface)', color: 'var(--on-surface)',
+  outline: 'none', fontFamily: 'var(--font)', boxSizing: 'border-box',
 };
 
 const stepBtn: React.CSSProperties = {
-  width: '36px', height: '36px', borderRadius: '50%',
-  border: '1.5px solid var(--g-border)', background: 'var(--g-surface)',
-  fontSize: '18px', cursor: 'pointer', fontFamily: 'inherit',
-  display: 'flex', alignItems: 'center', justifyContent: 'center'
+  width: 36, height: 36, borderRadius: 'var(--r-sm)',
+  border: '1px solid var(--hairline-strong)', background: 'var(--surface-card)',
+  color: 'var(--primary)', cursor: 'pointer',
+  display: 'grid', placeItems: 'center',
 };
-

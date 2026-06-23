@@ -3,6 +3,12 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
+import { formatPaise } from '@/lib/utils';
+import type { GrabitWallet } from '@gradient365/gradient-commons';
+import { WALLET_BONUS_MIN_ORDER_PAISE } from '@gradient365/gradient-commons';
+import { TopBar, Card, Button, Toggle, Icon } from '@/components/ui/kit';
+
+const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -11,8 +17,11 @@ export default function CheckoutPage() {
 
   const [pickupSlot, setPickupSlot] = useState<string | null>(null);
   const [cafeId, setCafeId] = useState<number | null>(null);
+  const [customerId, setCustomerId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [wallet, setWallet] = useState<GrabitWallet | null>(null);
+  const [useWallet, setUseWallet] = useState(false);
 
   // Read slot from sessionStorage
   useEffect(() => {
@@ -24,43 +33,84 @@ export default function CheckoutPage() {
     setPickupSlot(slot);
   }, [slug, router]);
 
-  // Fetch cafe_id
+  // Fetch cafe_id + customer_id — read sessionStorage first (set by menu/home page on first load)
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`)
-      .then(r => r.json())
-      .then(d => setCafeId(d.cafe?.id ?? null))
-      .catch(() => setCafeId(null));
+    const resolveIds = async () => {
+      const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
+      let cid: number | null = cached ? Number(cached) : null;
+      if (!cid) {
+        try {
+          const d = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`).then(r => r.json());
+          cid = d.cafe?.id ?? null;
+          if (cid) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cid));
+        } catch { /* ignore */ }
+      }
+      setCafeId(cid);
+
+      try {
+        const me = await fetch('/api/proxy/grabit/auth/me').then(r => r.ok ? r.json() : null);
+        if (me?.id && cid) {
+          setCustomerId(me.id);
+          const walletRes = await fetch(`/api/proxy/grabit/wallet/${me.id}?cafeId=${cid}`);
+          if (walletRes.ok) {
+            const wd = await walletRes.json();
+            setWallet(wd.wallet ?? null);
+          }
+        }
+      } catch { /* ignore — wallet is optional */ }
+    };
+    resolveIds();
   }, [slug]);
+
+  // Wallet deduction helpers
+  const orderTotalPaise = Math.round(total() * 100);
+  const walletBase = wallet?.base_balance_paise ?? 0;
+  const walletBonus = wallet?.bonus_balance_paise ?? 0;
+  const bonusEligible = orderTotalPaise >= WALLET_BONUS_MIN_ORDER_PAISE && walletBonus > 0;
+  const walletDeductBase = useWallet && walletBase > 0 ? Math.min(walletBase, orderTotalPaise) : 0;
+  const afterBase = orderTotalPaise - walletDeductBase;
+  const walletDeductBonus = useWallet && bonusEligible ? Math.min(walletBonus, afterBase) : 0;
+  const remainingPaise = afterBase - walletDeductBonus;
 
   async function handleOrder(paymentMethod: 'online' | 'counter') {
     if (!pickupSlot || !cafeId) return;
     setLoading(true);
     setError('');
     try {
+      if (useWallet && customerId && cafeId && (walletDeductBase + walletDeductBonus) > 0) {
+        const walletRes = await fetch('/api/proxy/grabit/wallet/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId, cafeId, orderTotalPaise, useBonus: bonusEligible }),
+        });
+        if (!walletRes.ok) {
+          const wd = await walletRes.json();
+          throw new Error(wd.error || 'Failed to apply wallet');
+        }
+      }
+
+      const effectivePayment = remainingPaise === 0 ? 'counter' : paymentMethod;
+
       const res = await fetch('/api/proxy/grabit/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cafe_id: cafeId,
           pickup_slot: pickupSlot,
-          payment_method: paymentMethod,
+          payment_method: effectivePayment,
           items: items.map(i => ({ menu_item_id: i.menu_item_id, quantity: i.quantity }))
         })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      if (paymentMethod === 'counter') {
+      if (effectivePayment === 'counter') {
         clearCart();
         sessionStorage.removeItem('grabit_slot');
         router.push(`/${slug}/order/${data.order_id}`);
       } else {
-        // Online payment — load Cashfree SDK dynamically
         await new Promise<void>((resolve, reject) => {
-          if (document.getElementById('cashfree-sdk')) {
-            resolve();
-            return;
-          }
+          if (document.getElementById('cashfree-sdk')) { resolve(); return; }
           const script = document.createElement('script');
           script.id = 'cashfree-sdk';
           script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
@@ -83,148 +133,127 @@ export default function CheckoutPage() {
     }
   }
 
-  // Empty cart state
   if (items.length === 0) {
     return (
-      <div style={{ padding: '80px 16px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
-        <p style={{ color: 'var(--g-muted)', marginBottom: '24px' }}>Nothing in your cart</p>
-        <Link
-          href={`/${slug}`}
-          style={{
-            display: 'inline-block',
-            background: 'var(--g-amber)',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '980px',
-            fontWeight: 600,
-            textDecoration: 'none'
-          }}
-        >
-          Back to menu
-        </Link>
+      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
+        <TopBar title="Checkout" onBack={() => router.push(`/${slug}/cart`)} />
+        <div style={{ padding: '80px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <p className="t-caption">Nothing in your cart</p>
+          <Link href={`/${slug}`}><Button>Back to menu</Button></Link>
+        </div>
       </div>
     );
   }
 
   const formattedTime = pickupSlot
-    ? new Date(pickupSlot).toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      })
+    ? new Date(pickupSlot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
     : '';
 
   return (
-    <div style={{ maxWidth: '480px', margin: '0 auto', padding: '32px 16px' }}>
-      {/* Nav */}
-      <nav style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <Link href={`/${slug}/cart`} style={{ fontSize: '14px', color: 'var(--g-muted)', textDecoration: 'none' }}>
-          ← Back
-        </Link>
-        <span style={{ fontWeight: 700, fontSize: '20px', letterSpacing: '-0.02em' }}>Checkout</span>
-      </nav>
+    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative', paddingBottom: 40 }}>
+      <TopBar title="Checkout" onBack={() => router.push(`/${slug}/cart`)} />
 
-      {/* Pickup time */}
-      {pickupSlot && (
-        <div style={{
-          background: 'var(--g-amber-tint)',
-          borderRadius: '12px',
-          padding: '14px 16px',
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <span style={{ fontSize: '18px' }}>🕐</span>
+      <div style={{ padding: '6px 20px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {/* Pickup slot */}
+        {pickupSlot && (
           <div>
-            <p style={{ fontSize: '12px', color: 'var(--g-muted)', marginBottom: '2px' }}>Pickup slot</p>
-            <p style={{ fontWeight: 700, fontSize: '16px', color: 'var(--g-amber)' }}>{formattedTime}</p>
+            <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Pickup slot</div>
+            <Card style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--primary-tint)', display: 'grid', placeItems: 'center', color: 'var(--primary)' }}>{Icon.clock({ size: 24 })}</div>
+              <div style={{ flex: 1 }}>
+                <div className="t-label tabular">{formattedTime}</div>
+                <div className="t-caption" style={{ marginTop: 2 }}>Order ahead, walk past the queue</div>
+              </div>
+              <button onClick={() => router.push(`/${slug}/cart`)} style={{ border: 'none', background: 'transparent', color: 'var(--primary)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                {Icon.edit({ size: 16 })} Edit
+              </button>
+            </Card>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Order summary */}
-      <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--g-muted)', marginBottom: '10px', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-        Order summary
-      </h2>
-      <div style={{
-        background: 'var(--g-surface)',
-        borderRadius: '14px',
-        padding: '16px',
-        marginBottom: '24px'
-      }}>
-        {items.map((item, idx) => (
-          <div
-            key={item.menu_item_id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingBottom: idx < items.length - 1 ? '12px' : '0',
-              marginBottom: idx < items.length - 1 ? '12px' : '0',
-              borderBottom: idx < items.length - 1 ? '1px solid var(--g-border)' : 'none'
-            }}
-          >
-            <span style={{ fontSize: '15px', color: 'var(--g-text)' }}>
-              {item.name} × {item.quantity}
-            </span>
-            <span style={{ fontWeight: 600, fontSize: '15px' }}>
-              ₹{(item.price * item.quantity).toFixed(0)}
-            </span>
-          </div>
-        ))}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingTop: '14px',
-          marginTop: '14px',
-          borderTop: '1px solid var(--g-border)'
-        }}>
-          <span style={{ fontWeight: 700, fontSize: '17px' }}>Total</span>
-          <span style={{ fontWeight: 700, fontSize: '17px' }}>₹{total()}</span>
+        {/* Order summary */}
+        <div>
+          <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Order summary</div>
+          <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {items.map(item => (
+              <div key={item.menu_item_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="t-body">{item.name} × {item.quantity}</span>
+                <span className="tabular" style={{ fontWeight: 600, fontSize: 15 }}>{inr(item.price * item.quantity)}</span>
+              </div>
+            ))}
+            <div style={{ height: 1, background: 'var(--hairline)' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: 16 }}>Total</span>
+              <span className="tabular" style={{ fontWeight: 700, fontSize: 18 }}>{inr(total())}</span>
+            </div>
+          </Card>
+        </div>
+
+        {/* Payment */}
+        <div>
+          <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Payment method</div>
+
+          {/* Wallet card */}
+          {wallet !== null && (
+            <Card style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 46, height: 46, borderRadius: 12, background: 'var(--primary-tint)', color: 'var(--primary)', display: 'grid', placeItems: 'center', flex: 'none' }}>{Icon.card({ size: 24 })}</div>
+                <div style={{ flex: 1 }}>
+                  <div className="t-headline-card">Pay with Wallet</div>
+                  <div className="t-caption tabular" style={{ marginTop: 2 }}>Balance: {formatPaise(wallet.base_balance_paise)}</div>
+                </div>
+                <Toggle on={useWallet && wallet.base_balance_paise > 0} onChange={(v) => { if (wallet.base_balance_paise === 0) return; setUseWallet(v); }} />
+              </div>
+
+              {useWallet && wallet.base_balance_paise > 0 && (
+                <div style={{ background: 'var(--success-tint)', borderRadius: 'var(--r-md)', padding: 12, marginTop: 12, fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: bonusEligible ? 6 : 0 }}>
+                    <span style={{ color: 'var(--muted)' }}>From wallet</span>
+                    <span className="tabular" style={{ fontWeight: 600 }}>{formatPaise(walletDeductBase)}</span>
+                  </div>
+                  {bonusEligible && walletDeductBonus > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: remainingPaise > 0 ? 6 : 0 }}>
+                      <span style={{ color: 'var(--success)' }}>Bonus applied</span>
+                      <span className="tabular" style={{ color: 'var(--success)', fontWeight: 600 }}>{formatPaise(walletDeductBonus)}</span>
+                    </div>
+                  )}
+                  {remainingPaise > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--muted)' }}>Pay online</span>
+                      <span className="tabular" style={{ fontWeight: 600 }}>{formatPaise(remainingPaise)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {useWallet && wallet.base_balance_paise === 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <Link href={`/${slug}/wallet/recharge`} style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>No balance — Recharge now</Link>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {error && (
+            <div style={{ color: 'var(--error)', fontSize: 14, marginBottom: 16, padding: '12px 14px', background: 'var(--error-tint)', borderRadius: 'var(--r-md)' }}>{error}</div>
+          )}
+
+          {/* Pay button — three logic variants preserved */}
+          {useWallet && remainingPaise === 0 ? (
+            <Button full disabled={loading} onClick={() => handleOrder('counter')}>
+              {loading ? 'Processing…' : `Pay ${formatPaise(orderTotalPaise)} from Wallet`}
+            </Button>
+          ) : useWallet && remainingPaise > 0 ? (
+            <Button full disabled={loading} onClick={() => handleOrder('online')}>
+              {loading ? 'Processing…' : `Pay ${formatPaise(orderTotalPaise)} (${formatPaise(walletDeductBase + walletDeductBonus)} wallet + ${formatPaise(remainingPaise)} online)`}
+            </Button>
+          ) : (
+            <Button full disabled={loading} onClick={() => handleOrder('online')}>
+              {loading ? 'Processing…' : `Pay ${inr(total())} online`}
+            </Button>
+          )}
         </div>
       </div>
-
-      {/* Error */}
-      {error && (
-        <p style={{
-          color: '#ef4444',
-          fontSize: '14px',
-          marginBottom: '16px',
-          padding: '12px 14px',
-          background: '#fef2f2',
-          borderRadius: '10px'
-        }}>
-          {error}
-        </p>
-      )}
-
-      {/* Payment buttons */}
-      <button
-        disabled={loading}
-        onClick={() => handleOrder('online')}
-        style={{
-          background: 'var(--g-amber)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '980px',
-          padding: '16px',
-          fontSize: '16px',
-          fontWeight: 700,
-          cursor: loading ? 'not-allowed' : 'pointer',
-          width: '100%',
-          opacity: loading ? 0.5 : 1
-        }}
-      >
-        {loading ? 'Processing…' : `Pay ₹${total()} online`}
-      </button>
-
     </div>
   );
 }

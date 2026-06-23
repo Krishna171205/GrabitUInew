@@ -1,129 +1,110 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
+import { TopBar, Photo, FoodMark, AddButton, Button, Icon, Badge } from '@/components/ui/kit';
 
 const CATEGORIES: GrabitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];
 const CATEGORY_LABELS: Record<GrabitMenuCategory, string> = {
   drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts'
 };
 
+const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
+
 interface Props { slug: string; cafe: GrabitCafe; items: GrabitMenuItem[]; }
 
 export default function MenuClient({ slug, cafe, items }: Props) {
+  const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<GrabitMenuCategory>('drinks');
-  const { addItem, items: cartItems, total } = useCart();
+  const { addItem, updateQty, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
+  const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
+
+  // Cache cafe_id in sessionStorage so checkout page doesn't need to re-fetch menu
+  useEffect(() => {
+    if (cafe?.id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cafe.id));
+  }, [slug, cafe?.id]);
 
   const visibleItems = items.filter(i => i.is_available && i.category === activeCategory);
   const categoriesPresent = CATEGORIES.filter(c => items.some(i => i.category === c && i.is_available));
 
   return (
-    <div style={{ maxWidth: '480px', margin: '0 auto', paddingBottom: '120px' }}>
-      {/* Nav */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: '1px solid var(--g-border)', padding: '0 16px', height: '48px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-      }}>
-        <Link href={`/${slug}`} style={{ fontSize: '14px', color: 'var(--g-muted)' }}>← Back</Link>
-        <span style={{ fontWeight: 700, fontSize: '16px' }}>{cafe.name}</span>
-        {cartCount > 0 ? (
-          <Link href={`/${slug}/cart`} style={{
-            background: 'var(--g-amber)', color: '#fff', borderRadius: '980px',
-            padding: '6px 14px', fontSize: '13px', fontWeight: 600
-          }}>Cart · {cartCount}</Link>
-        ) : <span style={{ width: '60px' }} />}
-      </nav>
+    <div style={{ maxWidth: 480, margin: '0 auto', position: 'relative', minHeight: '100dvh', background: 'var(--surface)', paddingBottom: cartCount > 0 ? 120 : 24 }}>
+      <TopBar
+        title={cafe.name}
+        onBack={() => router.push(`/${slug}`)}
+        right={
+          <Link href={`/${slug}/cart`} aria-label="Cart" style={{ position: 'relative', width: 36, height: 36, display: 'grid', placeItems: 'center', color: 'var(--on-surface)' }}>
+            {Icon.bag({ size: 23 })}
+            {cartCount > 0 && <Badge n={cartCount} />}
+          </Link>
+        }
+      />
 
-      {/* Category tabs */}
-      <div style={{
-        position: 'sticky', top: '48px', zIndex: 40,
-        background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--g-border)',
-        padding: '8px 16px', display: 'flex', gap: '8px', overflowX: 'auto'
-      }}>
-        {categoriesPresent.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            style={{
-              padding: '8px 16px', borderRadius: '980px', fontSize: '14px', fontWeight: 600,
-              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-              background: activeCategory === cat ? 'var(--g-amber)' : 'var(--g-surface)',
-              color: activeCategory === cat ? '#fff' : 'var(--g-text)'
-            }}
-          >
-            {CATEGORY_LABELS[cat]}
-          </button>
-        ))}
+      {/* Sticky underline category tabs */}
+      <div className="noscroll" style={{ position: 'sticky', top: 52, zIndex: 25, display: 'flex', gap: 22, overflowX: 'auto', padding: '0 20px', background: 'var(--glass-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid var(--glass-border)' }}>
+        {categoriesPresent.map(cat => {
+          const on = activeCategory === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '14px 0 12px', fontSize: 15, fontWeight: on ? 700 : 500, color: on ? 'var(--primary)' : 'var(--muted)', position: 'relative', whiteSpace: 'nowrap' }}
+            >
+              {CATEGORY_LABELS[cat]}
+              {on && <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 3, background: 'var(--primary)' }} />}
+            </button>
+          );
+        })}
       </div>
 
       {/* Items */}
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ padding: '8px 20px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
         {visibleItems.length === 0 && (
-          <p style={{ textAlign: 'center', color: 'var(--g-muted)', padding: '48px 0' }}>
-            Nothing in this category right now
-          </p>
+          <p className="t-caption" style={{ textAlign: 'center', padding: '48px 0' }}>Nothing in this category right now</p>
         )}
-        {visibleItems.map(item => (
-          <div key={item.id} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '14px 16px', background: 'var(--g-surface)', borderRadius: '14px', gap: '12px'
-          }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, fontSize: '15px', letterSpacing: '-0.02em', marginBottom: '2px' }}>
-                {item.name}
-              </p>
-              {item.description && (
-                <p style={{ fontSize: '12px', color: 'var(--g-muted)', marginBottom: '4px' }}>
-                  {item.description}
-                </p>
-              )}
-              <p style={{ fontWeight: 700, color: 'var(--g-amber)' }}>₹{item.price}</p>
+        {visibleItems.map(item => {
+          const qty = qtyOf(item.id);
+          return (
+            <div key={item.id} style={{ display: 'flex', gap: 14, paddingTop: 6 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}><FoodMark veg size={14} /></div>
+                <div className="t-headline-card">{item.name}</div>
+                {item.description && <div className="t-caption clamp2" style={{ marginTop: 3, paddingRight: 8 }}>{item.description}</div>}
+                <div className="t-price tabular" style={{ marginTop: 8 }}>{inr(item.price)}</div>
+              </div>
+              <div style={{ width: 104, flex: 'none', position: 'relative' }}>
+                <Photo seed={item.id} src={item.image_url || undefined} label={item.name} ratio="1" radius="var(--r-md)" />
+                <div style={{ position: 'absolute', left: '50%', bottom: -16, transform: 'translateX(-50%)' }}>
+                  <AddButton
+                    qty={qty}
+                    onAdd={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)}
+                    onChange={(v) => updateQty(item.id, v)}
+                  />
+                </div>
+              </div>
             </div>
-            <button
-              onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)}
-              style={{
-                flexShrink: 0, width: '34px', height: '34px', borderRadius: '50%',
-                background: 'var(--g-amber)', color: '#fff', border: 'none',
-                fontSize: '20px', cursor: 'pointer', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', lineHeight: 1
-              }}
-            >+</button>
-          </div>
-        ))}
+          );
+        })}
+        <div style={{ height: 12 }} />
       </div>
 
-      {/* Floating cart CTA */}
-      <AnimatePresence>
-        {cartCount > 0 && (
-          <motion.div
-            key="view-cart"
-            initial={{ y: 80, opacity: 0, scale: 0.85 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 80, opacity: 0, scale: 0.85 }}
-            transition={{ type: 'spring', damping: 12, stiffness: 100 }}
-            style={{
-              position: 'fixed', bottom: '24px', left: 0, right: 0,
-              display: 'flex', justifyContent: 'center', zIndex: 100, padding: '0 24px'
-            }}
-          >
-            <motion.div whileTap={{ scale: 0.92 }} style={{ width: '100%', maxWidth: '432px' }}>
-              <Link href={`/${slug}/cart`} style={{
-                display: 'block', background: 'var(--g-amber)', color: '#fff',
-                padding: '16px 24px', borderRadius: '980px', fontWeight: 700, fontSize: '16px',
-                textAlign: 'center', boxShadow: 'rgba(255,107,0,0.38) 0 6px 18px'
-              }}>
-                View Cart · {cartCount} item{cartCount > 1 ? 's' : ''} · ₹{total()}
-              </Link>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Floating cart dock */}
+      {cartCount > 0 && (
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', padding: '12px 20px 16px', background: 'linear-gradient(to top, var(--surface) 62%, transparent)' }}>
+          <Link href={`/${slug}/cart`} style={{ display: 'block' }}>
+            <Button full style={{ justifyContent: 'space-between' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span className="tabular" style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 8, minWidth: 24, height: 24, display: 'grid', placeItems: 'center', fontSize: 13, padding: '0 4px' }}>{cartCount}</span>
+                {cartCount === 1 ? 'item' : 'items'} · <span className="tabular">{inr(total())}</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>View Cart {Icon.chevR({ size: 18 })}</span>
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

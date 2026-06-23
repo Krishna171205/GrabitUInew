@@ -16,15 +16,11 @@ export const ContainerScroll = ({
   });
   const [isMobile, setIsMobile] = React.useState(false);
 
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+  React.useLayoutEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    return () => {
-      window.removeEventListener("resize", checkMobile);
-    };
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const scaleDimensions = () => {
@@ -34,7 +30,7 @@ export const ContainerScroll = ({
 
   const springConfig = { stiffness: 120, damping: 28, restDelta: 0.001 };
 
-  const rawRotate    = useTransform(scrollYProgress, [0, 0.35, 1], [75, 0, 0]);
+  const rawRotate    = useTransform(scrollYProgress, [0, 0.35, 1], isMobile ? [40, 0, 0] : [75, 0, 0]);
   const rawScale     = useTransform(scrollYProgress, [0, 0.35, 1], scaleDimensions());
   const rawTranslate = useTransform(scrollYProgress, [0, 0.35, 1], [0, -40, -40]);
 
@@ -49,7 +45,7 @@ export const ContainerScroll = ({
     >
       <div
         className="pb-10 md:pb-20 w-full relative"
-        style={{ perspective: "1000px" }}
+        style={{ perspective: isMobile ? "600px" : "1000px" }}
       >
         <Header translate={translate} titleComponent={titleComponent} />
         <Card rotate={rotate} translate={translate} scale={scale}>

@@ -25,8 +25,8 @@ const STYLES = `
 }
 
 @keyframes ritual-coffee {
-  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 4px rgba(255,107,0,0.4)); }
-  15%, 45% { transform: scale(1.25); filter: drop-shadow(0 0 12px rgba(255,107,0,0.9)); }
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 4px rgba(183,18,42,0.4)); }
+  15%, 45% { transform: scale(1.25); filter: drop-shadow(0 0 12px rgba(183,18,42,0.9)); }
   30%      { transform: scale(1);   }
 }
 
@@ -38,7 +38,7 @@ const STYLES = `
 .ritual-aurora {
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(255, 107, 0, 0.08) 0%,
+    rgba(183, 18, 42, 0.08) 0%,
     rgba(255, 150, 50, 0.05) 40%,
     transparent 70%
   );
@@ -61,8 +61,8 @@ const STYLES = `
   font-weight: 900;
   letter-spacing: -0.05em;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255,107,0,0.07);
-  background: linear-gradient(180deg, rgba(255,107,0,0.09) 0%, transparent 55%);
+  -webkit-text-stroke: 1px rgba(183,18,42,0.07);
+  background: linear-gradient(180deg, rgba(183,18,42,0.09) 0%, transparent 55%);
   -webkit-background-clip: text;
   background-clip: text;
   user-select: none;
@@ -71,16 +71,16 @@ const STYLES = `
 
 /* Amber-tinted warm glass pills */
 .ritual-glass-pill {
-  --pill-bg1:     rgba(255, 107, 0, 0.05);
-  --pill-bg2:     rgba(255, 107, 0, 0.02);
-  --pill-border:  rgba(255, 107, 0, 0.14);
-  --pill-shadow:  rgba(255, 107, 0, 0.08);
+  --pill-bg1:     rgba(183, 18, 42, 0.05);
+  --pill-bg2:     rgba(183, 18, 42, 0.02);
+  --pill-border:  rgba(183, 18, 42, 0.14);
+  --pill-shadow:  rgba(183, 18, 42, 0.08);
   --pill-hi:      rgba(255, 255, 255, 0.8);
   background: linear-gradient(145deg, var(--pill-bg1) 0%, var(--pill-bg2) 100%);
   box-shadow:
     0 8px 28px -8px var(--pill-shadow),
     inset 0 1px 1px var(--pill-hi),
-    inset 0 -1px 1px rgba(255,107,0,0.04);
+    inset 0 -1px 1px rgba(183,18,42,0.04);
   border: 1px solid var(--pill-border);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -88,10 +88,10 @@ const STYLES = `
 }
 
 .ritual-glass-pill:hover {
-  --pill-bg1:    rgba(255, 107, 0, 0.1);
-  --pill-bg2:    rgba(255, 107, 0, 0.04);
-  --pill-border: rgba(255, 107, 0, 0.28);
-  --pill-shadow: rgba(255, 107, 0, 0.18);
+  --pill-bg1:    rgba(183, 18, 42, 0.1);
+  --pill-bg2:    rgba(183, 18, 42, 0.04);
+  --pill-border: rgba(183, 18, 42, 0.28);
+  --pill-shadow: rgba(183, 18, 42, 0.18);
   --pill-hi:     rgba(255, 255, 255, 0.9);
   color: #1d1d1f;
 }
@@ -102,7 +102,7 @@ const STYLES = `
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 24px rgba(255,107,0,0.12));
+  filter: drop-shadow(0 0 24px rgba(183,18,42,0.12));
 }
 `;
 
@@ -167,12 +167,12 @@ MagneticButton.displayName = "MagneticButton";
 function MarqueeItem() {
   return (
     <div className="flex items-center space-x-10 px-6 text-zinc-500">
-      <span>Skip The Queue</span>      <span style={{ color: "#ff6b00", opacity: 0.6 }}>✦</span>
-      <span>Order Ahead</span>         <span style={{ color: "#ff6b00", opacity: 0.6 }}>✦</span>
-      <span>Pick Your Slot</span>      <span style={{ color: "#ff6b00", opacity: 0.6 }}>✦</span>
-      <span>Fresh Every Time</span>    <span style={{ color: "#ff6b00", opacity: 0.6 }}>✦</span>
-      <span>Your Daily Ritual</span>   <span style={{ color: "#ff6b00", opacity: 0.6 }}>✦</span>
-      <span>Zero Wait. All Craft.</span> <span style={{ color: "#ff6b00", opacity: 0.6 }}>✦</span>
+      <span>Skip The Queue</span>      <span style={{ color: "#b7122a", opacity: 0.6 }}>✦</span>
+      <span>Order Ahead</span>         <span style={{ color: "#b7122a", opacity: 0.6 }}>✦</span>
+      <span>Pick Your Slot</span>      <span style={{ color: "#b7122a", opacity: 0.6 }}>✦</span>
+      <span>Fresh Every Time</span>    <span style={{ color: "#b7122a", opacity: 0.6 }}>✦</span>
+      <span>Your Daily Ritual</span>   <span style={{ color: "#b7122a", opacity: 0.6 }}>✦</span>
+      <span>Zero Wait. All Craft.</span> <span style={{ color: "#b7122a", opacity: 0.6 }}>✦</span>
     </div>
   );
 }
@@ -333,10 +333,10 @@ export function ReadyToJoinRitual() {
                   className="ritual-glass-pill px-8 rounded-full font-bold text-sm whitespace-nowrap flex items-center justify-center"
                   style={{
                     height: "56px",
-                    background: "#ff6b00",
+                    background: "#b7122a",
                     border: "none",
                     color: "#fff",
-                    boxShadow: "0 4px 24px rgba(255,107,0,0.35)",
+                    boxShadow: "0 4px 24px rgba(183,18,42,0.35)",
                   }}
                 >
                   Get Early Access

@@ -1,61 +1,165 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Grabit design system — crimson + gold, warm Material-3.
+   Tokens published twice:
+   - @theme  -> Tailwind --color-* utilities (bg-primary, text-on-surface, ...)
+   - :root   -> bare CSS vars consumed by [slug]/ inline styles
+   Legacy --g-* names are aliased to new tokens for the transition.
+   ============================================================ */
+
 @theme {
-  /* Brand colors */
-  --color-primary: #FF6B00;
-  --color-primary-dim: #e66000;
-  --color-primary-container: #ff8533;
+  /* Core palette */
+  --color-primary: #b7122a;
+  --color-primary-pressed: #99001f;
+  --color-primary-container: #db313f;
   --color-on-primary: #ffffff;
-  --color-on-primary-container: #401500;
-  --color-secondary: #904800;
-  --color-secondary-container: #ffc69f;
-  --color-on-secondary-container: #723700;
-  --color-on-secondary-fixed: #552800;
+  --color-primary-tint: #fbe9ea;
+  --color-primary-tint-strong: #f6d6d9;
+  --color-inverse-primary: #ffb3b1;
 
-  /* Surface / background */
-  --color-background: #f6f6f9;
-  --color-on-background: #2d2f31;
-  --color-surface: #f6f6f9;
-  --color-on-surface: #2d2f31;
-  --color-on-surface-variant: #5a5c5e;
-  --color-surface-container: #e7e8eb;
-  --color-surface-container-low: #f0f0f3;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-high: #e1e2e6;
-  --color-surface-bright: #f6f6f9;
+  /* Surfaces / text */
+  --color-surface: #fbf9f8;
+  --color-surface-card: #ffffff;
+  --color-surface-low: #f5f3f3;
+  --color-surface-container: #efeded;
+  --color-surface-high: #e9e8e7;
+  --color-surface-dim: #dbdad9;
+  --color-on-surface: #1b1c1c;
+  --color-on-surface-strong: #111212;
+  --color-on-surface-variant: #5b403f;
+  --color-muted: #6e6e73;
+  --color-muted-2: #8e8e93;
+  --color-inverse-surface: #303031;
+  --color-inverse-on-surface: #f2f0f0;
+  --color-outline: #8f6f6e;
+  --color-secondary: #5f5e5e;
+  --color-secondary-container: #e4e2e1;
 
-  /* Utility */
-  --color-outline: #757779;
-  --color-outline-variant: #acadaf;
-  --color-tertiary-container: #fbb423;
-  --color-on-tertiary-container: #523700;
+  /* Gold accent */
+  --color-tertiary: #976d00;
+  --color-tertiary-bright: #ffbb0c;
+  --color-tertiary-container: #ffdea6;
 
-  /* Grabit legacy tokens (used by [slug]/ routes) */
-  --color-g-amber: #ff6b00;
-  --color-g-amber-tint: #fff8f0;
-  --color-g-surface: #f5f5f7;
-  --color-g-text: #1d1d1f;
-  --color-g-muted: rgba(0,0,0,0.48);
-  --color-g-border: rgba(0,0,0,0.06);
-  --color-g-wa-green: #25d366;
+  /* Status */
+  --color-success: #1f9d57;
+  --color-success-tint: #e6f6ed;
+  --color-warning: #cf8a00;
+  --color-warning-tint: #fdf2dc;
+  --color-error: #ba1a1a;
+  --color-error-tint: #ffdad6;
+  --color-info: #2a6fc9;
+  --color-veg: #1f9d57;
+  --color-nonveg: #c8102e;
+  --color-wa-green: #25d366;
 
-  /* Font families */
-  --font-headline: "Plus Jakarta Sans", sans-serif;
-  --font-body: "Manrope", sans-serif;
-  --font-label: "Manrope", sans-serif;
+  /* Fonts — resolved from next/font (Inter) */
+  --font-headline: var(--font-inter), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-label: var(--font-inter), sans-serif;
 }
 
-/* Legacy CSS custom properties — used by [slug]/ route inline styles */
 :root {
-  --g-amber: #ff6b00;
-  --g-amber-tint: #fff8f0;
-  --g-amber-pale: rgba(255, 107, 0, 0.08);
-  --g-white: #ffffff;
-  --g-surface: #f5f5f7;
-  --g-text: #1d1d1f;
-  --g-muted: rgba(0, 0, 0, 0.48);
-  --g-border: rgba(0, 0, 0, 0.06);
+  /* ---- Core palette ---- */
+  --primary: #b7122a;
+  --primary-pressed: #99001f;
+  --primary-container: #db313f;
+  --on-primary: #ffffff;
+  --primary-tint: #fbe9ea;
+  --primary-tint-strong: #f6d6d9;
+  --inverse-primary: #ffb3b1;
+
+  /* ---- Surfaces ---- */
+  --surface: #fbf9f8;
+  --surface-card: #ffffff;
+  --surface-low: #f5f3f3;
+  --surface-container: #efeded;
+  --surface-high: #e9e8e7;
+  --surface-dim: #dbdad9;
+
+  /* ---- Text ---- */
+  --on-surface: #1b1c1c;
+  --on-surface-strong: #111212;
+  --on-surface-variant: #5b403f;
+  --muted: #6e6e73;
+  --muted-2: #8e8e93;
+  --inverse-surface: #303031;
+  --inverse-on-surface: #f2f0f0;
+
+  /* ---- Lines / secondary ---- */
+  --outline: #8f6f6e;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.12);
+  --secondary: #5f5e5e;
+  --secondary-container: #e4e2e1;
+
+  /* ---- Gold accent (ratings / "must try") ---- */
+  --tertiary: #976d00;
+  --tertiary-bright: #ffbb0c;
+  --tertiary-container: #ffdea6;
+
+  /* ---- Functional status ---- */
+  --success: #1f9d57;
+  --success-tint: #e6f6ed;
+  --warning: #cf8a00;
+  --warning-tint: #fdf2dc;
+  --error: #ba1a1a;
+  --error-tint: #ffdad6;
+  --info: #2a6fc9;
+
+  /* veg / non-veg */
+  --veg: #1f9d57;
+  --nonveg: #c8102e;
+
+  /* ---- Frosted nav ---- */
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(0, 0, 0, 0.10);
+
+  /* ---- Elevation ---- */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 -2px 12px rgba(0, 0, 0, 0.08), 0 8px 28px rgba(0, 0, 0, 0.10);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.18);
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.16);
+
+  /* ---- Radii ---- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 9999px;
+
+  /* ---- Spacing (4px base) ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --screen-pad: 20px;
+
+  /* ---- Type ---- */
+  --font: var(--font-inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --mono: 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
+
+  /* ---- Motion ---- */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-sheet: 420ms;
+  --dur: 280ms;
+
+  /* ---- Legacy --g-* aliases (removed once all screens migrate) ---- */
+  --g-white: var(--surface-card);
+  --g-surface: var(--surface);
+  --g-amber: var(--primary);
+  --g-amber-tint: var(--primary-tint);
+  --g-amber-pale: var(--primary-tint);
+  --g-text: var(--on-surface);
+  --g-muted: var(--muted);
+  --g-border: var(--hairline);
   --g-wa-green: #25d366;
+  --g-red: var(--error);
 }
 
 *,
@@ -65,10 +169,12 @@
 }
 
 body {
-  font-family: "Manrope", -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
-  background: var(--g-white);
-  color: var(--g-text);
+  font-family: var(--font);
+  background: var(--surface);
+  color: var(--on-surface);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  margin: 0;
   min-height: max(884px, 100dvh);
 }
 
@@ -78,14 +184,59 @@ a {
 }
 
 input::placeholder {
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--muted-2);
+  font-weight: 400;
 }
 
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  font-family: 'Material Symbols Outlined';
-  font-size: inherit;
-  line-height: 1;
-  display: inline-block;
-  vertical-align: middle;
+button {
+  font-family: var(--font);
 }
+
+/* ---- Type utilities ---- */
+.t-display   { font-size: 34px; font-weight: 800; line-height: 1.04; letter-spacing: -0.022em; }
+.t-headline  { font-size: 28px; font-weight: 700; line-height: 1.1;  letter-spacing: -0.015em; }
+.t-title     { font-size: 22px; font-weight: 700; line-height: 1.18; letter-spacing: -0.01em; }
+.t-subtitle  { font-size: 20px; font-weight: 600; line-height: 1.3; }
+.t-headline-card { font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+.t-body      { font-size: 15px; font-weight: 400; line-height: 1.5; }
+.t-label     { font-size: 14px; font-weight: 600; line-height: 1.25; }
+.t-caption   { font-size: 13px; font-weight: 400; line-height: 1.35; color: var(--muted); }
+.t-price     { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.tabular     { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* ---- Line clamps ---- */
+.clamp1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---- Subtle scrollbars ---- */
+.noscroll::-webkit-scrollbar { display: none; }
+.noscroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- Skeleton shimmer ---- */
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.skeleton {
+  position: relative; overflow: hidden;
+  background: var(--surface-container);
+  border-radius: var(--r-sm);
+}
+.skeleton::after {
+  content: ''; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+/* ---- Motion keyframes ---- */
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(183, 18, 42, 0.45); }
+  70%  { box-shadow: 0 0 0 12px rgba(183, 18, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(183, 18, 42, 0); }
+}
+@keyframes pop-in { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes gb-sheet-up { from { transform: translateY(40px); } to { transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-in-right { from { transform: translateX(28px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes push-in { from { transform: translateX(26px); } to { transform: translateX(0); } }
+@keyframes check-draw { to { stroke-dashoffset: 0; } }

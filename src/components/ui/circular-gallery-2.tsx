@@ -185,6 +185,7 @@ class Media {
   speed: number = 0;
   isBefore: boolean = false;
   isAfter: boolean = false;
+  img: HTMLImageElement | null = null;
 
   constructor({
     geometry,
@@ -331,10 +332,14 @@ class Media {
       transparent: true,
     });
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = this.image;
-    img.onload = () => {
+    this.img = new Image();
+    this.img.crossOrigin = "anonymous";
+    this.img.src = this.image;
+    this.img.onload = () => {
+      // Capture local ref — destroy() may null this.img before onload fires.
+      const img = this.img;
+      if (!img) return;
+
       // Draw at 2x resolution so text stays sharp after WebGL mipmap downsampling
       const SCALE = 2;
       const W = img.naturalWidth * SCALE;
@@ -367,6 +372,13 @@ class Media {
       // Pass original (unscaled) dimensions for correct aspect ratio in shader
       this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
     };
+  }
+
+  destroy() {
+    if (this.img) {
+      this.img.onload = null;
+      this.img = null;
+    }
   }
 
   createMesh() {
@@ -681,6 +693,12 @@ class App {
     this.container.removeEventListener("touchstart", this.boundOnTouchDown);
     window.removeEventListener("touchmove", this.boundOnTouchMove);
     window.removeEventListener("touchend", this.boundOnTouchUp);
+    // Null img.onload callbacks on each media to prevent post-unmount execution.
+    this.medias?.forEach((media) => media.destroy());
+    // Release the WebGL context back to the browser's GPU pool.
+    // Without this, browsers cap out at 8–16 simultaneous WebGL contexts.
+    const ext = this.gl?.getExtension?.("WEBGL_lose_context");
+    if (ext) ext.loseContext();
     if (this.renderer?.gl?.canvas?.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }
