@@ -2,35 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { GrabitOrderWithItems, GrabitOrderStatus } from '@gradient365/gradient-commons';
-import { TopBar, Card, FoodMark, Icon } from '@/components/ui/kit';
+import { MS, inr } from '@/components/gb/kit';
 
-const STATUS_LABELS: Record<GrabitOrderStatus, string> = {
-  pending: 'Awaiting payment',
-  new_order: 'Awaiting confirmation',
-  confirmed: 'Order confirmed',
-  prepping: 'Being prepared',
-  ready: 'Ready for pickup!',
-  completed: 'Picked up',
-  cancelled: 'Cancelled',
-};
-
-// Live status copy under the stepper.
-const LIVE_COPY: Record<GrabitOrderStatus, string> = {
-  pending: 'Sent to the cafe — waiting for payment…',
-  new_order: 'Sent to the cafe — waiting for them to confirm…',
-  confirmed: 'Confirmed! The barista will start prepping shortly.',
-  prepping: 'Your order is being prepared right now.',
-  ready: 'Ready for pickup — head to the counter!',
-  completed: 'Picked up. Enjoy! ☕',
-  cancelled: 'This order was cancelled.',
-};
-
-const STEPS = [
-  { label: 'Pending', icon: Icon.clock },
-  { label: 'Confirmed', icon: Icon.check },
-  { label: 'Ready', icon: Icon.bag },
-  { label: 'Done', icon: Icon.check },
-];
 function stepIndex(s: GrabitOrderStatus): number {
   const map: Record<GrabitOrderStatus, number> = {
     pending: 0, new_order: 0, confirmed: 1, prepping: 1, ready: 2, completed: 3, cancelled: 0,
@@ -38,7 +11,27 @@ function stepIndex(s: GrabitOrderStatus): number {
   return map[s] ?? 0;
 }
 
-const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
+type NodeState = 'done' | 'current' | 'upcoming';
+function TimelineNode({ state, icon, title, sub, last }: { state: NodeState; icon: string; title: string; sub: string; last?: boolean }) {
+  const bg = state === 'done' ? 'var(--gb-green)' : state === 'current' ? 'var(--gb-primary)' : '#fff';
+  const border = state === 'upcoming' ? '2px solid #E7DCCC' : `2px solid ${bg}`;
+  const iconColor = state === 'upcoming' ? '#C9BCA9' : '#fff';
+  const dim = state === 'upcoming';
+  return (
+    <div style={{ display: 'flex', gap: 14 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <span style={{ width: 26, height: 26, borderRadius: '50%', background: bg, border, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+          <MS name={state === 'done' ? 'check' : icon} size={15} fill color={iconColor} />
+        </span>
+        {!last && <span style={{ width: 2, flex: 1, background: '#EEE4D6', minHeight: 22 }} />}
+      </div>
+      <div style={{ paddingBottom: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: dim ? '#A99C8B' : 'var(--gb-text)' }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{sub}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function OrderPage() {
   const { id, slug } = useParams<{ slug: string; id: string }>();
@@ -47,113 +40,66 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/proxy/grabit/orders/${id}`)
-      .then((res) => res.json())
-      .then((data) => { setOrder(data); setLoading(false); })
-      .catch(() => setLoading(false));
-
-    // Live updates via polling the backend (RDS-backed), replacing Supabase Realtime.
+    fetch(`/api/proxy/grabit/orders/${id}`).then(r => r.json()).then(d => { setOrder(d); setLoading(false); }).catch(() => setLoading(false));
     const poll = setInterval(() => {
-      fetch(`/api/proxy/grabit/orders/${id}`)
-        .then((res) => res.json())
-        .then((data) => setOrder(data))
-        .catch(() => {});
+      fetch(`/api/proxy/grabit/orders/${id}`).then(r => r.json()).then(setOrder).catch(() => {});
     }, 4000);
-
     return () => clearInterval(poll);
   }, [id]);
 
-  if (loading) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--muted)', fontSize: 17, background: 'var(--surface)' }}>Loading…</div>;
-  }
-  if (!order) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--muted)', fontSize: 17, background: 'var(--surface)' }}>Order not found</div>;
-  }
+  const center = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--gb-muted)', fontSize: 16, background: 'var(--gb-surface)' } as const;
+  if (loading) return <div style={center}>Loading…</div>;
+  if (!order) return <div style={center}>Order not found</div>;
 
+  const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'the café';
   const pickupTime = new Date(order.pickup_slot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-  const total = order.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
-  const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
   const idx = stepIndex(order.status);
-  const isReady = order.status === 'ready';
-  const isDone = order.status === 'completed';
+  const nodeState = (threshold: number): NodeState => idx > threshold ? 'done' : idx === threshold ? 'current' : 'upcoming';
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative', paddingBottom: 40 }}>
-      <TopBar
-        title="Order status"
-        onBack={() => router.push(`/${slug}`)}
-        right={<button onClick={() => router.push(`/${slug}`)} aria-label="Home" style={{ width: 36, height: 36, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--on-surface)', display: 'grid', placeItems: 'center' }}>{Icon.home({ size: 22 })}</button>}
-      />
-
-      {/* Success header */}
-      <div style={{ textAlign: 'center', padding: '8px 24px 22px' }}>
-        <div style={{ position: 'relative', width: 84, height: 84, margin: '0 auto 16px' }}>
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--success-tint)' }} />
-          <svg viewBox="0 0 84 84" style={{ position: 'relative' }} width="84" height="84">
-            <circle cx="42" cy="42" r="30" fill="none" stroke="var(--success)" strokeWidth="3.5" opacity="0.25" />
-            <path d="M28 43 L38 53 L57 32" fill="none" stroke="var(--success)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
+      {/* success header */}
+      <div style={{ background: 'linear-gradient(158deg,#2A5238 0%,#38743F 100%)', paddingTop: 'calc(40px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 30, color: '#fff', textAlign: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+          <MS name="check_circle" size={36} fill color="#fff" />
         </div>
-        <div className="t-title">{isDone ? 'Order complete' : isReady ? 'Your order is ready!' : 'Order Confirmed'}</div>
-        <div className="t-caption" style={{ marginTop: 4 }}>We&apos;ll ping you on WhatsApp when it&apos;s ready.</div>
-        <div className="tabular" style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--surface-card)', border: '1px solid var(--hairline)', borderRadius: 'var(--r-pill)', padding: '7px 14px', fontWeight: 700, fontSize: 15 }}>
-          #{order.id} <span style={{ color: 'var(--muted)', fontWeight: 500, fontSize: 13 }}>· Pickup {pickupTime}</span>
+        <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, marginTop: 14 }}>Order placed</div>
+        <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>Pickup at {cafeName} · {pickupTime}</div>
+      </div>
+
+      {/* pickup code */}
+      <div style={{ margin: '-16px 16px 0', position: 'relative', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 20, boxShadow: 'var(--gb-shadow-pop)', textAlign: 'center' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gb-muted-2)' }}>Show this at the counter</div>
+        <div className="gb-serif" style={{ fontSize: 44, fontWeight: 600, letterSpacing: '.16em', color: 'var(--gb-primary)', marginTop: 6 }}>GB-{order.id}</div>
+        <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600 }}>Skip the queue — collect &amp; go</div>
+      </div>
+
+      {/* timeline */}
+      <div style={{ margin: '20px 20px 0' }}>
+        <TimelineNode state={nodeState(0)} icon="check" title="Order confirmed" sub={`${cafeName} got your order`} />
+        <TimelineNode state={nodeState(1)} icon="restaurant" title="Preparing your order" sub="Barista is on it" />
+        <TimelineNode state={idx >= 2 ? (idx >= 3 ? 'done' : 'current') : 'upcoming'} icon="shopping_bag" title="Ready for pickup" sub="We'll ping you — skip the queue" last />
+      </div>
+
+      {/* café row */}
+      <div style={{ margin: '4px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: 15, display: 'flex', alignItems: 'center', gap: 13 }}>
+        <div style={{ width: 46, height: 46, borderRadius: 12, overflow: 'hidden', flex: 'none' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=900&h=560&fit=crop&auto=format&q=72" alt={cafeName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>{cafeName}</div>
+          <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600 }}>0.4 km · 5 min walk</div>
+        </div>
+        <div style={{ background: '#F4EBDF', color: 'var(--gb-primary)', width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <MS name="directions" size={22} />
         </div>
       </div>
 
-      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Live stepper */}
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 19, left: 28, right: 28, height: 3, background: 'var(--surface-container)', borderRadius: 3 }} />
-            <div style={{ position: 'absolute', top: 19, left: 28, height: 3, background: 'var(--success)', borderRadius: 3, transition: 'width .6s var(--ease-out)', width: `calc((100% - 56px) * ${idx / (STEPS.length - 1)})` }} />
-            {STEPS.map((s, i) => {
-              const done = i < idx, current = i === idx;
-              return (
-                <div key={s.label} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, width: 64, zIndex: 1 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', display: 'grid', placeItems: 'center', background: done ? 'var(--success)' : current ? 'var(--primary)' : 'var(--surface-card)', color: done || current ? '#fff' : 'var(--muted-2)', border: done || current ? 'none' : '2px solid var(--surface-dim)', animation: current ? 'pulse-ring 1.8s infinite' : 'none', transition: 'all .3s' }}>
-                    {done ? Icon.check({ size: 20 }) : s.icon({ size: 19 })}
-                  </div>
-                  <span style={{ fontSize: 11.5, fontWeight: current ? 700 : 500, color: current ? 'var(--primary)' : done ? 'var(--success)' : 'var(--muted)' }}>{s.label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 'var(--r-md)', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', gap: 9 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', animation: 'pulse-ring 1.8s infinite', flex: 'none' }} />
-            <span className="t-caption" style={{ color: 'var(--on-surface)', fontWeight: 600 }}>{LIVE_COPY[order.status]}</span>
-          </div>
-        </Card>
-
-        {/* Show at counter */}
-        <Card style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 84, height: 84, borderRadius: 'var(--r-md)', background: '#fff', border: '1px solid var(--hairline)', display: 'grid', placeItems: 'center', flex: 'none', color: 'var(--on-surface)' }}>
-            {Icon.qr({ size: 62, sw: 1.2 })}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div className="t-headline-card">Show this at the counter</div>
-            <div className="tabular" style={{ fontSize: 26, fontWeight: 800, letterSpacing: '0.04em', marginTop: 4 }}>#{order.id}</div>
-            <div className="t-caption" style={{ marginTop: 2 }}>{STATUS_LABELS[order.status]} · Pickup {pickupTime}</div>
-          </div>
-        </Card>
-
-        {/* Items */}
-        <Card style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="t-label">{itemCount} item{itemCount === 1 ? '' : 's'}</div>
-          {order.items.map((item, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <FoodMark veg size={14} />
-              <span className="tabular" style={{ color: 'var(--muted)', fontWeight: 700, fontSize: 13, minWidth: 24 }}>{item.quantity}×</span>
-              <span className="t-body" style={{ flex: 1 }}>{item.menu_item_name}</span>
-              <span className="t-price tabular" style={{ fontSize: 14 }}>{inr(item.unit_price * item.quantity)}</span>
-            </div>
-          ))}
-          <div style={{ height: 1, background: 'var(--hairline)' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
-            <span>Total</span><span className="tabular">{inr(total)}</span>
-          </div>
-        </Card>
-      </div>
+      {/* back to home */}
+      <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
+        Back to home
+      </button>
     </div>
   );
 }

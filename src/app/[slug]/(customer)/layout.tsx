@@ -10,8 +10,10 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   );
   return (
     <QueryClientProvider client={queryClient}>
-      <div style={{ minHeight: '100vh', background: 'var(--g-white)' }}>
-        {children}
+      <div className="gb-app">
+        <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', position: 'relative' }}>
+          {children}
+        </div>
       </div>
     </QueryClientProvider>
   );

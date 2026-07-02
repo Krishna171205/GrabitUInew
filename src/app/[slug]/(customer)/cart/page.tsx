@@ -1,40 +1,34 @@
 'use client';
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
 import type { GrabitAvailableSlot } from '@gradient365/gradient-commons';
-import { TopBar, Card, Photo, FoodMark, QtyStepper, Button, Icon } from '@/components/ui/kit';
+import { MS, inr } from '@/components/gb/kit';
 
 interface SlotsData { slots: GrabitAvailableSlot[]; label: string | null; }
 
-const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
+function dateStr(offsetDays: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().split('T')[0];
+}
 
-/* Swipe-to-delete row (pointer drag reveals a delete action). */
-function SwipeRow({ children, onDelete }: { children: ReactNode; onDelete: () => void }) {
-  const [dx, setDx] = useState(0);
-  const start = useRef<number | null>(null);
-  const open = useRef(false);
-  const onDown = (e: React.PointerEvent) => { start.current = e.clientX - (open.current ? -72 : 0); e.currentTarget.setPointerCapture(e.pointerId); };
-  const onMove = (e: React.PointerEvent) => {
-    if (start.current == null) return;
-    setDx(Math.max(-84, Math.min(0, e.clientX - start.current)));
-  };
-  const onUp = () => {
-    if (start.current == null) return;
-    const o = dx < -42; open.current = o; setDx(o ? -72 : 0); start.current = null;
-  };
+function Veg({ size = 14 }: { size?: number }) {
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--r-lg)' }}>
-      <button onClick={onDelete} aria-label="Remove" style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 72, border: 'none', background: 'var(--error)', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-        {Icon.trash({ size: 22 })}
-      </button>
-      <div
-        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
-        style={{ transform: `translateX(${dx}px)`, transition: start.current == null ? 'transform .28s var(--ease-spring)' : 'none', touchAction: 'pan-y', background: 'var(--surface)' }}
-      >
-        {children}
-      </div>
+    <span style={{ width: size, height: size, border: '1.5px solid #3E8E4E', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <span style={{ width: size * 0.43, height: size * 0.43, borderRadius: '50%', background: '#3E8E4E' }} />
+    </span>
+  );
+}
+
+function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void }) {
+  const cell = { width: 30, height: 32, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' } as const;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 10, overflow: 'hidden' }}>
+      <button style={cell} onClick={() => onChange(qty - 1)}><MS name="remove" size={18} /></button>
+      <span style={{ minWidth: 18, textAlign: 'center', fontSize: 14, fontWeight: 800, color: 'var(--gb-text)' }}>{qty}</span>
+      <button style={cell} onClick={() => onChange(qty + 1)}><MS name="add" size={18} /></button>
     </div>
   );
 }
@@ -47,12 +41,6 @@ export default function CartPage() {
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
 
-  function dateStr(offsetDays: number) {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    return d.toISOString().split('T')[0];
-  }
-
   useEffect(() => {
     if (items.length === 0) return;
     setSlotsLoading(true);
@@ -61,129 +49,126 @@ export default function CartPage() {
         const todayRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(0)}`);
         if (!todayRes.ok) throw new Error('slots fetch failed');
         const todayData = await todayRes.json() as { slots: GrabitAvailableSlot[] };
-        if (todayData.slots.length > 0) {
-          setSlotsData({ slots: todayData.slots, label: null });
-          return;
-        }
+        if (todayData.slots.length > 0) { setSlotsData({ slots: todayData.slots, label: null }); return; }
         const tomorrowRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(1)}`);
-        const tomorrowData = tomorrowRes.ok
-          ? await tomorrowRes.json() as { slots: GrabitAvailableSlot[] }
-          : { slots: [] };
+        const tomorrowData = tomorrowRes.ok ? await tomorrowRes.json() as { slots: GrabitAvailableSlot[] } : { slots: [] };
         setSlotsData({ slots: tomorrowData.slots, label: 'Tomorrow' });
       } catch {
         setSlotsData({ slots: [], label: null });
-      } finally {
-        setSlotsLoading(false);
-      }
+      } finally { setSlotsLoading(false); }
     })();
   }, [slug, items.length]);
 
+  const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
+  const subtotal = total();
+  const taxes = Math.round(subtotal * 0.05);
+  const toPay = subtotal + taxes;
+
   if (items.length === 0) {
     return (
-      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
-        <TopBar title="Your order" onBack={() => router.push(`/${slug}`)} />
-        <div style={{ padding: '60px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'var(--surface-container)', display: 'grid', placeItems: 'center', color: 'var(--muted-2)' }}>
-            {Icon.bag({ size: 44, sw: 1.4 })}
-          </div>
-          <div>
-            <div className="t-title">Your cart is empty</div>
-            <div className="t-caption" style={{ marginTop: 6, maxWidth: 240 }}>Add a few things from the menu and pick a pickup slot.</div>
-          </div>
-          <Link href={`/${slug}`}><Button icon={Icon.menu({ size: 20 })}>Browse the menu</Button></Link>
+      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)' }}>
+        <div style={{ background: '#fff', padding: 'calc(14px + env(safe-area-inset-top)) 18px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--gb-line)' }}>
+          <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={22} color="var(--gb-ink)" /></button>
+          <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500 }}>Your order</div>
+        </div>
+        <div style={{ padding: '70px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 92, height: 92, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center' }}><MS name="shopping_bag" size={42} color="var(--gb-primary)" /></div>
+          <div className="gb-serif" style={{ fontSize: 22, fontWeight: 500 }}>Your cart is empty</div>
+          <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, maxWidth: 240 }}>Add a few things from the menu and pick a pickup slot.</div>
+          <Link href={`/${slug}/menu`} style={{ background: 'var(--gb-primary)', color: '#fff', borderRadius: 14, padding: '13px 22px', fontSize: 15, fontWeight: 800 }}>Browse the menu</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative', paddingBottom: 188 }}>
-      <TopBar title="Your order" onBack={() => router.push(`/${slug}`)} />
-
-      <div style={{ padding: '6px 20px 0' }}>
-        {/* Line items */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {items.map(item => (
-            <SwipeRow key={item.menu_item_id} onDelete={() => updateQty(item.menu_item_id, 0)}>
-              <Card style={{ display: 'flex', gap: 12, alignItems: 'center', boxShadow: 'none' }}>
-                <Photo seed={item.menu_item_id} src={item.image_url || undefined} label={item.name} style={{ width: 56, height: 56, flex: 'none' }} radius="var(--r-md)" />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FoodMark veg size={13} /><span className="t-label">{item.name}</span></div>
-                  <div className="t-price tabular" style={{ marginTop: 5, fontSize: 15 }}>{inr(item.price * item.quantity)}</div>
-                </div>
-                <QtyStepper value={item.quantity} onChange={(v) => updateQty(item.menu_item_id, v)} size="sm" />
-              </Card>
-            </SwipeRow>
-          ))}
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 140 }}>
+      {/* header */}
+      <div style={{ background: '#fff', padding: 'calc(14px + env(safe-area-inset-top)) 18px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--gb-line)' }}>
+        <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={22} color="var(--gb-ink)" /></button>
+        <div>
+          <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500, lineHeight: 1 }}>Your order</div>
+          <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{cafeName} · {items.length} item{items.length > 1 ? 's' : ''}</div>
         </div>
-        <div className="t-caption" style={{ textAlign: 'center', margin: '10px 0 18px' }}>Swipe a row left to remove</div>
+      </div>
 
-        {/* Slot picker */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 12px', color: 'var(--primary)' }}>
-          {Icon.clock({ size: 20 })}
-          <span className="t-subtitle" style={{ color: 'var(--on-surface)' }}>Pickup slot</span>
-          <span className="t-caption" style={{ marginLeft: 'auto' }}>
-            5-min windows{slotsData?.label ? ` · ${slotsData.label}` : ''}
-          </span>
+      {/* items */}
+      <div style={{ padding: '8px 18px 4px' }}>
+        {items.map(item => (
+          <div key={item.menu_item_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--gb-line)' }}>
+            <Veg />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>
+            </div>
+            <Stepper qty={item.quantity} onChange={(v) => updateQty(item.menu_item_id, v)} />
+            <div style={{ minWidth: 56, textAlign: 'right', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price * item.quantity)}</div>
+          </div>
+        ))}
+        <Link href={`/${slug}/menu`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 14, color: 'var(--gb-primary)', fontSize: 13.5, fontWeight: 700 }}>
+          <MS name="add" size={18} />Add more items
+        </Link>
+      </div>
+
+      {/* pickup slot */}
+      <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MS name="schedule" size={20} fill color="var(--gb-primary)" />
+          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Pickup time</div>
         </div>
-        {slotsLoading && <p className="t-caption">Loading slots…</p>}
-        {!slotsLoading && slotsData?.slots.length === 0 && <p className="t-caption">No slots available. Try again tomorrow.</p>}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-          {slotsData?.slots.map(slot => {
+        <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 28 }}>
+          It&apos;ll be fresh &amp; waiting — no waiting in line{slotsData?.label ? ` · ${slotsData.label}` : ''}
+        </div>
+        {slotsLoading && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>Loading slots…</p>}
+        {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>No slots available. Try again tomorrow.</p>}
+        <div className="gb-scroll" style={{ display: 'flex', gap: 9, overflowX: 'auto', marginTop: 14 }}>
+          {slotsData?.slots.map((slot, idx) => {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
             const minsFromNow = Math.round((new Date(slot.slot_start).getTime() - Date.now()) / 60000);
-            const label = slotsData?.label
-              ? new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-              : minsFromNow < 60 ? `${minsFromNow} mins` : `${Math.floor(minsFromNow / 60)}h ${minsFromNow % 60}m`;
+            const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const label = !slotsData?.label && idx === 0 && minsFromNow <= 20 ? `ASAP · ${Math.max(minsFromNow, 1)} min` : time;
             return (
               <button
                 key={slot.slot_start}
                 disabled={full}
                 onClick={() => setSelectedSlot(slot.slot_start)}
                 style={{
-                  position: 'relative', padding: '11px 6px 9px', borderRadius: 'var(--r-md)', cursor: full ? 'not-allowed' : 'pointer',
-                  border: `1px solid ${sel ? 'var(--primary)' : full ? 'var(--hairline)' : 'var(--hairline-strong)'}`,
-                  background: sel ? 'var(--primary)' : full ? 'var(--surface-low)' : 'var(--surface-card)',
-                  color: sel ? '#fff' : full ? 'var(--muted-2)' : 'var(--on-surface)', opacity: full ? 0.7 : 1,
-                  animation: sel ? 'pop-in .26s var(--ease-spring)' : 'none', transition: 'border-color .15s, background .15s',
+                  flex: 'none', border: `1.5px solid ${sel ? 'var(--gb-primary)' : full ? 'var(--gb-line-4)' : '#EEE4D6'}`,
+                  background: sel ? 'var(--gb-primary-pale)' : '#fff', color: sel ? 'var(--gb-primary)' : full ? 'var(--gb-muted-2)' : '#5A4E42',
+                  fontSize: 13, fontWeight: 700, padding: '11px 16px', borderRadius: 13, textAlign: 'center', lineHeight: 1.1,
+                  cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.6 : 1,
                 }}
               >
-                <div className="tabular" style={{ fontSize: 13.5, fontWeight: 700 }}>{label}</div>
-                <div className="tabular" style={{ fontSize: 11, marginTop: 3, fontWeight: 600, color: sel ? 'rgba(255,255,255,0.9)' : full ? 'var(--muted-2)' : slot.available_count <= 1 ? 'var(--warning)' : 'var(--success)' }}>
-                  {full ? 'Full' : `${slot.available_count} left`}
-                </div>
+                {full ? `${label} · Full` : label}
               </button>
             );
           })}
         </div>
-
-        {/* Bill */}
-        <div className="t-subtitle" style={{ margin: '24px 0 12px' }}>Bill summary</div>
-        <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 16, fontWeight: 700 }}>Total</span>
-            <span className="tabular" style={{ fontSize: 18, fontWeight: 700 }}>{inr(total())}</span>
-          </div>
-        </Card>
       </div>
 
-      {/* Dock CTA */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', padding: '12px 20px 16px', background: 'linear-gradient(to top, var(--surface) 70%, transparent)' }}>
-        <div style={{ marginBottom: 8 }}>
-          {selectedSlot
-            ? <div className="t-caption" style={{ textAlign: 'center', color: 'var(--on-surface)' }}>Pickup slot selected</div>
-            : <div className="t-caption" style={{ textAlign: 'center', color: 'var(--warning)' }}>Pick a pickup slot to continue</div>}
+      {/* bill */}
+      <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Taxes &amp; charges</span><span>{inr(taxes)}</span></div>
+        <div style={{ height: 1, background: 'var(--gb-line)', margin: '9px 0' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: 'var(--gb-text)' }}><span>To pay</span><span>{inr(toPay)}</span></div>
+      </div>
+
+      {/* pay bar */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '14px 16px calc(26px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11, color: '#6E6155', fontSize: 12.5, fontWeight: 600 }}>
+          <MS name="account_balance_wallet" size={19} color="var(--gb-primary)" />Paying with UPI · you@okbank
+          <MS name="expand_more" size={18} color="#B0A392" style={{ marginLeft: 'auto' }} />
         </div>
-        <Button
-          full
+        <button
           disabled={!selectedSlot}
           onClick={() => { sessionStorage.setItem('grabit_slot', selectedSlot!); router.push(`/${slug}/checkout`); }}
-          style={{ justifyContent: 'space-between' }}
+          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: selectedSlot ? 'pointer' : 'not-allowed', opacity: selectedSlot ? 1 : 0.6 }}
         >
-          <span className="tabular">{inr(total())}</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>Continue to Pay {Icon.chevR({ size: 18 })}</span>
-        </Button>
+          <span style={{ fontSize: 16, fontWeight: 800 }}>Pay {inr(toPay)}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 700 }}>{selectedSlot ? 'Place order' : 'Pick a slot'}<MS name="arrow_forward" size={20} /></span>
+        </button>
       </div>
     </div>
   );

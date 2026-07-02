@@ -4,106 +4,160 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
-import { TopBar, Photo, FoodMark, AddButton, Button, Icon, Badge } from '@/components/ui/kit';
+import { MS, inr } from '@/components/gb/kit';
+import { ph } from '@/components/gb/data';
 
 const CATEGORIES: GrabitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];
 const CATEGORY_LABELS: Record<GrabitMenuCategory, string> = {
-  drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts'
+  drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts',
 };
-
-const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
 
 interface Props { slug: string; cafe: GrabitCafe; items: GrabitMenuItem[]; }
 
+/* veg mark (square outline + dot) */
+function Veg() {
+  return (
+    <span style={{ width: 14, height: 14, border: '1.5px solid #3E8E4E', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3E8E4E' }} />
+    </span>
+  );
+}
+
 export default function MenuClient({ slug, cafe, items }: Props) {
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState<GrabitMenuCategory>('drinks');
+  const [activeCat, setActiveCat] = useState<GrabitMenuCategory | 'all'>('all');
+  const [query, setQuery] = useState('');
   const { addItem, updateQty, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
 
-  // Cache cafe_id in sessionStorage so checkout page doesn't need to re-fetch menu
   useEffect(() => {
     if (cafe?.id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cafe.id));
   }, [slug, cafe?.id]);
 
-  const visibleItems = items.filter(i => i.is_available && i.category === activeCategory);
-  const categoriesPresent = CATEGORIES.filter(c => items.some(i => i.category === c && i.is_available));
+  const q = query.trim().toLowerCase();
+  const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q)));
+  const categoriesPresent = CATEGORIES.filter(c => available.some(i => i.category === c));
+  const shownCats = activeCat === 'all' ? categoriesPresent : categoriesPresent.filter(c => c === activeCat);
+  const cover = cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
+
+  const chip = (active: boolean) => ({
+    flex: 'none' as const, display: 'inline-flex', alignItems: 'center', gap: 5,
+    border: `1px solid ${active ? 'var(--gb-ink)' : 'var(--gb-line-3)'}`,
+    background: active ? 'var(--gb-ink)' : '#fff', color: active ? '#fff' : '#5A4E42',
+    fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
+  });
+
+  const addStep = (item: GrabitMenuItem) => {
+    const qty = qtyOf(item.id);
+    if (qty > 0) {
+      return (
+        <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.5)', overflow: 'hidden' }}>
+          <button onClick={() => updateQty(item.id, qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
+          <span style={{ minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
+          <button onClick={() => updateQty(item.id, qty + 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
+        </div>
+      );
+    }
+    return (
+      <button
+        onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)}
+        style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
+      >
+        Add<MS name="add" size={16} />
+      </button>
+    );
+  };
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', position: 'relative', minHeight: '100dvh', background: 'var(--surface)', paddingBottom: cartCount > 0 ? 120 : 24 }}>
-      <TopBar
-        title={cafe.name}
-        onBack={() => router.push(`/${slug}`)}
-        right={
-          <Link href={`/${slug}/cart`} aria-label="Cart" style={{ position: 'relative', width: 36, height: 36, display: 'grid', placeItems: 'center', color: 'var(--on-surface)' }}>
-            {Icon.bag({ size: 23 })}
-            {cartCount > 0 && <Badge n={cartCount} />}
-          </Link>
-        }
-      />
-
-      {/* Sticky underline category tabs */}
-      <div className="noscroll" style={{ position: 'sticky', top: 52, zIndex: 25, display: 'flex', gap: 22, overflowX: 'auto', padding: '0 20px', background: 'var(--glass-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid var(--glass-border)' }}>
-        {categoriesPresent.map(cat => {
-          const on = activeCategory === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '14px 0 12px', fontSize: 15, fontWeight: on ? 700 : 500, color: on ? 'var(--primary)' : 'var(--muted)', position: 'relative', whiteSpace: 'nowrap' }}
-            >
-              {CATEGORY_LABELS[cat]}
-              {on && <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 3, background: 'var(--primary)' }} />}
-            </button>
-          );
-        })}
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24 }}>
+      {/* cover */}
+      <div style={{ position: 'relative', height: 250 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cover} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
+        <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
+          <MS name="arrow_back" size={22} color="var(--gb-ink)" />
+        </button>
+        <div style={{ position: 'absolute', bottom: 18, left: 20, right: 20, color: '#fff' }}>
+          <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.05 }}>{cafe.name}</div>
+          <div style={{ fontSize: 13.5, fontWeight: 500, color: 'rgba(255,255,255,.85)', marginTop: 4 }}>Order ahead · Skip the queue</div>
+        </div>
       </div>
 
-      {/* Items */}
-      <div style={{ padding: '8px 20px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {visibleItems.length === 0 && (
-          <p className="t-caption" style={{ textAlign: 'center', padding: '48px 0' }}>Nothing in this category right now</p>
+      {/* info strip */}
+      <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 18, border: '1px solid var(--gb-line-2)', boxShadow: '0 12px 26px -18px rgba(60,40,25,.4)', display: 'flex', padding: '14px 6px' }}>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 15, fontWeight: 800, color: 'var(--gb-ink)' }}><MS name="star" size={16} fill color="var(--gb-gold)" />4.8</div>
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>1.2k ratings</div>
+        </div>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-green)' }}>8 min</div>
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>pickup ready</div>
+        </div>
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-ink)' }}>0.4 km</div>
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>from you</div>
+        </div>
+      </div>
+
+      {/* menu search */}
+      <div style={{ padding: '18px 16px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '12px 14px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+          <MS name="search" size={20} color="#B0A08C" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu — flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 14, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
+          <MS name="mic" size={20} color="#C1502E" />
+        </div>
+      </div>
+
+      {/* filter chips */}
+      <div className="gb-scroll" style={{ display: 'flex', gap: 9, overflowX: 'auto', padding: '14px 16px 6px' }}>
+        <div style={chip(false)}><MS name="tune" size={17} color="var(--gb-primary)" />Filters</div>
+        <button style={chip(activeCat === 'all')} onClick={() => setActiveCat('all')}>All</button>
+        {categoriesPresent.map(c => (
+          <button key={c} style={chip(activeCat === c)} onClick={() => setActiveCat(c)}>{CATEGORY_LABELS[c]}</button>
+        ))}
+      </div>
+
+      {/* menu */}
+      <div style={{ padding: '6px 16px 0' }}>
+        {shownCats.length === 0 && (
+          <p style={{ textAlign: 'center', color: 'var(--gb-muted)', fontSize: 14, padding: '48px 0', fontWeight: 500 }}>No items match your search</p>
         )}
-        {visibleItems.map(item => {
-          const qty = qtyOf(item.id);
+        {shownCats.map(cat => {
+          const catItems = available.filter(i => i.category === cat);
+          if (!catItems.length) return null;
           return (
-            <div key={item.id} style={{ display: 'flex', gap: 14, paddingTop: 6 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}><FoodMark veg size={14} /></div>
-                <div className="t-headline-card">{item.name}</div>
-                {item.description && <div className="t-caption clamp2" style={{ marginTop: 3, paddingRight: 8 }}>{item.description}</div>}
-                <div className="t-price tabular" style={{ marginTop: 8 }}>{inr(item.price)}</div>
-              </div>
-              <div style={{ width: 104, flex: 'none', position: 'relative' }}>
-                <Photo seed={item.id} src={item.image_url || undefined} label={item.name} ratio="1" radius="var(--r-md)" />
-                <div style={{ position: 'absolute', left: '50%', bottom: -16, transform: 'translateX(-50%)' }}>
-                  <AddButton
-                    qty={qty}
-                    onAdd={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)}
-                    onChange={(v) => updateQty(item.id, v)}
-                  />
+            <div key={cat}>
+              <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
+              {catItems.map(item => (
+                <div key={item.id} style={{ display: 'flex', gap: 14, padding: '15px 0', borderBottom: '1px solid var(--gb-line)' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Veg /><span style={{ fontSize: 16, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</span></div>
+                    {item.description && <div style={{ fontSize: 13, color: 'var(--gb-muted)', lineHeight: 1.4, marginTop: 5, fontWeight: 500 }}>{item.description}</div>}
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8 }}>{inr(item.price)}</div>
+                  </div>
+                  <div style={{ width: 104, flex: 'none', position: 'relative' }}>
+                    <div style={{ width: 104, height: 96, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 18px -10px rgba(60,40,25,.4)' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.image_url || ph(['photo-1541167760496-1628856ab772', 'photo-1461023058943-07fcbe16d735', 'photo-1510707577719-ae7c14805e3a'][item.id % 3])} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </div>
+                    {addStep(item)}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           );
         })}
-        <div style={{ height: 12 }} />
       </div>
 
-      {/* Floating cart dock */}
+      {/* floating cart bar */}
       {cartCount > 0 && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', padding: '12px 20px 16px', background: 'linear-gradient(to top, var(--surface) 62%, transparent)' }}>
-          <Link href={`/${slug}/cart`} style={{ display: 'block' }}>
-            <Button full style={{ justifyContent: 'space-between' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <span className="tabular" style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 8, minWidth: 24, height: 24, display: 'grid', placeItems: 'center', fontSize: 13, padding: '0 4px' }}>{cartCount}</span>
-                {cartCount === 1 ? 'item' : 'items'} · <span className="tabular">{inr(total())}</span>
-              </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>View Cart {Icon.chevR({ size: 18 })}</span>
-            </Button>
-          </Link>
-        </div>
+        <Link href={`/${slug}/cart`} style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, background: 'var(--gb-ink)', color: '#fff', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--gb-shadow-bar)' }}>
+          <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 9, padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
+          <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>Next<MS name="arrow_forward" size={19} /></span>
+        </Link>
       )}
     </div>
   );

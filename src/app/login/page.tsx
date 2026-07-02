@@ -1,440 +1,206 @@
 'use client';
-import { useState, useRef, useEffect, Suspense } from 'react';
-import Link from 'next/link';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { MS } from '@/components/gb/kit';
+import { ph } from '@/components/gb/data';
 
-const OTP_LEN = 6;
-const RESEND_SEC = 30;
+type Step = 'phone' | 'otp';
 
-function LoginPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const nextPath = searchParams.get('next') ?? '/';
-
-  const [phone, setPhone] = useState('');
-  const [digits, setDigits] = useState<string[]>(Array(OTP_LEN).fill(''));
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [timer, setTimer] = useState(0);
-
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const otp = digits.join('');
-
-  // Derive a human-readable cafe name from the ?next param
-  const cafeLabel =
-    nextPath && nextPath !== '/'
-      ? nextPath
-          .replace(/^\//, '')
-          .split('-')
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(' ')
-      : null;
-
-  // Countdown after OTP sent
-  useEffect(() => {
-    if (step !== 'otp') return;
-    setTimer(RESEND_SEC);
-    const id = setInterval(() => setTimer((t) => Math.max(0, t - 1)), 1000);
-    return () => clearInterval(id);
-  }, [step]);
-
-  async function sendOtp() {
-    if (phone.length !== 10 || loading) return;
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/send-otp`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, type: 'customer' }),
-        },
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-      setStep('otp');
-      setTimeout(() => inputRefs.current[0]?.focus(), 80);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function verifyOtp(code?: string) {
-    const finalOtp = code ?? otp;
-    if (finalOtp.length !== OTP_LEN || loading) return;
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/auth/customer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp: finalOtp, type: 'customer' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Invalid OTP');
-      router.replace(nextPath);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Verification failed');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleDigit(index: number, value: string) {
-    const d = value.replace(/\D/g, '').slice(-1);
-    const next = [...digits];
-    next[index] = d;
-    setDigits(next);
-    if (d && index < OTP_LEN - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-    // Auto-verify when last box filled
-    if (d && index === OTP_LEN - 1) {
-      const full = next.join('');
-      if (full.length === OTP_LEN) verifyOtp(full);
-    }
-  }
-
-  function handleKey(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Backspace') {
-      if (digits[index]) {
-        const next = [...digits];
-        next[index] = '';
-        setDigits(next);
-      } else if (index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-    }
-  }
-
-  function resetToPhone() {
-    setStep('phone');
-    setDigits(Array(OTP_LEN).fill(''));
-    setError('');
-  }
-
-  const phoneReady = phone.length === 10 && !loading;
-  const otpReady = otp.length === OTP_LEN && !loading;
-
+function GoogleIcon() {
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        background: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'Manrope, sans-serif',
-      }}
-    >
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px 24px',
-        }}
-      >
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', color: '#1a1a1a', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            Grab<span style={{ color: '#FF6B00' }}>it</span>
-          </span>
-        </Link>
-        {cafeLabel && (
-          <span style={{ fontSize: '14px', fontWeight: 600, color: '#5a5c5e' }}>
-            {cafeLabel}
-          </span>
-        )}
-      </header>
-
-      {/* ── Body ───────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '28px 24px 40px',
-          maxWidth: '420px',
-          width: '100%',
-          margin: '0 auto',
-        }}
-      >
-        {/* Icon */}
-        <div style={{ fontSize: '44px', marginBottom: '20px' }}>☕</div>
-
-        {/* Headline */}
-        <h1
-          style={{
-            fontSize: '34px',
-            fontWeight: 900,
-            letterSpacing: '-0.03em',
-            lineHeight: 1.1,
-            marginBottom: '10px',
-            color: '#1a1a1a',
-          }}
-        >
-          Order ahead.<br />Skip the queue.
-        </h1>
-        <p style={{ fontSize: '15px', color: '#5a5c5e', marginBottom: '32px', lineHeight: 1.6 }}>
-          Enter your mobile number to get started. We&apos;ll send a one-time code.
-        </p>
-
-        {/* ── Phone input ──────────────────────────────────────────────── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            border: '2px solid #FF6B00',
-            borderRadius: '14px',
-            background: '#fff8f4',
-            overflow: 'hidden',
-            marginBottom: '14px',
-            transition: 'border-color 0.2s',
-          }}
-        >
-          <span
-            style={{
-              padding: '0 14px',
-              fontSize: '15px',
-              fontWeight: 700,
-              color: '#2d2f31',
-              borderRight: '1px solid rgba(255,107,0,0.18)',
-              height: '54px',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            }}
-          >
-            +91
-          </span>
-          <input
-            type="tel"
-            inputMode="numeric"
-            placeholder="98765 43210"
-            maxLength={10}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-            onKeyDown={(e) => e.key === 'Enter' && sendOtp()}
-            style={{
-              flex: 1,
-              padding: '0 16px',
-              fontSize: '17px',
-              fontWeight: 600,
-              border: 'none',
-              background: 'transparent',
-              outline: 'none',
-              height: '54px',
-              color: '#1a1a1a',
-            }}
-          />
-        </div>
-
-        {/* ── Send OTP button ──────────────────────────────────────────── */}
-        <button
-          onClick={sendOtp}
-          disabled={!phoneReady}
-          style={{
-            width: '100%',
-            height: '54px',
-            borderRadius: '980px',
-            border: 'none',
-            background: '#FF6B00',
-            color: '#fff',
-            opacity: phoneReady ? 1 : 0.35,
-            fontSize: '17px',
-            fontWeight: 700,
-            cursor: phoneReady ? 'pointer' : 'not-allowed',
-            transition: 'opacity 0.2s',
-            marginBottom: '28px',
-            boxShadow: phoneReady ? '0 8px 24px rgba(255,107,0,0.28)' : 'none',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          {loading && step === 'phone' ? 'Sending…' : 'Send OTP →'}
-        </button>
-
-        {/* ── OTP section (shown after SMS sent) ───────────────────────── */}
-        {step === 'otp' && (
-          <>
-            {/* Divider */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                marginBottom: '22px',
-              }}
-            >
-              <div style={{ flex: 1, height: '1px', background: '#ebebeb' }} />
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#b0b0b0',
-                  letterSpacing: '0.08em',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                — OR ENTER OTP —
-              </span>
-              <div style={{ flex: 1, height: '1px', background: '#ebebeb' }} />
-            </div>
-
-            {/* Digit boxes */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '10px',
-                justifyContent: 'center',
-                marginBottom: '18px',
-              }}
-            >
-              {digits.map((d, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={d}
-                  onChange={(e) => handleDigit(i, e.target.value)}
-                  onKeyDown={(e) => handleKey(i, e)}
-                  style={{
-                    width: '48px',
-                    height: '56px',
-                    borderRadius: '14px',
-                    border: d ? '2.5px solid #FF6B00' : '2px solid #e0e0e0',
-                    background: d ? '#fff8f4' : '#fafafa',
-                    textAlign: 'center',
-                    fontSize: '22px',
-                    fontWeight: 800,
-                    color: '#FF6B00',
-                    outline: 'none',
-                    transition: 'border 0.15s, background 0.15s',
-                    cursor: 'text',
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Resend timer */}
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              {timer > 0 ? (
-                <p style={{ fontSize: '13px', color: '#aaa', fontWeight: 600 }}>
-                  Resend in 0:{timer.toString().padStart(2, '0')}
-                </p>
-              ) : (
-                <button
-                  onClick={() => {
-                    setDigits(Array(OTP_LEN).fill(''));
-                    sendOtp();
-                  }}
-                  style={{
-                    fontSize: '13px',
-                    color: '#FF6B00',
-                    fontWeight: 700,
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Resend OTP
-                </button>
-              )}
-            </div>
-
-            {/* Confirm button — appears when all digits filled */}
-            {otpReady && (
-              <button
-                onClick={() => verifyOtp()}
-                style={{
-                  width: '100%',
-                  height: '54px',
-                  borderRadius: '980px',
-                  border: 'none',
-                  background: '#FF6B00',
-                  color: '#fff',
-                  fontSize: '17px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(255,107,0,0.28)',
-                  marginBottom: '12px',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {loading ? 'Verifying…' : 'Confirm →'}
-              </button>
-            )}
-
-            <button
-              onClick={resetToPhone}
-              style={{
-                width: '100%',
-                textAlign: 'center',
-                fontSize: '13px',
-                color: '#aaa',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                padding: '8px 0',
-              }}
-            >
-              Change number
-            </button>
-          </>
-        )}
-
-        {/* Error */}
-        {error && (
-          <p style={{ color: '#b02500', fontSize: '14px', marginTop: '12px', fontWeight: 600 }}>
-            {error}
-          </p>
-        )}
-
-        {/* Legal */}
-        <p
-          style={{
-            fontSize: '12px',
-            color: '#b0b0b0',
-            marginTop: 'auto',
-            paddingTop: '36px',
-            textAlign: 'center',
-            lineHeight: 1.7,
-          }}
-        >
-          By continuing you agree to our{' '}
-          <Link href="/terms" style={{ color: '#FF6B00', fontWeight: 600, textDecoration: 'none' }}>
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link href="/privacy" style={{ color: '#FF6B00', fontWeight: 600, textDecoration: 'none' }}>
-            Privacy Policy
-          </Link>
-          .
-        </p>
-      </div>
-
-      {/* ── Bottom accent bar ─────────────────────────────────────────── */}
-      <div
-        style={{
-          height: '4px',
-          background: 'linear-gradient(to right, #FF6B00, #ff8533, #ffc69f)',
-        }}
-      />
-    </div>
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.9 6.1C12.2 13.7 17.6 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7C43.8 37.9 46.5 31.8 46.5 24.5z" />
+      <path fill="#FBBC05" d="M10.4 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.5 10.7l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.2 0 11.5-2 15.3-5.6l-7.3-5.7c-2 1.4-4.7 2.3-8 2.3-6.4 0-11.8-4.2-13.6-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z" />
+    </svg>
   );
 }
 
-// useSearchParams requires Suspense in Next.js 15
-export default function LoginPageWrapper() {
+function LoginForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const item = params.get('item');
+  const next = params.get('next') || '/home';
+
+  const [step, setStep] = useState<Step>('phone');
+  const [phone, setPhone] = useState(process.env.NEXT_PUBLIC_DEV_PHONE ?? '');
+  const [otp, setOtp] = useState(process.env.NEXT_PUBLIC_DEV_OTP ?? '');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [timer, setTimer] = useState(0);
+  const boxes = useRef<(HTMLInputElement | null)[]>([]);
+  const valid = phone.length === 10;
+
+  async function sendOtp() {
+    setLoading(true); setError('');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/send-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, type: 'customer' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+      setStep('otp');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally { setLoading(false); }
+  }
+
+  async function verifyOtp() {
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/auth/customer', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp, type: 'customer' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid OTP');
+      router.replace(next);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Verification failed');
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => {
+    if (step !== 'otp') return;
+    setTimer(28);
+    const iv = setInterval(() => setTimer((t) => (t <= 1 ? (clearInterval(iv), 0) : t - 1)), 1000);
+    const f = setTimeout(() => boxes.current[0]?.focus(), 250);
+    return () => { clearInterval(iv); clearTimeout(f); };
+  }, [step]);
+
+  const digits = otp.padEnd(6).slice(0, 6).split('');
+  const setDigit = (i: number, v: string) => {
+    const d = v.replace(/\D/g, '').slice(-1);
+    const nextD = digits.map((c) => c.trim()).join('').padEnd(6).split('');
+    nextD[i] = d || ' ';
+    setOtp(nextD.join('').replace(/\s/g, '').slice(0, 6));
+    if (d && i < 5) boxes.current[i + 1]?.focus();
+  };
+
   return (
-    <Suspense>
-      <LoginPage />
-    </Suspense>
+    <>
+      {/* hero image */}
+      <div style={{ position: 'relative', height: 296, flex: 'none' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={ph('photo-1495474472287-4d71bcdd2085', 900, 1000)} alt="Café" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(40,24,16,.45) 0%,rgba(40,24,16,0) 26%,rgba(40,24,16,.55) 74%,#FAF6F0 100%)' }} />
+        <div style={{ position: 'absolute', bottom: 30, left: 26, right: 26, color: '#fff' }}>
+          <div className="gb-serif" style={{ fontSize: 40, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>Grabit</div>
+          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.3, marginTop: 6, maxWidth: 280 }}>
+            Order ahead from cafés near you. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* form sheet */}
+      <div style={{ flex: 1, background: 'var(--gb-surface)', padding: '14px 26px 30px', position: 'relative', zIndex: 2 }}>
+        {step === 'phone' ? (
+          <>
+            {item && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F7ECE4', border: '1px solid #F0D9C8', borderRadius: 12, padding: '10px 12px', marginBottom: 16 }}>
+                <MS name="shopping_cart" size={20} fill color="var(--gb-primary)" />
+                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: '#7A4A30', lineHeight: 1.35 }}>
+                  Sign in to add <b style={{ fontWeight: 800 }}>{item}</b> to your cart & place your pickup order
+                </span>
+              </div>
+            )}
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Log in or sign up</div>
+            <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>Enter your mobile number — we&apos;ll text you a one-time code.</div>
+
+            {/* phone field */}
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: 16, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 0 0 4px rgba(177,90,50,.12)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: 56, borderRight: '1px solid #EEE4D6' }}>
+                <span style={{ fontSize: 16 }}>🇮🇳</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--gb-text)' }}>+91</span>
+                <MS name="expand_more" size={18} color="#B0A392" />
+              </div>
+              <input
+                autoFocus type="tel" inputMode="numeric" placeholder="98765 43210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                onKeyDown={(e) => e.key === 'Enter' && valid && sendOtp()}
+                style={{ flex: 1, minWidth: 0, height: 56, padding: '0 14px', border: 'none', outline: 'none', fontSize: 17, fontWeight: 700, letterSpacing: '.02em', color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)' }}
+              />
+              <MS name="check_circle" size={22} fill color="var(--gb-veg)" style={{ paddingRight: 14, opacity: valid ? 1 : 0.25 }} />
+            </div>
+
+            <button onClick={sendOtp} disabled={!valid || loading} style={{ width: '100%', marginTop: 16, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: valid && !loading ? 'pointer' : 'not-allowed', opacity: valid ? 1 : 0.55 }}>
+              <span style={{ fontSize: 16, fontWeight: 800 }}>{loading ? 'Sending…' : 'Continue'}</span>
+              {!loading && <MS name="arrow_forward" size={20} />}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '18px 0' }}>
+              <span style={{ flex: 1, height: 1, background: '#EAE0D2' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#B0A392', letterSpacing: '.06em' }}>OR</span>
+              <span style={{ flex: 1, height: 1, background: '#EAE0D2' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, height: 52, background: '#fff', border: '1px solid #E7DCCC', borderRadius: 13, fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)', cursor: 'pointer' }}>
+                <GoogleIcon />Google
+              </button>
+              <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, background: '#1A1714', border: '1px solid #1A1714', borderRadius: 13, fontSize: 14.5, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
+                <MS name="phone_iphone" size={19} fill />Apple
+              </button>
+            </div>
+
+            <div style={{ textAlign: 'center', fontSize: 11.5, color: '#A0917E', fontWeight: 500, lineHeight: 1.5, marginTop: 18 }}>
+              By continuing you agree to Grabit&apos;s<br />
+              <span style={{ color: '#7A6E60', fontWeight: 700 }}>Terms of Service</span> and <span style={{ color: '#7A6E60', fontWeight: 700 }}>Privacy Policy</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <button onClick={() => { setStep('phone'); setOtp(''); setError(''); }} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3, marginBottom: 10 }}>
+              <MS name="chevron_left" size={18} />Edit number
+            </button>
+            <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500 }}>Enter the code</div>
+            <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6 }}>Sent to <b style={{ color: 'var(--gb-text)' }}>+91 {phone}</b></div>
+
+            <div style={{ display: 'flex', gap: 9, marginTop: 22 }}>
+              {digits.map((d, i) => {
+                const filled = !!d.trim();
+                return (
+                  <input
+                    key={i}
+                    ref={(el) => { boxes.current[i] = el; }}
+                    value={d.trim()}
+                    onChange={(e) => setDigit(i, e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Backspace' && !d.trim() && i > 0) boxes.current[i - 1]?.focus(); if (e.key === 'Enter' && otp.length === 6) verifyOtp(); }}
+                    inputMode="numeric" maxLength={1}
+                    style={{ flex: 1, height: 60, textAlign: 'center', fontSize: 24, fontWeight: 700, borderRadius: 14, outline: 'none', border: `1.5px solid ${filled ? 'var(--gb-primary)' : '#E7DCCC'}`, background: filled ? 'var(--gb-primary-pale)' : '#fff', color: 'var(--gb-text)', fontFamily: 'var(--gb-sans)' }}
+                  />
+                );
+              })}
+            </div>
+
+            <button onClick={verifyOtp} disabled={otp.length !== 6 || loading} style={{ width: '100%', marginTop: 22, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, height: 56, fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: otp.length === 6 && !loading ? 'pointer' : 'not-allowed', opacity: otp.length === 6 ? 1 : 0.55 }}>
+              {loading ? 'Verifying…' : 'Verify & continue'}
+            </button>
+
+            <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: 'var(--gb-muted)', fontWeight: 600 }}>
+              {timer > 0 ? <span>Resend code in {timer}s</span> : <button onClick={sendOtp} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Resend OTP</button>}
+            </div>
+          </>
+        )}
+
+        {error && <p style={{ color: 'var(--gb-danger)', fontSize: 14, marginTop: 14, textAlign: 'center' }}>{error}</p>}
+      </div>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="gb-app">
+      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--gb-surface)' }}>
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
+      </div>
+    </div>
   );
 }
