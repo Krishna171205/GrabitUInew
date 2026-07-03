@@ -1,6 +1,18 @@
-import { redirect } from 'next/navigation';
+// grabit/src/app/page.tsx
+import type { Metadata } from 'next';
+import LandingClient from './LandingClient';
 
-// grabit365.com root — the marketplace itself is the landing page (app-first, no marketing splash).
+export const metadata: Metadata = {
+  title: 'Grabit — Order ahead, skip the queue',
+  description: 'Pre-order from cafés near you. Ready when you arrive, no queue. Now in Delhi.',
+  openGraph: {
+    title: 'Grabit — Order ahead, skip the queue',
+    description: 'Pre-order from cafés near you. Ready when you arrive, no queue.',
+    url: 'https://grabit365.com',
+    siteName: 'Grabit',
+  },
+};
+
 export default function RootPage() {
-  redirect('/home');
+  return <LandingClient />;
 }

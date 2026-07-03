@@ -281,6 +281,7 @@ button {
   --gb-shadow-soft: 0 10px 22px -14px rgba(60,40,25,.4);
   --gb-shadow-pop: 0 14px 30px -16px rgba(60,40,25,.4);
   --gb-shadow-bar: 0 16px 30px -12px rgba(46,32,25,.6);
+  --gb-r-card: 22px;
 
   /* Card radius, systematized from the value already in use (CafeGate cover) */
   --gb-r-card: 22px;
@@ -377,3 +378,19 @@ button {
     box-shadow: 0 30px 60px -20px rgba(0,0,0,.5);
   }
 }
+
+@media (min-width: 640px) { .gb-nav-partner { display: inline-flex !important; } }
+@media (min-width: 768px) { .gb-nav-center { display: flex !important; } }
+
+.gb-hiw-imgs { display: none !important; }
+@media (min-width: 900px) {
+  .gb-hiw-grid { grid-template-columns: 1fr 1fr !important; }
+  .gb-hiw-imgs { display: grid !important; }
+}
+
+@media (min-width: 820px) {
+  .gb-why-grid { grid-template-columns: 1fr 1fr !important; }
+  .gb-why-lead { grid-column: span 2 !important; }
+}
+
+@media (min-width: 820px) { .gb-partner-grid { grid-template-columns: repeat(3, 1fr) !important; } }
