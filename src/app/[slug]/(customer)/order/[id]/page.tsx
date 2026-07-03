@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { GrabitOrderWithItems, GrabitOrderStatus } from '@gradient365/gradient-commons';
-import { MS, inr } from '@/components/gb/kit';
+import { MS } from '@/components/gb/kit';
+import { inr } from '@/components/gb/format';
 
 function stepIndex(s: GrabitOrderStatus): number {
   const map: Record<GrabitOrderStatus, number> = {

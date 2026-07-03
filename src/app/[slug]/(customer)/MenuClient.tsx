@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
-import { MS, inr } from '@/components/gb/kit';
+import { MS } from '@/components/gb/kit';
+import { inr } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
 const CATEGORIES: GrabitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];

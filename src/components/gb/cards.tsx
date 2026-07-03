@@ -1,9 +1,11 @@
 'use client';
 /** Grabit consumer app — presentational cards shared across Home & Explore. */
 import Link from 'next/link';
-import { MS, inr } from './kit';
+import { MS } from './kit';
+import { inr } from './format';
 import { ph, type GbCafe, type GbItem, type GbCategory } from './data';
 import { useFavoriteCafe } from './favorites';
+import { useCart } from '@/store/cart';
 
 /* ---------- Café card (cover + info footer) ---------- */
 export interface CafeBadge { icon: string; iconColor: string; text: string; }
@@ -66,6 +68,13 @@ export function CafeCard({
 
 /* ---------- Popular / favourite item card (horizontal carousel) ---------- */
 export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
+  const { addItem, items: cartItems } = useCart();
+  const inCart = cartItems.some((i) => i.menu_item_id === item.id);
+
+  function add() {
+    addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: ph(item.photo) }, item.slug);
+  }
+
   return (
     <div style={{ flex: 'none', width: 152, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
       <div style={{ position: 'relative', height: 104 }}>
@@ -82,9 +91,13 @@ export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
         <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{item.cafe}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price)}</span>
-          <span style={{ width: 26, height: 26, borderRadius: 8, border: '1.5px solid #E7DCCC', color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <MS name="add" size={17} />
-          </span>
+          <button
+            onClick={add}
+            aria-label="Add"
+            style={{ width: 26, height: 26, borderRadius: 8, border: '1.5px solid #E7DCCC', background: inCart ? 'var(--gb-primary)' : '#fff', color: inCart ? '#fff' : 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <MS name={inCart ? 'check' : 'add'} size={17} />
+          </button>
         </div>
       </div>
     </div>

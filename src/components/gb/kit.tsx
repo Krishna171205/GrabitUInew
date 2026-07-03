@@ -131,6 +131,3 @@ export function Eyebrow({ children, style }: { children: ReactNode; style?: CSSP
     </div>
   );
 }
-
-/* ---------- Rupee format ---------- */
-export const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;

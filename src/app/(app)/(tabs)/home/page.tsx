@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { MS, NavSpacer, inr } from '@/components/gb/kit';
+import { MS, NavSpacer } from '@/components/gb/kit';
+import { inr } from '@/components/gb/format';
 import { CafeCard, ItemCard, CategoryCircle } from '@/components/gb/cards';
 import { CafeGate } from '@/components/gb/CafeGate';
 import { LocationPill } from '@/components/gb/LocationPill';

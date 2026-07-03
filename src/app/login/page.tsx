@@ -31,12 +31,22 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(0);
+  const [showNoAccount, setShowNoAccount] = useState(false);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   const valid = phone.length === 10;
 
   async function sendOtp() {
     setLoading(true); setError('');
     try {
+      if (mode === 'login') {
+        const existsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/customer-exists?phone=${phone}`);
+        const existsData = await existsRes.json();
+        if (existsRes.ok && !existsData.exists) {
+          setLoading(false);
+          setShowNoAccount(true);
+          return;
+        }
+      }
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/send-otp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, type: 'customer' }),
@@ -197,7 +207,7 @@ function LoginForm() {
                     onChange={(e) => setDigit(i, e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Backspace' && !d.trim() && i > 0) boxes.current[i - 1]?.focus(); if (e.key === 'Enter' && otp.length === 6) verifyOtp(); }}
                     inputMode="numeric" maxLength={1}
-                    style={{ flex: 1, height: 60, textAlign: 'center', fontSize: 24, fontWeight: 700, borderRadius: 14, outline: 'none', border: `1.5px solid ${filled ? 'var(--gb-primary)' : '#E7DCCC'}`, background: filled ? 'var(--gb-primary-pale)' : '#fff', color: 'var(--gb-text)', fontFamily: 'var(--gb-sans)' }}
+                    style={{ flex: 1, minWidth: 0, height: 60, textAlign: 'center', fontSize: 24, fontWeight: 700, borderRadius: 14, outline: 'none', border: `1.5px solid ${filled ? 'var(--gb-primary)' : '#E7DCCC'}`, background: filled ? 'var(--gb-primary-pale)' : '#fff', color: 'var(--gb-text)', fontFamily: 'var(--gb-sans)' }}
                   />
                 );
               })}
@@ -215,6 +225,38 @@ function LoginForm() {
 
         {error && <p style={{ color: 'var(--gb-danger)', fontSize: 14, marginTop: 14, textAlign: 'center' }}>{error}</p>}
       </div>
+
+      {showNoAccount && (
+        <div
+          onClick={() => setShowNoAccount(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(20,10,5,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 340, width: '100%', textAlign: 'center', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}
+          >
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', margin: '0 auto' }}>
+              <MS name="person_off" size={26} color="var(--gb-primary)" />
+            </div>
+            <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 14 }}>No account found</div>
+            <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
+              We couldn&apos;t find a Grabit account for +91 {phone}. Try signing up instead.
+            </div>
+            <button
+              onClick={() => { setMode('signup'); setShowNoAccount(false); }}
+              style={{ width: '100%', marginTop: 18, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, padding: 13, fontSize: 15, fontWeight: 800, cursor: 'pointer' }}
+            >
+              Sign up instead
+            </button>
+            <button
+              onClick={() => setShowNoAccount(false)}
+              style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', padding: 8 }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

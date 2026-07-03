@@ -4,7 +4,8 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
 import type { GrabitAvailableSlot } from '@gradient365/gradient-commons';
-import { MS, inr } from '@/components/gb/kit';
+import { MS } from '@/components/gb/kit';
+import { inr } from '@/components/gb/format';
 
 interface SlotsData { slots: GrabitAvailableSlot[]; label: string | null; }
 
@@ -40,6 +41,17 @@ export default function CartPage() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(false);
+
+  async function placeOrder() {
+    sessionStorage.setItem('grabit_slot', selectedSlot!);
+    setCheckingAuth(true);
+    const loggedIn = await fetch('/api/proxy/grabit/auth/me').then((r) => r.ok).catch(() => false);
+    setCheckingAuth(false);
+    if (!loggedIn) { setShowLoginPrompt(true); return; }
+    router.push(`/${slug}/checkout`);
+  }
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -162,14 +174,46 @@ export default function CartPage() {
           <MS name="expand_more" size={18} color="#B0A392" style={{ marginLeft: 'auto' }} />
         </div>
         <button
-          disabled={!selectedSlot}
-          onClick={() => { sessionStorage.setItem('grabit_slot', selectedSlot!); router.push(`/${slug}/checkout`); }}
-          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: selectedSlot ? 'pointer' : 'not-allowed', opacity: selectedSlot ? 1 : 0.6 }}
+          disabled={!selectedSlot || checkingAuth}
+          onClick={placeOrder}
+          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: selectedSlot && !checkingAuth ? 'pointer' : 'not-allowed', opacity: selectedSlot && !checkingAuth ? 1 : 0.6 }}
         >
           <span style={{ fontSize: 16, fontWeight: 800 }}>Pay {inr(toPay)}</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 700 }}>{selectedSlot ? 'Place order' : 'Pick a slot'}<MS name="arrow_forward" size={20} /></span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 700 }}>{checkingAuth ? 'Checking…' : selectedSlot ? 'Place order' : 'Pick a slot'}<MS name="arrow_forward" size={20} /></span>
         </button>
       </div>
+
+      {showLoginPrompt && (
+        <div
+          onClick={() => setShowLoginPrompt(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(20,10,5,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 340, width: '100%', textAlign: 'center', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}
+          >
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', margin: '0 auto' }}>
+              <MS name="lock" size={26} color="var(--gb-primary)" />
+            </div>
+            <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 14 }}>Log in to continue</div>
+            <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
+              Your order&apos;s saved — log in to place it.
+            </div>
+            <Link
+              href={`/login?next=${encodeURIComponent(`/${slug}/checkout`)}`}
+              style={{ display: 'block', marginTop: 18, background: 'var(--gb-primary)', color: '#fff', borderRadius: 14, padding: '13px', fontSize: 15, fontWeight: 800 }}
+            >
+              Log in
+            </Link>
+            <button
+              onClick={() => setShowLoginPrompt(false)}
+              style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', padding: 8 }}
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

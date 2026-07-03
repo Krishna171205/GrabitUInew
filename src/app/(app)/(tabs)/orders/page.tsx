@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { MS, NavSpacer, Eyebrow, inr } from '@/components/gb/kit';
+import { MS, NavSpacer, Eyebrow } from '@/components/gb/kit';
+import { inr } from '@/components/gb/format';
 import { ACTIVE_ORDER, PAST_ORDERS, ph, type GbPastOrder } from '@/components/gb/data';
 
 function PastRow({ o }: { o: GbPastOrder }) {

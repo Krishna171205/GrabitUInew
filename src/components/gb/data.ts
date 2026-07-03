@@ -10,6 +10,8 @@ export const ph = (id: string, w = 700, h = 700) =>
   `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=70`;
 
 export interface GbItem {
+  id: number;
+  slug: string;       // café slug this item can actually be ordered from
   name: string;
   cafe: string;
   price: number;
@@ -39,10 +41,11 @@ export const TRENDING: (GbCafe & { rank: string })[] = [
   { slug: 'kettle-and-co', name: 'Kettle & Co.', tagline: 'Chai · Snacks · Bakes', rating: 4.6, ready: '10 min', distance: '1.2 km', forOne: 180, cover: 'photo-1521017432531-fbd92d768814', rank: '#1 trending' },
 ];
 
+// Real items from the one live café (raydee) — so add-to-cart actually works end to end.
 export const POPULAR: GbItem[] = [
-  { name: 'Oat Flat White', cafe: 'The Roastery', price: 280, photo: 'photo-1541167760496-1628856ab772' },
-  { name: '24-Hour Cold Brew', cafe: 'The Roastery', price: 260, photo: 'photo-1461023058943-07fcbe16d735' },
-  { name: 'Almond Croissant', cafe: 'Olive & Sage', price: 190, photo: 'photo-1555507036-ab1f4038808a' },
+  { id: 1, slug: 'raydee', name: 'Classic Cold Coffee', cafe: 'The Raydee Cafe', price: 90, photo: 'photo-1541167760496-1628856ab772' },
+  { id: 2, slug: 'raydee', name: 'Hazelnut Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },
+  { id: 4, slug: 'raydee', name: 'Americano (Hot)', cafe: 'The Raydee Cafe', price: 60, photo: 'photo-1555507036-ab1f4038808a' },
 ];
 
 export interface GbCategory { label: string; photo: string; }
