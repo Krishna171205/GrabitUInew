@@ -5,7 +5,7 @@ import { ph } from './data';
 /** Soft scroll-gate teaser shown to guests after the first few café cards. */
 export function CafeGate({ next, coverHeight = 158 }: { next: string; coverHeight?: number }) {
   return (
-    <div style={{ position: 'relative', borderRadius: 22, overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-shadow-card)' }}>
+    <div style={{ position: 'relative', borderRadius: 'var(--gb-r-card)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-shadow-card)' }}>
       <div style={{ position: 'relative', height: coverHeight, filter: 'blur(6px) saturate(0.8)' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ph('photo-1521017432531-fbd92d768814', 900, 560)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />

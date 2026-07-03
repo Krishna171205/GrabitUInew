@@ -12,7 +12,7 @@ const FREE_CAFE_LIMIT = 1;
 // Hero: design uses 60px top to clear the status bar; we clear the real notch instead.
 const heroStyle = {
   background: 'var(--gb-hero)', color: '#fff',
-  paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 66,
+  paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 'var(--gb-hero-pad-bottom, 66px)',
 } as const;
 
 function SearchBar() {

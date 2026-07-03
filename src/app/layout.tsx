@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter, Newsreader, Hanken_Grotesk } from 'next/font/google';
+import { Outfit, Newsreader, Hanken_Grotesk } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
+const outfit = Outfit({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-outfit',
   preload: true,
 });
 
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${inter.variable} ${newsreader.variable} ${hanken.variable}`}>
+    <html lang="en" className={`scroll-smooth ${outfit.variable} ${newsreader.variable} ${hanken.variable}`}>
       <head>
         {/* Material Symbols Rounded — icon font used across the consumer app */}
         <link

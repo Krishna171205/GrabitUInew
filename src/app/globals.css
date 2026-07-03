@@ -53,10 +53,10 @@
   --color-nonveg: #c8102e;
   --color-wa-green: #25d366;
 
-  /* Fonts — resolved from next/font (Inter) */
-  --font-headline: var(--font-inter), sans-serif;
-  --font-body: var(--font-inter), sans-serif;
-  --font-label: var(--font-inter), sans-serif;
+  /* Fonts — resolved from next/font (Outfit) */
+  --font-headline: var(--font-outfit), sans-serif;
+  --font-body: var(--font-outfit), sans-serif;
+  --font-label: var(--font-outfit), sans-serif;
 }
 
 :root {
@@ -115,11 +115,11 @@
   --glass-bg: rgba(255, 255, 255, 0.82);
   --glass-border: rgba(0, 0, 0, 0.10);
 
-  /* ---- Elevation ---- */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
-  --shadow-float: 0 -2px 12px rgba(0, 0, 0, 0.08), 0 8px 28px rgba(0, 0, 0, 0.10);
-  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.18);
-  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.16);
+  /* ---- Elevation (tinted to primary hue, not neutral black) ---- */
+  --shadow-card: 0 1px 3px rgba(61, 14, 23, 0.08), 0 8px 24px rgba(61, 14, 23, 0.05);
+  --shadow-float: 0 -2px 12px rgba(61, 14, 23, 0.10), 0 8px 28px rgba(61, 14, 23, 0.12);
+  --shadow-sheet: 0 -8px 40px rgba(61, 14, 23, 0.20);
+  --shadow-pop: 0 12px 40px rgba(61, 14, 23, 0.18);
 
   /* ---- Radii ---- */
   --r-sm: 8px;
@@ -140,7 +140,7 @@
   --screen-pad: 20px;
 
   /* ---- Type ---- */
-  --font: var(--font-inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --font: var(--font-outfit), -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   --mono: 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
 
   /* ---- Motion ---- */
@@ -282,6 +282,9 @@ button {
   --gb-shadow-pop: 0 14px 30px -16px rgba(60,40,25,.4);
   --gb-shadow-bar: 0 16px 30px -12px rgba(46,32,25,.6);
 
+  /* Card radius, systematized from the value already in use (CafeGate cover) */
+  --gb-r-card: 22px;
+
   --gb-serif: var(--font-newsreader), Georgia, serif;
   --gb-sans: var(--font-hanken), system-ui, -apple-system, sans-serif;
 
@@ -347,7 +350,9 @@ button {
 @media (min-width: 860px) {
   .gb-shell-wide { max-width: 1080px; }
 
-  .gb-shell-wide .gb-hero { border-radius: 28px; margin-top: 24px; }
+  /* Wide container earns more hero breathing room — the mobile 66px bottom
+     padding reads cramped once the shell is 1080px instead of 480px. */
+  .gb-shell-wide .gb-hero { border-radius: 28px; margin-top: 24px; --gb-hero-pad-bottom: 96px; }
 
   .gb-cafe-grid {
     display: grid;
