@@ -27,10 +27,11 @@ export interface GbCafe {
   distance: string;   // "0.4 km"
   forOne: number;     // ₹ for one
   cover: string;      // photo id
+  offer?: string;     // "20% off on pickup orders"
 }
 
 export const CAFES: GbCafe[] = [
-  { slug: 'the-roastery', name: 'The Roastery', tagline: 'Specialty coffee · Bakes', rating: 4.8, ready: '8 min', distance: '0.4 km', forOne: 250, cover: 'photo-1495474472287-4d71bcdd2085' },
+  { slug: 'the-roastery', name: 'The Roastery', tagline: 'Specialty coffee · Bakes', rating: 4.8, ready: '8 min', distance: '0.4 km', forOne: 250, cover: 'photo-1495474472287-4d71bcdd2085', offer: '20% off on pickup orders' },
   { slug: 'olive-and-sage', name: 'Olive & Sage', tagline: 'Breakfast · All-day brunch', rating: 4.7, ready: '12 min', distance: '0.9 km', forOne: 400, cover: 'photo-1533089860892-a7c6f0a88666' },
 ];
 

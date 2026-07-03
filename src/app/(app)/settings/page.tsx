@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const [dark, setDark] = useState(false);
 
   return (
-    <>
+    <div className="gb-shell">
       <TopBar title="Settings" />
       <div style={{ padding: '6px 16px 30px' }}>
         <Eyebrow style={{ padding: '16px 4px 8px' }}>Notifications</Eyebrow>
@@ -73,6 +73,6 @@ export default function SettingsPage() {
 
         <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--gb-faint-2)', fontWeight: 600, marginTop: 22 }}>Grabit · version 1.0.0</div>
       </div>
-    </>
+    </div>
   );
 }

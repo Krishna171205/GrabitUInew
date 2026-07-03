@@ -24,7 +24,7 @@ export default function ReferralPage() {
   useEffect(() => {
     Promise.all([
       fetch('/api/proxy/grabit/auth/me').then(r => {
-        if (r.status === 401) { router.replace(`/${slug}/login`); throw new Error('unauth'); }
+        if (r.status === 401) { router.replace(`/login?next=/${slug}/wallet/referral`); throw new Error('unauth'); }
         return r.json();
       }),
       (() => {

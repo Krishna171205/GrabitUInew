@@ -4,7 +4,7 @@ import { EXPLORE_CATEGORIES, TRENDING, ph } from '@/components/gb/data';
 
 export default function ExplorePage() {
   return (
-    <>
+    <div className="gb-shell gb-shell-wide">
       {/* header + search */}
       <div style={{ paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 8, background: 'var(--gb-surface)' }}>
         <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, letterSpacing: '-.01em' }}>Explore</div>
@@ -32,16 +32,18 @@ export default function ExplorePage() {
       {/* trending */}
       <div style={{ padding: '24px 20px 8px' }}>
         <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>Trending this week</div>
-        {TRENDING.map((c) => (
-          <CafeCard
-            key={c.slug}
-            cafe={c}
-            coverHeight={150}
-            badge={{ icon: 'trending_up', iconColor: '#C1502E', text: c.rank }}
-          />
-        ))}
+        <div className="gb-cafe-grid">
+          {TRENDING.map((c) => (
+            <CafeCard
+              key={c.slug}
+              cafe={c}
+              coverHeight={150}
+              badge={{ icon: 'trending_up', iconColor: '#C1502E', text: c.rank }}
+            />
+          ))}
+        </div>
       </div>
       <NavSpacer />
-    </>
+    </div>
   );
 }

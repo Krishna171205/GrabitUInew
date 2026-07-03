@@ -12,7 +12,22 @@ const CATEGORY_LABELS: Record<GrabitMenuCategory, string> = {
   drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts',
 };
 
-interface Props { slug: string; cafe: GrabitCafe; items: GrabitMenuItem[]; }
+interface TopItem {
+  menu_item_id: number;
+  menu_item_name: string;
+  price: number;
+  image_url: string | null;
+  total_ordered: number;
+}
+
+interface Props {
+  slug: string;
+  cafe: GrabitCafe;
+  items: GrabitMenuItem[];
+  customerName?: string | null;
+  topItems?: TopItem[];
+  isLoggedIn?: boolean;
+}
 
 /* veg mark (square outline + dot) */
 function Veg() {
@@ -23,13 +38,17 @@ function Veg() {
   );
 }
 
-export default function MenuClient({ slug, cafe, items }: Props) {
+export default function MenuClient({ slug, cafe, items, customerName, topItems = [], isLoggedIn = false }: Props) {
   const router = useRouter();
   const [activeCat, setActiveCat] = useState<GrabitMenuCategory | 'all'>('all');
   const [query, setQuery] = useState('');
   const { addItem, updateQty, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
+
+  function addTop(item: TopItem) {
+    addItem({ menu_item_id: item.menu_item_id, name: item.menu_item_name, price: item.price, quantity: 1, image_url: item.image_url }, slug);
+  }
 
   useEffect(() => {
     if (cafe?.id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cafe.id));
@@ -76,7 +95,7 @@ export default function MenuClient({ slug, cafe, items }: Props) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={cover} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
-        <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
+        <button onClick={() => router.push('/')} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
           <MS name="arrow_back" size={22} color="var(--gb-ink)" />
         </button>
         <div style={{ position: 'absolute', bottom: 18, left: 20, right: 20, color: '#fff' }}>
@@ -100,6 +119,56 @@ export default function MenuClient({ slug, cafe, items }: Props) {
           <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>from you</div>
         </div>
       </div>
+
+      {/* login nudge (guest) */}
+      {!isLoggedIn && (
+        <div style={{ padding: '16px 16px 0' }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'var(--gb-primary-soft)', border: '1px solid #EAD6C4', borderRadius: 16, padding: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)', flex: 'none' }}>
+              <MS name="schedule" size={24} color="var(--gb-primary)" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-primary)' }}>Skip the queue</div>
+              <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', marginTop: 1 }}>Order now, pick a 15-min slot, walk past the line.</div>
+            </div>
+            <Link href={`/login?next=/${slug}`} style={{ color: 'var(--gb-primary)', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>Log in →</Link>
+          </div>
+        </div>
+      )}
+
+      {/* greeting + your usuals (returning users) */}
+      {isLoggedIn && customerName && (
+        <div style={{ padding: '18px 16px 0' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Welcome back</div>
+          <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 2 }}>Hey {customerName}, the usual?</div>
+        </div>
+      )}
+      {isLoggedIn && topItems.length > 0 && (
+        <div style={{ padding: '14px 0 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
+            <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Your usuals</span>
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--gb-primary)' }}>Tap to re-add</span>
+          </div>
+          <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
+            {topItems.map(item => (
+              <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
+                <div style={{ position: 'relative', height: 96 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <button onClick={() => addTop(item)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(183,18,42,.4)' }}>
+                    <MS name="add" size={17} />
+                  </button>
+                </div>
+                <div style={{ padding: '8px 10px 10px' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.menu_item_name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(item.price)}</div>
+                  <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', marginTop: 2 }}>Ordered {item.total_ordered}×</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* menu search */}
       <div style={{ padding: '18px 16px 0' }}>

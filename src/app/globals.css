@@ -311,3 +311,64 @@ button {
 .gb-app .gb-scroll { scrollbar-width: none; -ms-overflow-style: none; }
 
 @keyframes gb-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ============================================================
+   Desktop responsive shell — Swiggy/Zomato pattern: discovery
+   screens (Home/Explore) go wide, ordering flow stays a centered
+   mobile-width column intentionally. Breakpoint: 860px.
+   ============================================================ */
+.gb-shell { max-width: 480px; margin: 0 auto; min-height: 100dvh; position: relative; }
+
+/* Bottom tab bar — mobile default */
+.gb-bottomnav {
+  display: flex;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 30;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Desktop top nav — hidden until the breakpoint below turns it on */
+.gb-topnav {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px 8px;
+  border-bottom: 1px solid var(--gb-line-2);
+}
+
+/* Location picker — full page on mobile, centered modal on desktop */
+.gb-location-backdrop { min-height: 100dvh; }
+.gb-location-card { max-width: 480px; margin: 0 auto; }
+
+@media (min-width: 860px) {
+  .gb-shell-wide { max-width: 1080px; }
+
+  .gb-shell-wide .gb-hero { border-radius: 28px; margin-top: 24px; }
+
+  .gb-cafe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .gb-cafe-grid > a, .gb-cafe-grid > div { margin-top: 0 !important; }
+
+  /* Bottom tab bar → top nav on desktop (signed-in only) */
+  .gb-bottomnav { display: none; }
+  .gb-nav-spacer { height: 0; }
+  .gb-topnav { display: flex; }
+
+  .gb-location-backdrop {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(20,10,5,.55);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gb-location-card {
+    width: 520px; max-height: 80vh; overflow-y: auto;
+    border-radius: 22px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.5);
+  }
+}

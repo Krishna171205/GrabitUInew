@@ -2,23 +2,18 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { MS, NavSpacer, inr } from '@/components/gb/kit';
 import { CafeCard, ItemCard, CategoryCircle } from '@/components/gb/cards';
+import { CafeGate } from '@/components/gb/CafeGate';
+import { LocationPill } from '@/components/gb/LocationPill';
 import { CAFES, POPULAR, FAVOURITES, CATEGORIES, RECENT_ORDERS, USER, ph } from '@/components/gb/data';
+
+// Guests see this many café cards before a soft login gate; signed-in users see all.
+const FREE_CAFE_LIMIT = 1;
 
 // Hero: design uses 60px top to clear the status bar; we clear the real notch instead.
 const heroStyle = {
   background: 'var(--gb-hero)', color: '#fff',
   paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 66,
 } as const;
-
-function LocationPill() {
-  return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 16, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.2)', backdropFilter: 'blur(4px)', padding: '7px 12px', borderRadius: 999 }}>
-      <MS name="location_on" size={16} color="var(--gb-peach)" />
-      <span style={{ fontSize: 13, fontWeight: 600 }}>{USER.location}</span>
-      <MS name="expand_more" size={17} color="rgba(255,255,255,.65)" />
-    </div>
-  );
-}
 
 function SearchBar() {
   return (
@@ -40,22 +35,27 @@ function Categories() {
   );
 }
 
-function CafesNearYou({ cta }: { cta: string }) {
+function CafesNearYou({ cta, gate }: { cta: string; gate: boolean }) {
+  const shown = gate ? CAFES.slice(0, FREE_CAFE_LIMIT) : CAFES;
+  const hiddenCount = CAFES.length - shown.length;
   return (
     <div style={{ padding: '22px 20px 8px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
         <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500 }}>Cafés near you</div>
         <Link href="/explore" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-primary)' }}>See all</Link>
       </div>
-      {CAFES.map((c) => <CafeCard key={c.slug} cafe={c} cta={cta} />)}
+      <div className="gb-cafe-grid">
+        {shown.map((c) => <CafeCard key={c.slug} cafe={c} cta={cta} />)}
+        {hiddenCount > 0 && <CafeGate next="/home" />}
+      </div>
     </div>
   );
 }
 
 function GuestHome() {
   return (
-    <>
-      <div style={heroStyle}>
+    <div className="gb-shell gb-shell-wide">
+      <div style={heroStyle} className="gb-hero">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>Welcome to</div>
@@ -96,16 +96,15 @@ function GuestHome() {
       </div>
 
       <Categories />
-      <CafesNearYou cta="View menu" />
-      <NavSpacer />
-    </>
+      <CafesNearYou cta="View menu" gate />
+    </div>
   );
 }
 
 function SignedInHome() {
   return (
-    <>
-      <div style={heroStyle}>
+    <div className="gb-shell gb-shell-wide">
+      <div style={heroStyle} className="gb-hero">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>Good morning</div>
@@ -156,9 +155,9 @@ function SignedInHome() {
       </div>
 
       <Categories />
-      <CafesNearYou cta="Pre-order" />
+      <CafesNearYou cta="Pre-order" gate={false} />
       <NavSpacer />
-    </>
+    </div>
   );
 }
 

@@ -42,7 +42,8 @@ export function middleware(req: NextRequest) {
     /^\/[^/]+\/manage/.test(pathname) &&
     !pathname.includes('/manage/login');
 
-  const isCustomerProtected = /^\/[^/]+\/(cart|checkout|order)/.test(pathname);
+  // Cart is guest-browsable (browse-first-auth) — only checkout/order require login.
+  const isCustomerProtected = /^\/[^/]+\/(checkout|order)/.test(pathname);
 
   if (isManage) {
     const token = req.cookies.get('grabit_staff_token')?.value;
@@ -73,6 +74,15 @@ export function middleware(req: NextRequest) {
     if (!token || isTokenExpired(token)) {
       const slug = pathname.split('/')[1];
       return NextResponse.redirect(new URL(`/${slug}`, req.url));
+    }
+  }
+
+  // Marketplace Orders/Profile are personal — guests get bounced to login.
+  const isMarketplaceProtected = /^\/(orders|profile)(\/|$)/.test(pathname);
+  if (isMarketplaceProtected) {
+    const token = req.cookies.get('grabit_customer_token')?.value;
+    if (!token || isTokenExpired(token)) {
+      return NextResponse.redirect(new URL(`/login?next=${pathname}`, req.url));
     }
   }
 

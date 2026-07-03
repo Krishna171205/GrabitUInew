@@ -35,7 +35,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <>
+    <div className="gb-shell">
       {/* header */}
       <div style={{ background: 'var(--gb-hero)', paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 58, color: '#fff', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 'calc(26px + env(safe-area-inset-top))', right: 22, display: 'flex', gap: 10 }}>
@@ -101,6 +101,6 @@ export default function ProfilePage() {
         <MS name="logout" size={19} />Log out
       </button>
       <NavSpacer />
-    </>
+    </div>
   );
 }

@@ -37,10 +37,10 @@ export function BottomNav() {
   const pathname = usePathname();
   return (
     <nav
+      className="gb-bottomnav"
       style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30, maxWidth: 480, margin: '0 auto',
         background: 'rgba(250,246,240,.9)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-        borderTop: '1px solid #ECE3D6', display: 'flex',
+        borderTop: '1px solid #ECE3D6',
         padding: '11px 14px calc(26px + env(safe-area-inset-bottom))',
       }}
     >
@@ -62,9 +62,37 @@ export function BottomNav() {
   );
 }
 
-/** Spacer so scrollable content clears the fixed BottomNav. */
+/** Spacer so scrollable content clears the fixed BottomNav (mobile only — desktop uses DesktopTopNav). */
 export function NavSpacer() {
-  return <div style={{ height: 'calc(76px + env(safe-area-inset-bottom))' }} />;
+  return <div className="gb-nav-spacer" style={{ height: 'calc(76px + env(safe-area-inset-bottom))' }} />;
+}
+
+/* ---------- Desktop top nav (replaces BottomNav ≥860px, signed-in only) ---------- */
+export function DesktopTopNav() {
+  const pathname = usePathname();
+  return (
+    <nav className="gb-topnav">
+      <Link href="/home" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <MS name="storefront" size={24} color="var(--gb-primary)" />
+        <span className="gb-serif" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabit</span>
+      </Link>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+        {TABS.map((t) => {
+          const active = pathname === t.href || pathname.startsWith(t.href + '/');
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontWeight: 700, color: active ? 'var(--gb-primary)' : 'var(--gb-muted)' }}
+            >
+              <MS name={t.icon} size={19} fill={active} />
+              {t.label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
 }
 
 /* ---------- Sub-screen top bar (back button + title) ---------- */

@@ -40,7 +40,7 @@ export default function ProfilePage() {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`)
     ])
       .then(([meRes, menuRes]) => {
-        if (meRes.status === 401) { router.replace(`/${slug}/login`); throw new Error('unauth'); }
+        if (meRes.status === 401) { router.replace(`/login?next=/${slug}/profile`); throw new Error('unauth'); }
         return Promise.all([meRes.json(), menuRes.json()]);
       })
       .then(([meData, menuData]) => {
@@ -85,7 +85,7 @@ export default function ProfilePage() {
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.replace(`/${slug}/login`);
+    router.replace(`/login?next=/${slug}`);
   }
 
   const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { MS, inr } from './kit';
 import { ph, type GbCafe, type GbItem, type GbCategory } from './data';
+import { useFavoriteCafe } from './favorites';
 
 /* ---------- Café card (cover + info footer) ---------- */
 export interface CafeBadge { icon: string; iconColor: string; text: string; }
@@ -11,6 +12,7 @@ export function CafeCard({
   cafe, cta = 'View menu', badge, coverHeight = 158,
 }: { cafe: GbCafe; cta?: string; badge?: CafeBadge; coverHeight?: number }) {
   const b = badge ?? { icon: 'bolt', iconColor: 'var(--gb-green)', text: `Ready in ${cafe.ready}` };
+  const { favorite, toggle } = useFavoriteCafe(cafe.slug);
   return (
     <Link
       href={`/${cafe.slug}`}
@@ -27,6 +29,13 @@ export function CafeCard({
           <MS name={b.icon} size={15} fill color={b.iconColor} />
           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-ink)' }}>{b.text}</span>
         </div>
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }}
+          aria-label={favorite ? 'Remove bookmark' : 'Bookmark'}
+          style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, border: 'none', borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+        >
+          <MS name="bookmark" size={17} fill={favorite} color={favorite ? 'var(--gb-primary)' : 'var(--gb-ink)'} />
+        </button>
         <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <div>
             <div className="gb-serif" style={{ fontSize: 22, fontWeight: 500, color: '#fff', lineHeight: 1.1 }}>{cafe.name}</div>
@@ -38,6 +47,11 @@ export function CafeCard({
           </div>
         </div>
       </div>
+      {cafe.offer && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px 0', color: 'var(--gb-primary)', fontSize: 12, fontWeight: 700 }}>
+          <MS name="local_offer" size={15} fill />{cafe.offer}
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', color: '#7A6E60', fontSize: 12.5, fontWeight: 600 }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MS name="near_me" size={16} />{cafe.distance}</span>
         <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#C9BCA9' }} />

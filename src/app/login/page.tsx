@@ -5,6 +5,7 @@ import { MS } from '@/components/gb/kit';
 import { ph } from '@/components/gb/data';
 
 type Step = 'phone' | 'otp';
+type Mode = 'login' | 'signup';
 
 function GoogleIcon() {
   return (
@@ -23,6 +24,7 @@ function LoginForm() {
   const item = params.get('item');
   const next = params.get('next') || '/home';
 
+  const [mode, setMode] = useState<Mode>('login');
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState(process.env.NEXT_PUBLIC_DEV_PHONE ?? '');
   const [otp, setOtp] = useState(process.env.NEXT_PUBLIC_DEV_OTP ?? '');
@@ -56,7 +58,8 @@ function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid OTP');
-      router.replace(next);
+      const hasProfile = !!data.customer?.name;
+      router.replace(hasProfile ? next : `/complete-profile?next=${encodeURIComponent(next)}`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Verification failed');
@@ -107,8 +110,31 @@ function LoginForm() {
                 </span>
               </div>
             )}
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Log in or sign up</div>
-            <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>Enter your mobile number — we&apos;ll text you a one-time code.</div>
+            <div style={{ display: 'flex', gap: 4, background: '#F1EAE0', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+              {(['login', 'signup'] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  style={{
+                    flex: 1, height: 36, border: 'none', borderRadius: 9, cursor: 'pointer',
+                    fontSize: 13.5, fontWeight: 700, fontFamily: 'var(--gb-sans)',
+                    background: mode === m ? '#fff' : 'transparent',
+                    color: mode === m ? 'var(--gb-text)' : 'var(--gb-muted)',
+                    boxShadow: mode === m ? '0 2px 6px -2px rgba(60,40,25,.3)' : 'none',
+                  }}
+                >
+                  {m === 'login' ? 'Log in' : 'Sign up'}
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>
+              {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
+              {mode === 'login'
+                ? "Enter your mobile number — we'll text you a one-time code."
+                : "Enter your mobile number to get started — we'll text you a one-time code."}
+            </div>
 
             {/* phone field */}
             <div style={{ display: 'flex', alignItems: 'center', marginTop: 16, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 0 0 4px rgba(177,90,50,.12)' }}>

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import HomeClient from './HomeClient';
+import MenuClient from './MenuClient';
 
 async function getCafeMenu(slug: string) {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`, {
@@ -50,14 +50,13 @@ export default async function HomePage({ params }: { params: Promise<{ slug: str
     : [{ name: null, isProfileComplete: false }, []];
 
   return (
-    <HomeClient
+    <MenuClient
       slug={slug}
       cafe={cafe}
       items={items}
       customerName={profile.name}
       topItems={topItems}
       isLoggedIn={!!token}
-      isProfileComplete={profile.isProfileComplete}
     />
   );
 }

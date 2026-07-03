@@ -32,7 +32,7 @@ export default function OrdersPage() {
   });
 
   return (
-    <>
+    <div className="gb-shell">
       <div style={{ paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 6 }}>
         <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, letterSpacing: '-.01em' }}>Your orders</div>
       </div>
@@ -83,6 +83,6 @@ export default function OrdersPage() {
         </div>
       )}
       <NavSpacer />
-    </>
+    </div>
   );
 }

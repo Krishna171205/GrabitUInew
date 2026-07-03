@@ -38,17 +38,27 @@ export default function OrderPage() {
   const router = useRouter();
   const [order, setOrder] = useState<GrabitOrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/proxy/grabit/orders/${id}`).then(r => r.json()).then(d => { setOrder(d); setLoading(false); }).catch(() => setLoading(false));
-    const poll = setInterval(() => {
-      fetch(`/api/proxy/grabit/orders/${id}`).then(r => r.json()).then(setOrder).catch(() => {});
-    }, 4000);
+    const load = (isPoll: boolean) =>
+      fetch(`/api/proxy/grabit/orders/${id}`)
+        .then(r => {
+          if (r.status === 401) { router.replace(`/login?next=/${slug}/order/${id}`); return null; }
+          if (!r.ok) { setDenied(true); return null; }
+          return r.json();
+        })
+        .then(d => { if (d) setOrder(d); if (!isPoll) setLoading(false); })
+        .catch(() => { if (!isPoll) setLoading(false); });
+
+    load(false);
+    const poll = setInterval(() => load(true), 4000);
     return () => clearInterval(poll);
-  }, [id]);
+  }, [id, slug, router]);
 
   const center = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--gb-muted)', fontSize: 16, background: 'var(--gb-surface)' } as const;
   if (loading) return <div style={center}>Loading…</div>;
+  if (denied) return <div style={center}>You don&apos;t have access to this order</div>;
   if (!order) return <div style={center}>Order not found</div>;
 
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'the café';
