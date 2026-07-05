@@ -42,7 +42,7 @@ export default function OrderPage() {
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    const load = (isPoll: boolean) =>
+    const refresh = (isPoll: boolean) =>
       fetch(`/api/proxy/grabit/orders/${id}`)
         .then(r => {
           if (r.status === 401) { router.replace(`/login?next=/${slug}/order/${id}`); return null; }
@@ -52,9 +52,32 @@ export default function OrderPage() {
         .then(d => { if (d) setOrder(d); if (!isPoll) setLoading(false); })
         .catch(() => { if (!isPoll) setLoading(false); });
 
-    load(false);
-    const poll = setInterval(() => load(true), 4000);
-    return () => clearInterval(poll);
+    refresh(false);
+
+    const stream = new EventSource(`/api/stream/grabit/orders/order/${id}`);
+    const eventTypes = [
+      'PAYMENT_CAPTURED',
+      'ORDER_CONFIRMED',
+      'ORDER_PREPPING',
+      'ORDER_READY',
+      'ORDER_COMPLETED',
+      'ORDER_STATUS_CHANGED',
+    ];
+    const onEvent = () => refresh(true);
+    eventTypes.forEach(type => stream.addEventListener(type, onEvent));
+    // Do NOT close() on error: native EventSource auto-reconnects with backoff and
+    // resends Last-Event-ID (server replays missed events). Closing here would kill
+    // that and silently degrade to polling. On reconnect, refetch to reconcile.
+    stream.onerror = () => { refresh(true); };
+
+    // Reconciliation remains the source of correctness after reconnects/deploys.
+    const poll = setInterval(() => refresh(true), 60000);
+
+    return () => {
+      eventTypes.forEach(type => stream.removeEventListener(type, onEvent));
+      stream.close();
+      clearInterval(poll);
+    };
   }, [id, slug, router]);
 
   const center = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--gb-muted)', fontSize: 16, background: 'var(--gb-surface)' } as const;

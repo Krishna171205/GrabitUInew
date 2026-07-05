@@ -51,9 +51,30 @@ export default function ManagePage() {
 
   useEffect(() => {
     if (!cafeId) return;
-    // Live updates via polling the backend (RDS-backed), replacing Supabase Realtime.
-    const poll = setInterval(() => { loadOrders(cafeId); }, 5000);
-    return () => clearInterval(poll);
+    const stream = new EventSource(`/api/stream/grabit/orders/cafe/${cafeId}`);
+    const refresh = () => { loadOrders(cafeId); };
+    const eventTypes = [
+      'ORDER_CREATED',
+      'PAYMENT_CAPTURED',
+      'ORDER_CONFIRMED',
+      'ORDER_PREPPING',
+      'ORDER_READY',
+      'ORDER_COMPLETED',
+      'ORDER_STATUS_CHANGED',
+    ];
+    eventTypes.forEach(type => stream.addEventListener(type, refresh));
+    // Do NOT close() on error: native EventSource auto-reconnects with backoff and
+    // resends Last-Event-ID (server replays missed events). Closing here would kill
+    // that and silently degrade to polling. On reconnect, refetch to reconcile.
+    stream.onerror = () => { refresh(); };
+
+    // Reconciliation remains the source of correctness after reconnects/deploys.
+    const poll = setInterval(refresh, 60000);
+    return () => {
+      eventTypes.forEach(type => stream.removeEventListener(type, refresh));
+      stream.close();
+      clearInterval(poll);
+    };
   }, [cafeId, loadOrders]);
 
   const updateStatus = useCallback(async (orderId: number, nextStatus: string, prepMins?: number) => {

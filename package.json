@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@gradient365/gradient-commons": "file:../types",
     "@supabase/supabase-js": "^2.44.4",
     "@tanstack/react-query": "^5.51.1",
     "clsx": "^2.1.1",
