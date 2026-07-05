@@ -40,9 +40,9 @@
   --color-secondary-container: #EFE3D0;
 
   /* Gold accent */
-  --color-tertiary: #976d00;
-  --color-tertiary-bright: #ffbb0c;
-  --color-tertiary-container: #ffdea6;
+  --color-tertiary: #8A5A00;
+  --color-tertiary-bright: #FFB100;
+  --color-tertiary-container: #FFE7B0;
 
   /* Status */
   --color-success: #1f9d57;
@@ -98,9 +98,9 @@
   --secondary-container: #EFE3D0;
 
   /* ---- Gold accent (ratings / "must try") ---- */
-  --tertiary: #976d00;
-  --tertiary-bright: #ffbb0c;
-  --tertiary-container: #ffdea6;
+  --tertiary: #8A5A00;
+  --tertiary-bright: #FFB100;
+  --tertiary-container: #FFE7B0;
 
   /* ---- Functional status ---- */
   --success: #1f9d57;
@@ -278,7 +278,7 @@ button {
   --gb-green-deep: #2A5238;
   --gb-green-tint: #F1F6EF;
   --gb-veg: #3E8E4E;
-  --gb-gold: #C79A3A;
+  --gb-gold: #E09A00;
   --gb-peach: #FFD98A;
   --gb-danger: #C0392B;
 
