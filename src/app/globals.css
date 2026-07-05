@@ -23,6 +23,8 @@
   --color-surface-card: #ffffff;
   --color-surface-low: #f5f3f3;
   --color-surface-container: #efeded;
+  --color-surface-container-low: #f5f3f3;
+  --color-surface-container-lowest: #ffffff;
   --color-surface-high: #e9e8e7;
   --color-surface-dim: #dbdad9;
   --color-on-surface: #1b1c1c;
@@ -33,6 +35,7 @@
   --color-inverse-surface: #303031;
   --color-inverse-on-surface: #f2f0f0;
   --color-outline: #8f6f6e;
+  --color-outline-variant: #d8d4d3;
   --color-secondary: #5f5e5e;
   --color-secondary-container: #e4e2e1;
 

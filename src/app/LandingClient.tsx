@@ -8,7 +8,8 @@ import WhyGrabit from '@/components/landing/WhyGrabit';
 import ProductPreview from '@/components/landing/ProductPreview';
 import PartnerPitch from '@/components/landing/PartnerPitch';
 import FinalCTA from '@/components/landing/FinalCTA';
-import LandingFooter from '@/components/landing/LandingFooter';
+import { TestimonialsSection } from '@/components/ui/testimonials-columns';
+import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
 
 export default function LandingClient() {
   return (
@@ -20,10 +21,13 @@ export default function LandingClient() {
         <HowItWorks />
         <WhyGrabit />
         <ProductPreview />
+        <TestimonialsSection />
         <PartnerPitch />
         <FinalCTA />
       </main>
-      <LandingFooter />
+      {/* ReadyToJoinRitual is a full-height curtain footer — must be the last element.
+          It carries the policy links (Contact / Terms / Refunds / Privacy) in its bottom bar. */}
+      <ReadyToJoinRitual />
     </div>
   );
 }
