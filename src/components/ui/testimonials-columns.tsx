@@ -109,7 +109,7 @@ export function TestimonialsColumn({
               <div
                 key={i}
                 className="p-8 rounded-3xl border border-outline-variant/30 bg-surface-container-lowest shadow-lg max-w-xs w-full"
-                style={{ boxShadow: "0 8px 32px rgba(183,18,42,0.07)" }}
+                style={{ boxShadow: "0 8px 32px rgba(255,177,0,0.10)" }}
               >
                 <p className="text-sm leading-relaxed text-on-surface-variant">{text}</p>
                 <div className="flex items-center gap-3 mt-5">

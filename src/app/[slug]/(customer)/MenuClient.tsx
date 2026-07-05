@@ -156,7 +156,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                 <div style={{ position: 'relative', height: 96 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  <button onClick={() => addTop(item)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(183,18,42,.4)' }}>
+                  <button onClick={() => addTop(item)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
                     <MS name="add" size={17} />
                   </button>
                 </div>

@@ -1,29 +1,36 @@
 import type { Metadata } from 'next';
-import { Outfit, Newsreader, Hanken_Grotesk } from 'next/font/google';
+import { Baloo_2, Mukta } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const outfit = Outfit({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+// Grabit brand type — Marigold system.
+// Display / wordmark: Baloo 2 (rounded, playful, native Devanagari).
+const baloo = Baloo_2({
+  subsets: ['latin', 'devanagari'],
+  weight: ['500', '700', '800'],
   display: 'swap',
-  variable: '--font-outfit',
+  variable: '--font-display',
   preload: true,
 });
 
-// Grabit consumer app — warm editorial pairing (serif headings + grotesk body).
-const newsreader = Newsreader({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
+// UI / body: Satoshi (Fontshare, self-hosted). Latin only — Devanagari falls to Mukta.
+const satoshi = localFont({
+  variable: '--font-ui',
   display: 'swap',
-  variable: '--font-newsreader',
+  src: [
+    { path: '../fonts/Satoshi-400.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/Satoshi-500.woff2', weight: '500', style: 'normal' },
+    { path: '../fonts/Satoshi-700.woff2', weight: '700', style: 'normal' },
+    { path: '../fonts/Satoshi-900.woff2', weight: '900', style: 'normal' },
+  ],
 });
 
-const hanken = Hanken_Grotesk({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+// Hindi body / dense Devanagari UI.
+const mukta = Mukta({
+  subsets: ['latin', 'devanagari'],
+  weight: ['400', '500', '700'],
   display: 'swap',
-  variable: '--font-hanken',
+  variable: '--font-deva',
 });
 
 export const metadata: Metadata = {
@@ -34,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${outfit.variable} ${newsreader.variable} ${hanken.variable}`}>
+    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable}`}>
       <head>
         {/* Material Symbols Rounded — icon font used across the consumer app */}
         <link
