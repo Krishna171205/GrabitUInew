@@ -1,5 +1,5 @@
 /**
- * Grabit — SF-Symbols-style icon set. Thin, rounded, 1.5px stroke.
+ * Grabit: SF-Symbols-style icon set. Thin, rounded, 1.5px stroke.
  * All icons inherit currentColor. Ported from the prototype.
  */
 import type { ReactNode } from 'react';

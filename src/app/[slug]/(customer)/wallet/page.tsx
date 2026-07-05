@@ -162,7 +162,7 @@ export default function WalletPage() {
               );
             })}
           </div>
-          <div className="t-caption">{streak.months}/3 months — ₹100 bonus at 3!</div>
+          <div className="t-caption">{streak.months}/3 months, ₹100 bonus at 3!</div>
         </Card>
 
         {/* Transactions */}

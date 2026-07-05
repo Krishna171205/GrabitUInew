@@ -1,5 +1,5 @@
 'use client';
-/** Saved delivery-area label — client-only (no saved-address backend yet). */
+/** Saved delivery-area label, client-only (no saved-address backend yet). */
 import { useEffect, useState } from 'react';
 
 const KEY = 'grabit_location';

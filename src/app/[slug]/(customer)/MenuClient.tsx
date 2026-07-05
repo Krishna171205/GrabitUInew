@@ -175,7 +175,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
       <div style={{ padding: '18px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '12px 14px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
           <MS name="search" size={20} color="#B0A08C" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu — flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 14, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 14, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
           <MS name="mic" size={20} color="#C1502E" />
         </div>
       </div>

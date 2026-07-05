@@ -120,7 +120,7 @@ export default function ReferralPage() {
           <>
             <div className="t-label" style={{ color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 11, marginBottom: 12 }}>Your referrals</div>
             {data.referrals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)' }}><p style={{ fontSize: 14 }}>No referrals yet — share your code!</p></div>
+              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)' }}><p style={{ fontSize: 14 }}>No referrals yet, share your code!</p></div>
             ) : (
               data.referrals.map((ref, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--hairline)' }}>

@@ -33,7 +33,7 @@ export default function CheckoutPage() {
     setPickupSlot(slot);
   }, [slug, router]);
 
-  // Fetch cafe_id + customer_id — read sessionStorage first (set by menu/home page on first load)
+  // Fetch cafe_id + customer_id, read sessionStorage first (set by menu/home page on first load)
   useEffect(() => {
     const resolveIds = async () => {
       const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
@@ -57,7 +57,7 @@ export default function CheckoutPage() {
             setWallet(wd.wallet ?? null);
           }
         }
-      } catch { /* ignore — wallet is optional */ }
+      } catch { /* ignore, wallet is optional */ }
     };
     resolveIds();
   }, [slug]);
@@ -228,7 +228,7 @@ export default function CheckoutPage() {
 
               {useWallet && wallet.base_balance_paise === 0 && (
                 <div style={{ marginTop: 10 }}>
-                  <Link href={`/${slug}/wallet/recharge`} style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>No balance — Recharge now</Link>
+                  <Link href={`/${slug}/wallet/recharge`} style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>No balance, Recharge now</Link>
                 </div>
               )}
             </Card>
@@ -238,7 +238,7 @@ export default function CheckoutPage() {
             <div style={{ color: 'var(--error)', fontSize: 14, marginBottom: 16, padding: '12px 14px', background: 'var(--error-tint)', borderRadius: 'var(--r-md)' }}>{error}</div>
           )}
 
-          {/* Pay button — three logic variants preserved */}
+          {/* Pay button, three logic variants preserved */}
           {useWallet && remainingPaise === 0 ? (
             <Button full disabled={loading} onClick={() => handleOrder('counter')}>
               {loading ? 'Processing…' : `Pay ${formatPaise(orderTotalPaise)} from Wallet`}

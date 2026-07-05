@@ -13,7 +13,7 @@ const CONTENT: Record<Status, { icon: string; color: string; title: string; body
   submitted: { icon: 'schedule', color: 'var(--gb-gold)', title: "You're under review", body: "We're verifying your details. This usually takes a day or two." },
   vendor_pending: { icon: 'schedule', color: 'var(--gb-gold)', title: "You're under review", body: "We're verifying your payout details. This usually takes a day or two." },
   active: { icon: 'check_circle', color: 'var(--gb-green)', title: "You're live!", body: 'Customers can now find and order from your café on Grabit.' },
-  rejected: { icon: 'error', color: 'var(--gb-danger)', title: 'Needs another look', body: 'Something didn’t verify — fix it and resubmit.' },
+  rejected: { icon: 'error', color: 'var(--gb-danger)', title: 'Needs another look', body: 'Something didn’t verify, fix it and resubmit.' },
 };
 
 export default function StatusStep() {

@@ -3,7 +3,7 @@ import { Baloo_2, Mukta } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 
-// Grabit brand type — Marigold system.
+// Grabit brand type, Marigold system.
 // Display / wordmark: Baloo 2 (rounded, playful, native Devanagari).
 const baloo = Baloo_2({
   subsets: ['latin', 'devanagari'],
@@ -13,7 +13,7 @@ const baloo = Baloo_2({
   preload: true,
 });
 
-// UI / body: Satoshi (Fontshare, self-hosted). Latin only — Devanagari falls to Mukta.
+// UI / body: Satoshi (Fontshare, self-hosted). Latin only, Devanagari falls to Mukta.
 const satoshi = localFont({
   variable: '--font-ui',
   display: 'swap',
@@ -34,7 +34,7 @@ const mukta = Mukta({
 });
 
 export const metadata: Metadata = {
-  title: 'Grabit — Order Ahead',
+  title: 'Grabit: Order Ahead',
   description: 'Pre-order from your favourite cafe',
   icons: { icon: '/grabit-logo.svg' }
 };
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable}`}>
       <head>
-        {/* Material Symbols Rounded — icon font used across the consumer app */}
+        {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..24,400,0..1,0"

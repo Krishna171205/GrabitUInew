@@ -14,7 +14,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: '1px solid var(--gb-line)' }}>
       <span style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 600 }}>{label}</span>
-      <span style={{ fontSize: 13.5, color: 'var(--gb-text)', fontWeight: 700, textAlign: 'right' }}>{value || '—'}</span>
+      <span style={{ fontSize: 13.5, color: 'var(--gb-text)', fontWeight: 700, textAlign: 'right' }}>{value || '-'}</span>
     </div>
   );
 }
@@ -73,7 +73,7 @@ export default function ReviewStep() {
           style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--gb-primary-soft)', border: '1px solid #EAD6C4', borderRadius: 14, padding: '14px 16px', marginBottom: 16, color: 'var(--gb-primary)', fontWeight: 700, fontSize: 13.5 }}
         >
           <MS name="restaurant_menu" size={20} />
-          Add your menu now (optional — you can do this later too)
+          Add your menu now (optional, you can do this later too)
           <MS name="arrow_forward" size={18} style={{ marginLeft: 'auto' }} />
         </Link>
 

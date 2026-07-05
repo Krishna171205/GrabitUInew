@@ -1,5 +1,5 @@
 // grabit/src/components/landing/content.ts
-// Landing copy — Grabit-original. Shared by section components (DRY).
+// Landing copy, Grabit-original. Shared by section components (DRY).
 
 export interface Feature { n: string; icon: string; title: string; body: string; }
 export interface Step { n: string; title: string; body: string; }
@@ -17,7 +17,7 @@ export const STEPS: Step[] = [
   { n: '3', title: 'Grab & go', body: 'Skip the queue. Collect your order from the counter when it is ready.' },
 ];
 
-// Unsplash CDN — placeholder café imagery; swap to owned photos before prod.
+// Unsplash CDN, placeholder café imagery; swap to owned photos before prod.
 export const STEP_IMAGES: StepImage[] = [
   { src: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=85', alt: 'Warm café interior' },
   { src: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=85', alt: 'Barista pouring latte art' },

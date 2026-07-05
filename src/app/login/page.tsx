@@ -142,8 +142,8 @@ function LoginForm() {
             </div>
             <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
               {mode === 'login'
-                ? "Enter your mobile number — we'll text you a one-time code."
-                : "Enter your mobile number to get started — we'll text you a one-time code."}
+                ? "Enter your mobile number, we'll text you a one-time code."
+                : "Enter your mobile number to get started, we'll text you a one-time code."}
             </div>
 
             {/* phone field */}

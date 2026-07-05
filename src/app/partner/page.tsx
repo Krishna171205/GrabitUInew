@@ -3,9 +3,9 @@ import { MS } from '@/components/gb/kit';
 import { ph } from '@/components/gb/data';
 
 const PERKS = [
-  { icon: 'bolt', title: 'Live in a day', body: 'Business details, KYC and menu — done in one sitting, no paperwork back-and-forth.' },
+  { icon: 'bolt', title: 'Live in a day', body: 'Business details, KYC and menu, done in one sitting, no paperwork back-and-forth.' },
   { icon: 'payments', title: 'Get paid directly', body: 'Payouts go straight to your bank account, split automatically per order.' },
-  { icon: 'storefront', title: 'Skip the queue, not the sale', body: 'Customers order ahead and pick up at the counter — no delivery fleet to manage.' },
+  { icon: 'storefront', title: 'Skip the queue, not the sale', body: 'Customers order ahead and pick up at the counter, no delivery fleet to manage.' },
 ];
 
 export default function PartnerLandingPage() {

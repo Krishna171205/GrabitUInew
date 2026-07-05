@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { GrabitLogo } from '@/components/ui/kit';
 
 // Shared shell for public policy pages (Contact, Terms, Refunds, Privacy).
-// Server component — no client hooks — so these pages are fully crawlable.
+// Server component, no client hooks, so these pages are fully crawlable.
 export default function LegalLayout({
   title,
   updated,

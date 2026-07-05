@@ -105,14 +105,14 @@ export default function OrderPage() {
       <div style={{ margin: '-16px 16px 0', position: 'relative', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 20, boxShadow: 'var(--gb-shadow-pop)', textAlign: 'center' }}>
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gb-muted-2)' }}>Show this at the counter</div>
         <div className="gb-serif" style={{ fontSize: 44, fontWeight: 600, letterSpacing: '.16em', color: 'var(--gb-primary)', marginTop: 6 }}>GB-{order.id}</div>
-        <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600 }}>Skip the queue — collect &amp; go</div>
+        <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600 }}>Skip the queue, collect &amp; go</div>
       </div>
 
       {/* timeline */}
       <div style={{ margin: '20px 20px 0' }}>
         <TimelineNode state={nodeState(0)} icon="check" title="Order confirmed" sub={`${cafeName} got your order`} />
         <TimelineNode state={nodeState(1)} icon="restaurant" title="Preparing your order" sub="Barista is on it" />
-        <TimelineNode state={idx >= 2 ? (idx >= 3 ? 'done' : 'current') : 'upcoming'} icon="shopping_bag" title="Ready for pickup" sub="We'll ping you — skip the queue" last />
+        <TimelineNode state={idx >= 2 ? (idx >= 3 ? 'done' : 'current') : 'upcoming'} icon="shopping_bag" title="Ready for pickup" sub="We'll ping you, skip the queue" last />
       </div>
 
       {/* café row */}

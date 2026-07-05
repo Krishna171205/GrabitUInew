@@ -88,7 +88,7 @@ export default function SlotConfigPage() {
       slug={slug}
       active="slots"
       title="Slot configuration"
-      sub={`${Number.isFinite(totalSlots) && totalSlots > 0 ? totalSlots : '—'} pickup windows/day · ${config.max_orders_per_slot} each`}
+      sub={`${Number.isFinite(totalSlots) && totalSlots > 0 ? totalSlots : '-'} pickup windows/day · ${config.max_orders_per_slot} each`}
     >
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 40px' }}>
         {loading ? (

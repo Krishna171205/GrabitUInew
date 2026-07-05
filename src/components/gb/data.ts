@@ -1,5 +1,5 @@
 /**
- * Grabit consumer app — sample data mirroring the design mockups.
+ * Grabit consumer app, sample data mirroring the design mockups.
  * Marketplace-level fields (rating, distance, ETA, trending) aren't in the
  * backend yet, so these screens render faithfully off this until the discovery
  * API lands. Café `slug`s route to the real /[slug] storefront.
@@ -41,7 +41,7 @@ export const TRENDING: (GbCafe & { rank: string })[] = [
   { slug: 'kettle-and-co', name: 'Kettle & Co.', tagline: 'Chai · Snacks · Bakes', rating: 4.6, ready: '10 min', distance: '1.2 km', forOne: 180, cover: 'photo-1521017432531-fbd92d768814', rank: '#1 trending' },
 ];
 
-// Real items from the one live café (raydee) — so add-to-cart actually works end to end.
+// Real items from the one live café (raydee), so add-to-cart actually works end to end.
 export const POPULAR: GbItem[] = [
   { id: 1, slug: 'raydee', name: 'Classic Cold Coffee', cafe: 'The Raydee Cafe', price: 90, photo: 'photo-1541167760496-1628856ab772' },
   { id: 2, slug: 'raydee', name: 'Hazelnut Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },

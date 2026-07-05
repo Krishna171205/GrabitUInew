@@ -129,7 +129,7 @@ export default function CartPage() {
           <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Pickup time</div>
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 28 }}>
-          It&apos;ll be fresh &amp; waiting — no waiting in line{slotsData?.label ? ` · ${slotsData.label}` : ''}
+          It&apos;ll be fresh &amp; waiting, no waiting in line{slotsData?.label ? ` · ${slotsData.label}` : ''}
         </div>
         {slotsLoading && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>Loading slots…</p>}
         {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>No slots available. Try again tomorrow.</p>}
@@ -197,7 +197,7 @@ export default function CartPage() {
             </div>
             <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 14 }}>Log in to continue</div>
             <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
-              Your order&apos;s saved — log in to place it.
+              Your order&apos;s saved, log in to place it.
             </div>
             <Link
               href={`/login?next=${encodeURIComponent(`/${slug}/checkout`)}`}

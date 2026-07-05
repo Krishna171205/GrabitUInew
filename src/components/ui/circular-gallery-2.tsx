@@ -336,7 +336,7 @@ class Media {
     this.img.crossOrigin = "anonymous";
     this.img.src = this.image;
     this.img.onload = () => {
-      // Capture local ref — destroy() may null this.img before onload fires.
+      // Capture local ref, destroy() may null this.img before onload fires.
       const img = this.img;
       if (!img) return;
 
@@ -360,7 +360,7 @@ class Media {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, img.naturalWidth, img.naturalHeight);
 
-      // Cafe name — font size relative to original image height
+      // Cafe name, font size relative to original image height
       const fontSize = Math.round(img.naturalHeight * 0.09);
       ctx.font = `700 ${fontSize}px -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif`;
       ctx.fillStyle = "#ffffff";
