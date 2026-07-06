@@ -16,7 +16,7 @@ export default function LandingFooter() {
           <Link href="/partner" style={{ color: 'rgba(255,255,255,.7)' }}>Partner with us</Link>
         </nav>
       </div>
-      <div style={{ maxWidth: 1120, margin: '24px auto 0', fontSize: 12.5, color: 'rgba(255,255,255,.45)' }}>© 2026 Grabit. Now in Delhi.</div>
+      <div style={{ maxWidth: 1120, margin: '24px auto 0', fontSize: 12.5, color: 'rgba(255,255,255,.45)' }}>© 2026 Grabit. Now in Delhi. Grabit is a product of Unified Nexgrade Private Limited.</div>
     </footer>
   );
 }
