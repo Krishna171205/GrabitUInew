@@ -15,10 +15,12 @@ function dateStr(offsetDays: number) {
   return d.toISOString().split('T')[0];
 }
 
-function Veg({ size = 14 }: { size?: number }) {
+function Veg({ size = 14, veg }: { size?: number; veg?: boolean | null }) {
+  if (veg == null) return null;
+  const c = veg ? '#3E8E4E' : '#9E2A2B';
   return (
-    <span style={{ width: size, height: size, border: '1.5px solid #3E8E4E', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-      <span style={{ width: size * 0.43, height: size * 0.43, borderRadius: '50%', background: '#3E8E4E' }} />
+    <span style={{ width: size, height: size, border: `1.5px solid ${c}`, borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <span style={{ width: size * 0.43, height: size * 0.43, borderRadius: '50%', background: c }} />
     </span>
   );
 }
@@ -108,7 +110,7 @@ export default function CartPage() {
       <div style={{ padding: '8px 18px 4px' }}>
         {items.map(item => (
           <div key={item.menu_item_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--gb-line)' }}>
-            <Veg />
+            <Veg veg={item.is_veg} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
               <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>

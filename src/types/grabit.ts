@@ -29,6 +29,7 @@ export interface GrabitMenuItem {
   is_available: boolean;
   sort_order: number;
   prep_time_minutes?: number;
+  is_veg?: boolean | null; // null/undefined = unknown; render no veg mark
 }
 
 export interface GrabitSlotConfig {
@@ -111,6 +112,7 @@ export interface GrabitCartItem {
   price: number;
   quantity: number;
   image_url: string | null;
+  is_veg?: boolean | null;
 }
 
 export interface GrabitAuthResponse {
