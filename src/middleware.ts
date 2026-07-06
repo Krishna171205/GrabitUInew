@@ -31,7 +31,7 @@ function isTokenExpired(token: string): boolean {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Wallet/referral has no deployed backend yet — orphan the routes so a direct
+  // Wallet/referral has no deployed backend yet, orphan the routes so a direct
   // URL visit lands on the cafe home instead of a dead recharge flow.
   if (/^\/[^/]+\/wallet/.test(pathname)) {
     const slug = pathname.split('/')[1];
@@ -42,7 +42,7 @@ export function middleware(req: NextRequest) {
     /^\/[^/]+\/manage/.test(pathname) &&
     !pathname.includes('/manage/login');
 
-  // Cart is guest-browsable (browse-first-auth) — only checkout/order require login.
+  // Cart is guest-browsable (browse-first-auth), only checkout/order require login.
   const isCustomerProtected = /^\/[^/]+\/(checkout|order)/.test(pathname);
 
   if (isManage) {
@@ -57,7 +57,7 @@ export function middleware(req: NextRequest) {
     if (payload?.staffId) requestHeaders.set('x-staff-id', String(payload.staffId));
     if (payload?.role) requestHeaders.set('x-staff-role', payload.role);
 
-    // NOTE: role check here is UI-only — derived from unverified JWT body.
+    // NOTE: role check here is UI-only, derived from unverified JWT body.
     // API endpoints enforce role via verified JWT in Express requireStaff middleware.
     // A crafted cookie can reach the finance UI shell but cannot fetch real data (API returns 403).
     const isFinance = /^\/[^/]+\/manage\/finance/.test(pathname);
@@ -77,7 +77,7 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // Marketplace Orders/Profile are personal — guests get bounced to login.
+  // Marketplace Orders/Profile are personal, guests get bounced to login.
   const isMarketplaceProtected = /^\/(orders|profile)(\/|$)/.test(pathname);
   if (isMarketplaceProtected) {
     const token = req.cookies.get('grabit_customer_token')?.value;

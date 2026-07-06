@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MS } from '@/components/gb/kit';
 import { setSavedLocation } from '@/components/gb/location';
 
-// Static suggestions — no saved-address backend yet (ponytail: swap for real data when addresses land).
+// Static suggestions, no saved-address backend yet (ponytail: swap for real data when addresses land).
 const SUGGESTED = ['MG Road, Bengaluru', 'Indiranagar, Bengaluru', 'Koramangala, Bengaluru', 'HSR Layout, Bengaluru'];
 
 export default function LocationPickerPage() {
@@ -111,7 +111,7 @@ export default function LocationPickerPage() {
             </button>
           ))}
           {matches.length === 0 && (
-            <p style={{ padding: '14px 18px', color: 'var(--gb-muted)', fontSize: 14 }}>No matches — try a different search.</p>
+            <p style={{ padding: '14px 18px', color: 'var(--gb-muted)', fontSize: 14 }}>No matches, try a different search.</p>
           )}
         </div>
         </div>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { GrabitLogo } from '@/components/ui/kit';
 
 // Shared shell for public policy pages (Contact, Terms, Refunds, Privacy).
-// Server component — no client hooks — so these pages are fully crawlable.
+// Server component, no client hooks, so these pages are fully crawlable.
 export default function LegalLayout({
   title,
   updated,
@@ -22,7 +22,7 @@ export default function LegalLayout({
           </Link>
           <Link
             href="/"
-            className="text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
+            className="text-sm font-semibold text-on-surface hover:opacity-70 transition-opacity"
           >
             ← Back to home
           </Link>
@@ -57,8 +57,8 @@ export default function LegalLayout({
         }
         .legal-prose ul { list-style: disc; padding-left: 1.3rem; }
         .legal-prose li { margin-top: 0.4rem; }
-        .legal-prose a { color: var(--color-primary, #b7122a); font-weight: 600; }
-        .legal-prose a:hover { text-decoration: underline; }
+        .legal-prose a { color: var(--color-on-surface, #241612); font-weight: 700; text-decoration: underline; text-decoration-color: var(--color-primary, #FFB100); text-underline-offset: 2px; }
+        .legal-prose a:hover { text-decoration-thickness: 2px; }
         .legal-prose strong { color: var(--color-on-surface, #1b1c1c); font-weight: 700; }
       `}</style>
 
@@ -69,10 +69,10 @@ export default function LegalLayout({
             © 2026 Unified Nexgrade Private Limited
           </p>
           <div className="flex flex-wrap justify-center gap-5 text-xs font-semibold text-on-surface-variant">
-            <Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link>
-            <Link href="/terms" className="hover:text-primary transition-colors">Terms &amp; Conditions</Link>
-            <Link href="/refunds" className="hover:text-primary transition-colors">Refunds &amp; Cancellations</Link>
-            <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+            <Link href="/contact" className="hover:text-on-surface transition-colors">Contact Us</Link>
+            <Link href="/terms" className="hover:text-on-surface transition-colors">Terms &amp; Conditions</Link>
+            <Link href="/refunds" className="hover:text-on-surface transition-colors">Refunds &amp; Cancellations</Link>
+            <Link href="/privacy" className="hover:text-on-surface transition-colors">Privacy</Link>
           </div>
         </div>
       </footer>

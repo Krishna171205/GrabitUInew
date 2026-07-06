@@ -12,7 +12,7 @@ type WalletSlab = { readonly amountPaise: number; readonly bonusPaise: number; r
 
 interface WalletData { wallet: GrabitWallet; }
 
-const CONFETTI_COLORS = ['#b7122a', '#4ade80', '#60a5fa', '#ffbb0c', '#ec4899', '#8b5cf6'];
+const CONFETTI_COLORS = ['#FFB100', '#4ade80', '#60a5fa', '#FF4D6D', '#ec4899', '#8b5cf6'];
 
 export default function RechargePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -129,7 +129,7 @@ export default function RechargePage() {
             const selected = selectedSlab === slab.amountPaise;
             return (
               <motion.button key={slab.amountPaise} whileTap={{ scale: 0.98 }} onClick={() => setSelectedSlab(slab.amountPaise)}
-                style={{ borderRadius: 'var(--r-lg)', padding: 20, border: `1.5px solid ${selected ? 'var(--primary)' : 'var(--hairline-strong)'}`, background: selected ? 'var(--primary-tint)' : 'var(--surface-card)', boxShadow: selected ? '0 4px 16px rgba(183,18,42,0.15)' : 'var(--shadow-card)', cursor: 'pointer', textAlign: 'left', transition: 'all .15s', width: '100%' }}>
+                style={{ borderRadius: 'var(--r-lg)', padding: 20, border: `1.5px solid ${selected ? 'var(--primary)' : 'var(--hairline-strong)'}`, background: selected ? 'var(--primary-tint)' : 'var(--surface-card)', boxShadow: selected ? '0 4px 16px rgba(255,177,0,0.18)' : 'var(--shadow-card)', cursor: 'pointer', textAlign: 'left', transition: 'all .15s', width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                   <span className="tabular" style={{ fontSize: 24, fontWeight: 700, color: 'var(--on-surface)' }}>{formatPaise(slab.amountPaise)}</span>
                   <span style={{ background: 'var(--success-tint)', color: 'var(--success)', borderRadius: 'var(--r-pill)', padding: '4px 10px', fontSize: 12, fontWeight: 700 }}>+{formatPaise(slab.bonusPaise)} bonus</span>

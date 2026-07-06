@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Server-side-only route — INTERNAL_SECRET is never exposed to the client.
+// Server-side-only route, INTERNAL_SECRET is never exposed to the client.
 // This route sits between the frontend and the Express /recharge/confirm endpoint,
 // injecting the x-internal-secret header that the proxy cannot safely forward.
 //

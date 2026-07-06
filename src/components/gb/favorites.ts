@@ -1,6 +1,6 @@
 'use client';
 /**
- * Café bookmarks — client-only (no backend favourites table yet).
+ * Café bookmarks, client-only (no backend favourites table yet).
  * ponytail: localStorage set, swap for a real endpoint when one exists.
  */
 import { useEffect, useState } from 'react';

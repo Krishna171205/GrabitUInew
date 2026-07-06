@@ -1,6 +1,6 @@
 'use client';
 /**
- * Grabit staff chrome — responsive.
+ * Grabit staff chrome, responsive.
  *  >= 1024px: prototype desktop shell (sidebar + top bar).
  *  < 1024px:  mobile header + bottom tab bar (legacy layout).
  * Presentational; routing via slug-aware Next Links.

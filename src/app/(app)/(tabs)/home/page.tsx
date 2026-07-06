@@ -131,7 +131,7 @@ function SignedInHome({ cafes }: { cafes: RealCafe[] }) {
         </div>
         <LocationPill />
         <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 270 }}>
-          Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue</span> — it&apos;s ready when you are.
+          Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue</span>, it&apos;s ready when you are.
         </div>
         <SearchBar />
       </div>

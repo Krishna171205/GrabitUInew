@@ -29,7 +29,7 @@ const testimonials = [
     role: "Associate Professor, Civil Engineering, DTU",
   },
   {
-    text: "The WhatsApp ping when my order is ready is brilliant. I'm always mid-experiment in the chem lab — I don't have to keep checking my phone.",
+    text: "The WhatsApp ping when my order is ready is brilliant. I'm always mid-experiment in the chem lab, I don't have to keep checking my phone.",
     image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=80&h=80&q=80",
     name: "Divya Nair",
     role: "M.Tech, Biotechnology, DTU",
@@ -53,13 +53,13 @@ const testimonials = [
     role: "Assistant Professor, Mathematics, DTU",
   },
   {
-    text: "I'm in the hostel so I pass Raydee on the way to the main building. Pre-order from my room, pick up mid-walk — doesn't cost me a single extra minute.",
+    text: "I'm in the hostel so I pass Raydee on the way to the main building. Pre-order from my room, pick up mid-walk, doesn't cost me a single extra minute.",
     image: "https://randomuser.me/api/portraits/men/7.jpg",
     name: "Harshit Bansal",
     role: "1st Year, Production Engineering, DTU",
   },
   {
-    text: "Slot picker is smarter than it looks. It only shows times that are actually achievable — I've never had an order late or not ready on time.",
+    text: "Slot picker is smarter than it looks. It only shows times that are actually achievable, I've never had an order late or not ready on time.",
     image: "https://randomuser.me/api/portraits/women/13.jpg",
     name: "Mehak Chawla",
     role: "3rd Year, Environmental Engineering, DTU",
@@ -109,7 +109,7 @@ export function TestimonialsColumn({
               <div
                 key={i}
                 className="p-8 rounded-3xl border border-outline-variant/30 bg-surface-container-lowest shadow-lg max-w-xs w-full"
-                style={{ boxShadow: "0 8px 32px rgba(183,18,42,0.07)" }}
+                style={{ boxShadow: "0 8px 32px rgba(255,177,0,0.10)" }}
               >
                 <p className="text-sm leading-relaxed text-on-surface-variant">{text}</p>
                 <div className="flex items-center gap-3 mt-5">

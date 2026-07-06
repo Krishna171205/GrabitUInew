@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-// Only allow proxying to grabit/* routes — prevents this proxy from reaching
+// Only allow proxying to grabit/* routes, prevents this proxy from reaching
 // Gradient 365 portals, admin routes, or any non-grabit Express endpoints.
 function isPathAllowed(pathParts: string[]): boolean {
   return pathParts[0] === 'grabit' && pathParts.length >= 2;

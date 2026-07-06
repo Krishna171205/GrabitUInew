@@ -1,4 +1,4 @@
-/** Pure formatting helpers — deliberately NOT 'use client' so server components can call them directly. */
+/** Pure formatting helpers, deliberately NOT 'use client' so server components can call them directly. */
 export const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
 const toMin = (t: string) => { const [h, m] = t.slice(0, 5).split(':').map(Number); return h * 60 + m; };

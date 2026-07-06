@@ -1,5 +1,5 @@
 /**
- * Grabit — SF-Symbols-style icon set. Thin, rounded, 1.5px stroke.
+ * Grabit: SF-Symbols-style icon set. Thin, rounded, 1.5px stroke.
  * All icons inherit currentColor. Ported from the prototype.
  */
 import type { ReactNode } from 'react';
@@ -89,7 +89,7 @@ export function GrabitLogo({
   height = 26,
   mono = false,
   color = '#3d3d3d',
-  dot = '#b7122a',
+  dot = '#FFB100',
 }: {
   height?: number;
   mono?: boolean;

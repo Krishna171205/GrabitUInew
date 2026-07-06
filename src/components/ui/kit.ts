@@ -1,4 +1,4 @@
-// Grabit design-system kit — barrel export for primitives + icons.
+// Grabit design-system kit, barrel export for primitives + icons.
 export { Icon, GrabitLogo, FoodMark } from './Icon';
 export type { IconProps } from './Icon';
 export {

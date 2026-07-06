@@ -1,6 +1,6 @@
 'use client';
 /**
- * Grabit — shared UI primitives. Ported from the prototype design system.
+ * Grabit: shared UI primitives. Ported from the prototype design system.
  * Style via CSS vars from globals.css (--primary, --surface-card, --r-md, ...).
  */
 import { useState, type ReactNode, type CSSProperties } from 'react';
@@ -38,7 +38,7 @@ export function Button({
     sm: { height: 34, fontSize: 14, padding: '0 14px', borderRadius: 'var(--r-sm)' },
   };
   const variants: Record<ButtonVariant, CSSProperties> = {
-    primary: { background: 'var(--primary)', color: 'var(--on-primary)', boxShadow: '0 4px 14px rgba(183,18,42,0.28)' },
+    primary: { background: 'var(--primary)', color: 'var(--on-primary)', boxShadow: '0 4px 14px rgba(255,177,0,0.3)' },
     secondary: { background: 'var(--surface-card)', color: 'var(--on-surface)', border: '1px solid var(--hairline-strong)' },
     tinted: { background: 'var(--primary-tint)', color: 'var(--primary)' },
     ghost: { background: 'transparent', color: 'var(--primary)' },
@@ -124,11 +124,11 @@ export function AddButton({
   qty = 0, onAdd, onChange,
 }: { qty?: number; onAdd?: () => void; onChange?: (n: number) => void }) {
   if (qty > 0) {
-    const sb: CSSProperties = { width: 32, height: 34, display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer' };
+    const sb: CSSProperties = { width: 32, height: 34, display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', color: 'var(--on-primary)', cursor: 'pointer' };
     return (
-      <div style={{ display: 'inline-flex', alignItems: 'center', height: 34, borderRadius: 'var(--r-pill)', background: 'var(--primary)', boxShadow: '0 3px 10px rgba(183,18,42,0.3)', overflow: 'hidden' }}>
+      <div style={{ display: 'inline-flex', alignItems: 'center', height: 34, borderRadius: 'var(--r-pill)', background: 'var(--primary)', boxShadow: '0 3px 10px rgba(255,177,0,0.35)', overflow: 'hidden' }}>
         <button style={sb} onClick={() => onChange?.(qty - 1)}>{Icon.minus({ size: 15 })}</button>
-        <span className="tabular" style={{ minWidth: 18, textAlign: 'center', fontWeight: 700, fontSize: 14, color: '#fff' }}>{qty}</span>
+        <span className="tabular" style={{ minWidth: 18, textAlign: 'center', fontWeight: 700, fontSize: 14, color: 'var(--on-primary)' }}>{qty}</span>
         <button style={sb} onClick={() => onChange?.(qty + 1)}>{Icon.plus({ size: 15 })}</button>
       </div>
     );

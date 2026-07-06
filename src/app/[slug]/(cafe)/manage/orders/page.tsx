@@ -120,9 +120,9 @@ export default function OrderHistoryPage() {
                   return (
                     <tr key={order.id}>
                       <td style={cellS}><span className="tabular t-label">#{order.id}</span></td>
-                      <td style={cellS}><span className="tabular">{order.pickup_slot ? new Date(order.pickup_slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</span></td>
+                      <td style={cellS}><span className="tabular">{order.pickup_slot ? new Date(order.pickup_slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}</span></td>
                       <td style={{ ...cellS, color: 'var(--muted)' }}>{itemCount} item{itemCount !== 1 ? 's' : ''}{order.eta_minutes ? ` · ETA ${order.eta_minutes}m` : ''}</td>
-                      <td style={{ ...cellS, color: 'var(--muted)' }} className="tabular">{order.customer_phone ?? '—'}</td>
+                      <td style={{ ...cellS, color: 'var(--muted)' }} className="tabular">{order.customer_phone ?? '-'}</td>
                       <td style={{ ...cellS, textAlign: 'right' }}><span className="tabular" style={{ fontWeight: 700 }}>₹{Number(order.total_amount).toFixed(0)}</span></td>
                       <td style={cellS}><StatusPill status={PILL_STATUS[order.status] ?? 'pending'} /></td>
                     </tr>
@@ -145,9 +145,9 @@ export default function OrderHistoryPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p className="tabular t-label" style={{ fontSize: 15, marginBottom: 3 }}>#{order.id}</p>
                     <p className="t-caption" style={{ marginBottom: 2 }}>
-                      {order.pickup_slot ? new Date(order.pickup_slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'} · {itemCount} item{itemCount !== 1 ? 's' : ''}
+                      {order.pickup_slot ? new Date(order.pickup_slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'} · {itemCount} item{itemCount !== 1 ? 's' : ''}
                     </p>
-                    <p className="t-caption tabular">{order.customer_phone ?? '—'}{order.eta_minutes ? ` · ETA ${order.eta_minutes}m` : ''}</p>
+                    <p className="t-caption tabular">{order.customer_phone ?? '-'}{order.eta_minutes ? ` · ETA ${order.eta_minutes}m` : ''}</p>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                     <StatusPill status={PILL_STATUS[order.status] ?? 'pending'} />

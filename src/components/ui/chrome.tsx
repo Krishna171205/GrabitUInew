@@ -1,6 +1,6 @@
 'use client';
 /**
- * Grabit — phone chrome: scroll body, frosted top bar, sticky CTA dock, cart badge.
+ * Grabit: phone chrome: scroll body, frosted top bar, sticky CTA dock, cart badge.
  * Presentational only; screens own routing (Next Link / router).
  */
 import type { ReactNode, CSSProperties } from 'react';

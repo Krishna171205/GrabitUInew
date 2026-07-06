@@ -1,6 +1,6 @@
 'use client';
 /**
- * Grabit consumer app — shared UI kit for the warm editorial theme.
+ * Grabit consumer app, shared UI kit for the warm editorial theme.
  * Faithful to Design References/grabit-designs. Style via --gb-* vars
  * (globals.css, scoped to .gb-app). Icons = Material Symbols Rounded.
  */
@@ -62,7 +62,7 @@ export function BottomNav() {
   );
 }
 
-/** Spacer so scrollable content clears the fixed BottomNav (mobile only — desktop uses DesktopTopNav). */
+/** Spacer so scrollable content clears the fixed BottomNav (mobile only, desktop uses DesktopTopNav). */
 export function NavSpacer() {
   return <div className="gb-nav-spacer" style={{ height: 'calc(76px + env(safe-area-inset-bottom))' }} />;
 }

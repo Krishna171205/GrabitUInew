@@ -25,7 +25,7 @@ export default function LandingClient() {
         <PartnerPitch />
         <FinalCTA />
       </main>
-      {/* ReadyToJoinRitual is a full-height curtain footer — must be the last element.
+      {/* ReadyToJoinRitual is a full-height curtain footer, must be the last element.
           It carries the policy links (Contact / Terms / Refunds / Privacy) in its bottom bar. */}
       <ReadyToJoinRitual />
     </div>

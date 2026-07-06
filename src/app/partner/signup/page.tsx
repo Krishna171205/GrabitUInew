@@ -81,7 +81,7 @@ export default function PartnerSignupPage() {
         {step === 'phone' ? (
           <>
             <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, marginBottom: 26, textAlign: 'center', lineHeight: 1.4 }}>
-              Enter your mobile number — we&apos;ll text you a one-time code to get your café started.
+              Enter your mobile number, we&apos;ll text you a one-time code to get your café started.
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginTop: 0, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 0 0 4px rgba(177,90,50,.12)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: 56, borderRight: '1px solid #EEE4D6' }}>
