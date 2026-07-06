@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
+import Image from "next/image";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -54,26 +55,23 @@ const STYLES = `
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
 }
 
-/* Ghost GRABIT behind everything */
+/* Ghost GRABIT — espresso wordmark embossed over the cafe photo */
 .ritual-giant-bg {
   font-size: 26vw;
   line-height: 0.75;
   font-weight: 900;
   letter-spacing: -0.05em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(255,177,0,0.07);
-  background: linear-gradient(180deg, rgba(255,177,0,0.09) 0%, transparent 55%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: rgba(43,25,10,0.42);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
   user-select: none;
   pointer-events: none;
 }
 
 /* Amber-tinted warm glass pills */
 .ritual-glass-pill {
-  --pill-bg1:     rgba(255, 177, 0, 0.05);
-  --pill-bg2:     rgba(255, 177, 0, 0.02);
-  --pill-border:  rgba(255, 177, 0, 0.14);
+  --pill-bg1:     rgba(255, 205, 120, 0.22);
+  --pill-bg2:     rgba(240, 170, 70, 0.16);
+  --pill-border:  rgba(43, 25, 10, 0.32);
   --pill-shadow:  rgba(255, 177, 0, 0.08);
   --pill-hi:      rgba(255, 255, 255, 0.8);
   background: linear-gradient(145deg, var(--pill-bg1) 0%, var(--pill-bg2) 100%);
@@ -88,9 +86,9 @@ const STYLES = `
 }
 
 .ritual-glass-pill:hover {
-  --pill-bg1:    rgba(255, 177, 0, 0.1);
-  --pill-bg2:    rgba(255, 177, 0, 0.04);
-  --pill-border: rgba(255, 177, 0, 0.28);
+  --pill-bg1:    rgba(255, 205, 120, 0.34);
+  --pill-bg2:    rgba(240, 170, 70, 0.26);
+  --pill-border: rgba(43, 25, 10, 0.5);
   --pill-shadow: rgba(255, 177, 0, 0.18);
   --pill-hi:     rgba(255, 255, 255, 0.9);
   color: #1d1d1f;
@@ -249,6 +247,33 @@ export function ReadyToJoinRitual() {
           {/* Warm grid */}
           <div className="ritual-bg-grid absolute inset-0 z-0 pointer-events-none" />
 
+          {/* Photographic base — warm cafe scene, marigold-graded (dock.cool-style depth) */}
+          <div
+            className="absolute bottom-0 left-0 w-full z-0 pointer-events-none overflow-hidden"
+            style={{
+              height: "62vh",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 42%)",
+              maskImage: "linear-gradient(to bottom, transparent 0%, black 42%)",
+            }}
+          >
+            <Image
+              src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1600&q=80"
+              alt=""
+              fill
+              loading="lazy"
+              sizes="100vw"
+              style={{ objectFit: "cover", objectPosition: "center 60%", opacity: 0.5 }}
+            />
+            {/* Marigold wash — pulls the photo into brand hue */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(180deg, rgba(255,177,0,0.22) 0%, rgba(255,150,40,0.4) 100%)",
+                mixBlendMode: "soft-light",
+              }}
+            />
+          </div>
+
           {/* Ghost GRABIT */}
           <div
             ref={giantTextRef}
@@ -345,19 +370,19 @@ export function ReadyToJoinRitual() {
 
               {/* Secondary pill links */}
               <div className="flex flex-wrap justify-center gap-3 mt-1">
-                <MagneticButton as="a" href="/contact" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(29,29,31,0.5)" }}>
+                <MagneticButton as="a" href="/contact" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
                   Contact
                 </MagneticButton>
-                <MagneticButton as="a" href="/terms" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(29,29,31,0.5)" }}>
+                <MagneticButton as="a" href="/terms" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
                   Terms
                 </MagneticButton>
-                <MagneticButton as="a" href="/refunds" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(29,29,31,0.5)" }}>
+                <MagneticButton as="a" href="/refunds" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
                   Refunds
                 </MagneticButton>
-                <MagneticButton as="a" href="/privacy" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(29,29,31,0.5)" }}>
+                <MagneticButton as="a" href="/privacy" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
                   Privacy
                 </MagneticButton>
-                <MagneticButton as="a" href="#cafe-search" onClick={(e: React.MouseEvent) => { e.preventDefault(); document.getElementById("cafe-search")?.scrollIntoView({ behavior: "smooth" }); }} className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(29,29,31,0.5)" }}>
+                <MagneticButton as="a" href="#cafe-search" onClick={(e: React.MouseEvent) => { e.preventDefault(); document.getElementById("cafe-search")?.scrollIntoView({ behavior: "smooth" }); }} className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
                   Explore Cafes
                 </MagneticButton>
               </div>
@@ -372,7 +397,7 @@ export function ReadyToJoinRitual() {
             {/* Copyright */}
             <p
               className="text-[10px] md:text-xs font-semibold tracking-widest uppercase order-2 md:order-1"
-              style={{ color: "rgba(29,29,31,0.35)" }}
+              style={{ color: "rgba(43,25,10,0.92)" }}
             >
               © 2026 Unified Nexgrade Private Limited · Delhi NCR
             </p>
@@ -381,9 +406,9 @@ export function ReadyToJoinRitual() {
             <div
               className="ritual-glass-pill px-5 py-2.5 rounded-full flex items-center gap-2 order-1 md:order-2 cursor-default"
             >
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(29,29,31,0.4)" }}>Crafted for the</span>
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(43,25,10,0.92)" }}>Crafted for the</span>
               <span className="ritual-animate-coffee text-sm md:text-base" style={{ display: "inline-block" }}>☕</span>
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(29,29,31,0.4)" }}>Urban Alchemist</span>
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(43,25,10,0.92)" }}>Urban Alchemist</span>
             </div>
 
             {/* Back to top */}
@@ -391,7 +416,7 @@ export function ReadyToJoinRitual() {
               as="button"
               onClick={scrollToTop}
               className="ritual-glass-pill w-11 h-11 rounded-full flex items-center justify-center group order-3"
-              style={{ color: "rgba(29,29,31,0.45)" }}
+              style={{ color: "rgba(43,25,10,0.92)" }}
             >
               <svg
                 className="w-4 h-4 group-hover:-translate-y-1 transition-transform duration-300"
