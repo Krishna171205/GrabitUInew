@@ -374,7 +374,7 @@ export function ReadyToJoinRitual() {
               className="text-[10px] md:text-xs font-semibold tracking-widest uppercase order-2 md:order-1"
               style={{ color: "rgba(29,29,31,0.35)" }}
             >
-              © 2026 Grabit. All rights reserved.
+              © 2026 Unified Nexgrade Private Limited · Delhi NCR
             </p>
 
             {/* Crafted badge */}
