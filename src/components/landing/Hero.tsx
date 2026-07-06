@@ -2,7 +2,8 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const item = {
   hidden: { opacity: 0, y: 28 },
@@ -10,14 +11,24 @@ const item = {
 };
 
 export default function Hero() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
+  // Scroll-linked parallax depth (dock.cool style): image drifts + zooms slower than the page.
+  const imgScale = useTransform(scrollYProgress, [0, 1], [1.02, 1.16]);
+  const imgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
+
   return (
-    <section style={{ position: 'relative', minHeight: '92dvh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
-      <Image
-        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=90"
-        alt="Café counter with fresh coffee"
-        fill priority className="object-cover" style={{ objectFit: 'cover' }}
-      />
+    <section ref={sectionRef} style={{ position: 'relative', minHeight: '92dvh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+      <motion.div style={{ position: 'absolute', inset: '-14% 0', scale: imgScale, y: imgY, willChange: 'transform' }}>
+        <Image
+          src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=90"
+          alt="Café counter with fresh coffee"
+          fill priority className="object-cover" style={{ objectFit: 'cover' }}
+        />
+      </motion.div>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(30,18,12,.35) 0%, rgba(30,18,12,0) 30%, rgba(30,18,12,.88) 100%)' }} />
+      {/* Marigold wash — ties the hero to the footer's brand grade */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(120deg, rgba(255,177,0,.14) 0%, transparent 45%)', mixBlendMode: 'soft-light', pointerEvents: 'none' }} />
       <motion.div
         style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 1120, margin: '0 auto', padding: '0 22px 64px' }}
         initial="hidden" animate="visible"
@@ -33,8 +44,8 @@ export default function Hero() {
           Pre-order from cafés near you. It is ready when you arrive.
         </motion.p>
         <motion.div variants={item} style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 30 }}>
-          <Link href="/home" style={{ background: 'var(--gb-primary)', color: '#fff', fontSize: 16, fontWeight: 800, padding: '15px 26px', borderRadius: 999 }}>Browse cafés</Link>
-          <Link href="/partner" style={{ background: 'rgba(255,255,255,.14)', color: '#fff', fontSize: 16, fontWeight: 700, padding: '15px 26px', borderRadius: 999, backdropFilter: 'blur(8px)' }}>Partner with us</Link>
+          <Link href="/home" className="gb-hover-btn" style={{ background: 'var(--gb-primary)', color: '#fff', fontSize: 16, fontWeight: 800, padding: '15px 26px', borderRadius: 999 }}>Browse cafés</Link>
+          <Link href="/partner" className="gb-hover-btn" style={{ background: 'rgba(255,255,255,.14)', color: '#fff', fontSize: 16, fontWeight: 700, padding: '15px 26px', borderRadius: 999, backdropFilter: 'blur(8px)' }}>Partner with us</Link>
         </motion.div>
       </motion.div>
     </section>

@@ -400,3 +400,26 @@ button {
 }
 
 @media (min-width: 820px) { .gb-partner-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+
+/* ── Hover & press micro-interactions (emil-design-eng) ───────────────
+   CSS (off main thread), transform/opacity/shadow only, strong ease-out.
+   Hover gated to fine pointers; press feedback applies everywhere. */
+.gb-hover-btn   { transition: transform 160ms var(--ease-out), box-shadow 220ms var(--ease-out), filter 220ms var(--ease-out); }
+.gb-hover-btn:active { transform: scale(.97); }
+.gb-hover-lift  { transition: transform 240ms var(--ease-out), box-shadow 240ms var(--ease-out); }
+.gb-hover-glass { transition: transform 240ms var(--ease-out), background 240ms var(--ease-out), border-color 240ms var(--ease-out); }
+.gb-hover-link  { transition: color 180ms ease; }
+.gb-hover-soft  { transition: transform 200ms var(--ease-out), background 200ms var(--ease-out); }
+
+@media (hover: hover) and (pointer: fine) {
+  .gb-hover-btn:hover   { transform: translateY(-2px); box-shadow: 0 12px 26px -12px rgba(120,70,0,.42); filter: brightness(1.03); }
+  .gb-hover-lift:hover  { transform: translateY(-4px); box-shadow: 0 20px 44px -18px rgba(120,70,0,.30); }
+  .gb-hover-glass:hover { transform: translateY(-4px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.28); }
+  .gb-hover-link:hover  { color: var(--gb-ink); }
+  .gb-hover-soft:hover  { transform: translateY(-2px); background: var(--gb-primary-soft); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-hover-btn:hover, .gb-hover-lift:hover, .gb-hover-glass:hover, .gb-hover-soft:hover,
+  .gb-hover-btn:active { transform: none; }
+}

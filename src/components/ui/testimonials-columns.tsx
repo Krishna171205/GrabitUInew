@@ -3,6 +3,13 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
+// CSS marquee so hovering a column pauses it (framer JS-anim can't be paused declaratively).
+const MARQUEE_CSS = `
+.tcol-track { animation: tcol-scroll var(--tdur, 20s) linear infinite; will-change: transform; }
+.tcol:hover .tcol-track { animation-play-state: paused; }
+@keyframes tcol-scroll { to { transform: translateY(-50%); } }
+`;
+
 const testimonials = [
   {
     text: "I have a 9 AM lecture in the ECE block every day. Grabit means my cappuccino is already waiting at Raydee when I walk past. Life. Changed.",
@@ -92,23 +99,19 @@ export function TestimonialsColumn({
   duration?: number;
 }) {
   return (
-    <div className={className}>
-      <motion.div
-        animate={{ translateY: "-50%" }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          ease: "linear",
-          repeatType: "loop",
-        }}
-        className="flex flex-col gap-5 pb-5"
+    <div className={`tcol ${className ?? ""}`}>
+      <div
+        className="tcol-track flex flex-col gap-5 pb-5"
+        style={{ "--tdur": `${duration}s` } as React.CSSProperties}
       >
-        {[...new Array(2).fill(0).map((_, index) => (
+        {[...Array(2)].map((_, index) => (
           <React.Fragment key={index}>
             {items.map(({ text, image, name, role }, i) => (
-              <div
+              <motion.div
                 key={i}
-                className="p-8 rounded-3xl border border-outline-variant/30 bg-surface-container-lowest shadow-lg max-w-xs w-full"
+                whileHover={{ scale: 1.03, y: -4, boxShadow: "0 18px 44px rgba(255,177,0,0.22)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                className="p-8 rounded-3xl border border-outline-variant/30 bg-surface-container-lowest shadow-lg max-w-xs w-full cursor-pointer"
                 style={{ boxShadow: "0 8px 32px rgba(255,177,0,0.10)" }}
               >
                 <p className="text-sm leading-relaxed text-on-surface-variant">{text}</p>
@@ -130,11 +133,11 @@ export function TestimonialsColumn({
                     </span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </React.Fragment>
-        ))]}
-      </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -142,6 +145,7 @@ export function TestimonialsColumn({
 export function TestimonialsSection() {
   return (
     <section id="testimonials" className="py-32 px-6 bg-surface-container-low overflow-hidden">
+      <style dangerouslySetInnerHTML={{ __html: MARQUEE_CSS }} />
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -151,7 +155,7 @@ export function TestimonialsSection() {
           className="flex flex-col items-center max-w-[540px] mx-auto mb-16"
         >
           <div className="flex justify-center mb-5">
-            <span className="border border-primary/30 text-primary text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full">
+            <span className="border border-primary/30 text-primary text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:scale-105 cursor-default">
               What customers say
             </span>
           </div>

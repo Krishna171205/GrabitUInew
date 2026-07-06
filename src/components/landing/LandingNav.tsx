@@ -18,14 +18,14 @@ export default function LandingNav() {
           <span className="gb-serif" style={{ fontSize: 22, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabit</span>
         </Link>
         <div className="gb-nav-center" style={{ display: 'none', alignItems: 'center', gap: 28 }}>
-          <a href="#how-it-works" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>How it works</a>
-          <Link href="/partner" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>For cafés</Link>
+          <a href="#how-it-works" className="gb-hover-link" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>How it works</a>
+          <Link href="/partner" className="gb-hover-link" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>For cafés</Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Link href="/partner" style={{ display: 'none', fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)', padding: '9px 12px' }} className="gb-nav-partner">
+          <Link href="/partner" style={{ display: 'none', fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)', padding: '9px 12px' }} className="gb-nav-partner gb-hover-link">
             Partner with us
           </Link>
-          <Link href="/home" style={{ background: 'var(--gb-ink)', color: '#fff', fontSize: 14, fontWeight: 800, padding: '10px 18px', borderRadius: 999 }}>
+          <Link href="/home" className="gb-hover-btn" style={{ background: 'var(--gb-ink)', color: '#fff', fontSize: 14, fontWeight: 800, padding: '10px 18px', borderRadius: 999 }}>
             Browse cafés
           </Link>
         </div>

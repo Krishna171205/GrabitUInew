@@ -6,7 +6,7 @@ export interface Step { n: string; title: string; body: string; }
 export interface StepImage { src: string; alt: string; }
 
 export const FEATURES: Feature[] = [
-  { n: '01', icon: 'schedule', title: '20-min advance order', body: 'Schedule your order up to 20 minutes before you arrive. It is ready when you are.' },
+  { n: '01', icon: 'schedule', title: 'Pick any pickup time', body: 'Want it 15 minutes from now, or hours ahead? Set any pickup time that works. No fixed slots, no limits.' },
   { n: '02', icon: 'credit_card', title: 'Pay online', body: 'UPI, card, or netbanking at checkout, or pay at the counter. Your call.' },
   { n: '03', icon: 'chat', title: 'WhatsApp updates', body: 'Order status lands in WhatsApp at every step. No new app to install.' },
 ];

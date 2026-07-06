@@ -10,8 +10,8 @@ export default function FinalCTA() {
           Your coffee, ready when you are.
         </h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-          <Link href="/home" style={{ background: 'var(--gb-primary)', color: '#fff', fontSize: 16, fontWeight: 800, padding: '15px 28px', borderRadius: 999 }}>Start ordering</Link>
-          <Link href="/partner" style={{ background: 'var(--gb-card)', color: 'var(--gb-text)', border: '1px solid var(--gb-line-3)', fontSize: 16, fontWeight: 700, padding: '15px 28px', borderRadius: 999 }}>Partner with us</Link>
+          <Link href="/home" className="gb-hover-btn" style={{ background: 'var(--gb-primary)', color: '#fff', fontSize: 16, fontWeight: 800, padding: '15px 28px', borderRadius: 999 }}>Start ordering</Link>
+          <Link href="/partner" className="gb-hover-btn" style={{ background: 'var(--gb-card)', color: 'var(--gb-text)', border: '1px solid var(--gb-line-3)', fontSize: 16, fontWeight: 700, padding: '15px 28px', borderRadius: 999 }}>Partner with us</Link>
         </div>
       </div>
     </section>
