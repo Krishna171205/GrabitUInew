@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
-import { inr } from '@/components/gb/format';
+import { inr, cafeOpenNow, fmtTime12 } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
 const CATEGORIES: GrabitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];
@@ -30,11 +30,13 @@ interface Props {
   isLoggedIn?: boolean;
 }
 
-/* veg mark (square outline + dot) */
-function Veg() {
+/* veg mark (square outline + dot) — only rendered when veg status is known */
+function Veg({ veg }: { veg?: boolean | null }) {
+  if (veg == null) return null;
+  const c = veg ? '#3E8E4E' : '#9E2A2B';
   return (
-    <span style={{ width: 14, height: 14, border: '1.5px solid #3E8E4E', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3E8E4E' }} />
+    <span style={{ width: 14, height: 14, border: `1.5px solid ${c}`, borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: c }} />
     </span>
   );
 }
@@ -61,6 +63,11 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const shownCats = activeCat === 'all' ? categoriesPresent : categoriesPresent.filter(c => c === activeCat);
   const cover = cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
 
+  // Real signals only — no fabricated ratings/distance (GrabitCafe has no such fields).
+  const hasHours = Boolean(cafe.opening_time && cafe.closing_time);
+  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time);
+  const hours = hasHours ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : 'Hours vary';
+
   const chip = (active: boolean) => ({
     flex: 'none' as const, display: 'inline-flex', alignItems: 'center', gap: 5,
     border: `1px solid ${active ? 'var(--gb-ink)' : 'var(--gb-line-3)'}`,
@@ -81,7 +88,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
     }
     return (
       <button
-        onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)}
+        onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug)}
         style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
       >
         Add<MS name="add" size={16} />
@@ -105,20 +112,24 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         </div>
       </div>
 
-      {/* info strip */}
+      {/* info strip — real signals only */}
       <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 18, border: '1px solid var(--gb-line-2)', boxShadow: '0 12px 26px -18px rgba(60,40,25,.4)', display: 'flex', padding: '14px 6px' }}>
         <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 15, fontWeight: 800, color: 'var(--gb-ink)' }}><MS name="star" size={16} fill color="var(--gb-gold)" />4.8</div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>1.2k ratings</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14.5, fontWeight: 800, color: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)', flex: 'none' }} />{open ? 'Open now' : 'Closed'}
+          </div>
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>{hours}</div>
         </div>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-green)' }}>8 min</div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>pickup ready</div>
+        <div style={{ flex: 1, textAlign: 'center', ...(cafe.city ? { borderRight: '1px solid var(--gb-line-2)' } : {}) }}>
+          <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-ink)' }}>Order ahead</div>
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>skip the queue</div>
         </div>
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-ink)' }}>0.4 km</div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>from you</div>
-        </div>
+        {cafe.city && (
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-ink)' }}>{cafe.city}</div>
+            <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>pickup</div>
+          </div>
+        )}
       </div>
 
       {/* login nudge (guest) */}
@@ -203,7 +214,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
               {catItems.map(item => (
                 <div key={item.id} style={{ display: 'flex', gap: 14, padding: '15px 0', borderBottom: '1px solid var(--gb-line)' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Veg /><span style={{ fontSize: 16, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</span></div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Veg veg={item.is_veg} /><span style={{ fontSize: 16, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</span></div>
                     {item.description && <div style={{ fontSize: 13, color: 'var(--gb-muted)', lineHeight: 1.4, marginTop: 5, fontWeight: 500 }}>{item.description}</div>}
                     <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8 }}>{inr(item.price)}</div>
                   </div>

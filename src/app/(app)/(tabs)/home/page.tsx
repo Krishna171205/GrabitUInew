@@ -2,13 +2,22 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
-import { CafeCard, ItemCard, CategoryCircle } from '@/components/gb/cards';
+import { RealCafeCard, ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
 import { CafeGate } from '@/components/gb/CafeGate';
 import { LocationPill } from '@/components/gb/LocationPill';
-import { CAFES, POPULAR, FAVOURITES, CATEGORIES, RECENT_ORDERS, USER, ph } from '@/components/gb/data';
+import { POPULAR, FAVOURITES, CATEGORIES, RECENT_ORDERS, USER, ph } from '@/components/gb/data';
 
 // Guests see this many café cards before a soft login gate; signed-in users see all.
 const FREE_CAFE_LIMIT = 1;
+
+// Real, live cafés — honest data, no fabricated marketplace stats.
+async function getCafes(): Promise<RealCafe[]> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
 
 // Hero: design uses 60px top to clear the status bar; we clear the real notch instead.
 const heroStyle = {
@@ -36,24 +45,28 @@ function Categories() {
   );
 }
 
-function CafesNearYou({ cta, gate }: { cta: string; gate: boolean }) {
-  const shown = gate ? CAFES.slice(0, FREE_CAFE_LIMIT) : CAFES;
-  const hiddenCount = CAFES.length - shown.length;
+function CafesNearYou({ cafes, cta, gate }: { cafes: RealCafe[]; cta: string; gate: boolean }) {
+  const shown = gate ? cafes.slice(0, FREE_CAFE_LIMIT) : cafes;
+  const hiddenCount = cafes.length - shown.length;
   return (
     <div style={{ padding: '22px 20px 8px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
         <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500 }}>Cafés near you</div>
-        <Link href="/explore" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-primary)' }}>See all</Link>
+        {cafes.length > 0 && <Link href="/explore" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-primary)' }}>See all</Link>}
       </div>
-      <div className="gb-cafe-grid">
-        {shown.map((c) => <CafeCard key={c.slug} cafe={c} cta={cta} />)}
-        {hiddenCount > 0 && <CafeGate next="/home" />}
-      </div>
+      {cafes.length === 0 ? (
+        <div style={{ padding: '16px 0 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>No cafés live near you yet. Check back soon.</div>
+      ) : (
+        <div className="gb-cafe-grid">
+          {shown.map((c) => <RealCafeCard key={c.slug} cafe={c} cta={cta} />)}
+          {hiddenCount > 0 && <CafeGate next="/home" />}
+        </div>
+      )}
     </div>
   );
 }
 
-function GuestHome() {
+function GuestHome({ cafes }: { cafes: RealCafe[] }) {
   return (
     <div className="gb-shell gb-shell-wide">
       <div style={heroStyle} className="gb-hero">
@@ -97,12 +110,12 @@ function GuestHome() {
       </div>
 
       <Categories />
-      <CafesNearYou cta="View menu" gate />
+      <CafesNearYou cafes={cafes} cta="View menu" gate />
     </div>
   );
 }
 
-function SignedInHome() {
+function SignedInHome({ cafes }: { cafes: RealCafe[] }) {
   return (
     <div className="gb-shell gb-shell-wide">
       <div style={heroStyle} className="gb-hero">
@@ -156,13 +169,16 @@ function SignedInHome() {
       </div>
 
       <Categories />
-      <CafesNearYou cta="Pre-order" gate={false} />
+      <CafesNearYou cafes={cafes} cta="Pre-order" gate={false} />
       <NavSpacer />
     </div>
   );
 }
 
 export default async function HomePage() {
-  const token = (await cookies()).get('grabit_customer_token')?.value;
-  return token ? <SignedInHome /> : <GuestHome />;
+  const [token, cafes] = await Promise.all([
+    cookies().then((c) => c.get('grabit_customer_token')?.value),
+    getCafes(),
+  ]);
+  return token ? <SignedInHome cafes={cafes} /> : <GuestHome cafes={cafes} />;
 }

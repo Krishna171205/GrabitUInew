@@ -4,8 +4,16 @@ import Link from 'next/link';
 import { MS } from './kit';
 import { inr } from './format';
 import { ph, type GbCafe, type GbItem, type GbCategory } from './data';
+import { cafeOpenNow, fmtTime12 } from './format';
 import { useFavoriteCafe } from './favorites';
 import { useCart } from '@/store/cart';
+
+/** A real café from GET /api/grabit/cafes (honest fields only — no rating/distance/ETA). */
+export interface RealCafe {
+  id: number; name: string; slug: string;
+  address?: string | null; city?: string | null;
+  opening_time?: string | null; closing_time?: string | null;
+}
 
 /* ---------- Café card (cover + info footer) ---------- */
 export interface CafeBadge { icon: string; iconColor: string; text: string; }
@@ -61,6 +69,38 @@ export function CafeCard({
         <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--gb-primary)', fontWeight: 700 }}>
           {cta}<MS name="arrow_forward" size={17} />
         </span>
+      </div>
+    </Link>
+  );
+}
+
+/* ---------- Real café card (live data, honest signals only) ---------- */
+export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { cafe: RealCafe; cta?: string; coverHeight?: number }) {
+  const { favorite, toggle } = useFavoriteCafe(cafe.slug);
+  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time);
+  const hours = cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
+  const initial = cafe.name.trim().charAt(0).toUpperCase();
+  const area = cafe.city || cafe.address || null;
+  return (
+    <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 22, overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-shadow-card)' }}>
+      {/* branded placeholder cover — we don't show a stock food photo we can't stand behind */}
+      <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+        <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
+        <div style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.94)', padding: '5px 10px', borderRadius: 999 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }} />
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-ink)' }}>{open ? 'Open now' : 'Closed'}</span>
+        </div>
+        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }} aria-label={favorite ? 'Remove bookmark' : 'Bookmark'} style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, border: 'none', borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <MS name="bookmark" size={17} fill={favorite} color={favorite ? 'var(--gb-primary)' : 'var(--gb-ink)'} />
+        </button>
+      </div>
+      <div style={{ padding: '13px 16px' }}>
+        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, color: 'var(--gb-text)', lineHeight: 1.1 }}>{cafe.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, color: '#7A6E60', fontSize: 12.5, fontWeight: 600 }}>
+          {area && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><MS name="near_me" size={15} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{area}</span></span>}
+          {hours && <><span style={{ width: 3, height: 3, borderRadius: '50%', background: '#C9BCA9', flex: 'none' }} /><span style={{ whiteSpace: 'nowrap' }}>{hours}</span></>}
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--gb-primary)', fontWeight: 700, flex: 'none' }}>{cta}<MS name="arrow_forward" size={17} /></span>
+        </div>
       </div>
     </Link>
   );
