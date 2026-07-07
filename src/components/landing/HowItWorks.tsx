@@ -10,10 +10,14 @@ import { STEPS } from './content';
 type NodeDef = { x: number; y: number; at: number; side: 'left' | 'right' };
 type Layout = { viewBox: string; path: string; maxH: string; cardW: number; nodes: NodeDef[] };
 
+// Clean espresso base with a warm top glow — replaces the muddy olive-transition
+// gradient. Marigold pop comes from the journey path/token, not the backdrop.
+const SECTION_BG = 'radial-gradient(125% 95% at 50% 6%, #3A2512 0%, #22140B 52%, #150C05 100%)';
+
 // Desktop: serpentine left → right → left. Station cards sit ON the path (line routes behind them).
 const DESKTOP: Layout = {
   viewBox: '0 0 1000 720',
-  maxH: '74vh',
+  maxH: '58vh',
   cardW: 400,
   path: 'M 180 130 C 545 150, 415 360, 760 360 C 415 360, 545 570, 180 590',
   nodes: [
@@ -26,7 +30,7 @@ const DESKTOP: Layout = {
 // Mobile: vertical rail, cards stacked, line bows right between stops.
 const MOBILE: Layout = {
   viewBox: '0 0 400 760',
-  maxH: '82vh',
+  maxH: '64vh',
   cardW: 332,
   path: 'M 54 90 C 265 175, 265 295, 54 380 C 265 465, 265 585, 54 670',
   nodes: [
@@ -111,7 +115,7 @@ export default function HowItWorks() {
   });
 
   return (
-    <section id="how-it-works" ref={sectionRef} style={{ position: 'relative', height: '240vh', background: 'var(--gb-hero)', color: '#fff' }}>
+    <section id="how-it-works" ref={sectionRef} style={{ position: 'relative', height: '240vh', background: SECTION_BG, color: '#fff' }}>
       <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 22px', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1000, width: '100%', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
@@ -120,7 +124,7 @@ export default function HowItWorks() {
           <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, lineHeight: 1.1, margin: '0 0 8px', textAlign: 'center' }}>
             From browse to pickup<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>in minutes.</span>
           </h2>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.55)', fontSize: 15, margin: '0 0 18px' }}>
+          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 10px' }}>
             Follow an order from tap to counter.
           </p>
 
