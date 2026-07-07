@@ -10,10 +10,14 @@ import { STEPS } from './content';
 type NodeDef = { x: number; y: number; at: number; side: 'left' | 'right' };
 type Layout = { viewBox: string; path: string; maxH: string; cardW: number; nodes: NodeDef[] };
 
+// Clean espresso base with a warm top glow — replaces the muddy olive-transition
+// gradient. Marigold pop comes from the journey path/token, not the backdrop.
+const SECTION_BG = 'radial-gradient(125% 95% at 50% 6%, #3A2512 0%, #22140B 52%, #150C05 100%)';
+
 // Desktop: serpentine left → right → left. Station cards sit ON the path (line routes behind them).
 const DESKTOP: Layout = {
   viewBox: '0 0 1000 720',
-  maxH: '74vh',
+  maxH: '58vh',
   cardW: 400,
   path: 'M 180 130 C 545 150, 415 360, 760 360 C 415 360, 545 570, 180 590',
   nodes: [
@@ -26,7 +30,7 @@ const DESKTOP: Layout = {
 // Mobile: vertical rail, cards stacked, line bows right between stops.
 const MOBILE: Layout = {
   viewBox: '0 0 400 760',
-  maxH: '82vh',
+  maxH: '64vh',
   cardW: 332,
   path: 'M 54 90 C 265 175, 265 295, 54 380 C 265 465, 265 585, 54 670',
   nodes: [
@@ -57,14 +61,14 @@ function Station({
   );
 
   return (
-    <motion.foreignObject x={foX} y={node.y - 60} width={cardW} height={120}
+    <motion.foreignObject x={foX} y={node.y - 78} width={cardW} height={156}
       style={{ opacity: reduced ? 1 : opacity, y: reduced ? 0 : lift, overflow: 'visible' }}>
       <div style={{ borderRadius: 24, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)', padding: 6, boxShadow: '0 18px 46px -26px rgba(0,0,0,.6)' }}>
         <div style={{ display: 'flex', flexDirection: right ? 'row-reverse' : 'row', alignItems: 'center', gap: 14, borderRadius: 18, background: 'rgba(24,14,9,.92)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)', padding: '14px 16px', textAlign: right ? 'right' : 'left' }}>
           {badge}
           <div>
-            <div className="gb-serif" style={{ fontSize: 19, fontWeight: 600, color: '#fff', lineHeight: 1.15 }}>{step.title}</div>
-            <div style={{ fontSize: 13.5, lineHeight: 1.4, color: 'rgba(255,255,255,.7)', marginTop: 3 }}>{step.body}</div>
+            <div className="gb-serif" style={{ fontSize: 30, fontWeight: 600, color: '#fff', lineHeight: 1.12 }}>{step.title}</div>
+            <div style={{ fontSize: 21, lineHeight: 1.38, color: 'rgba(255,255,255,.85)', marginTop: 5 }}>{step.body}</div>
           </div>
         </div>
       </div>
@@ -111,7 +115,7 @@ export default function HowItWorks() {
   });
 
   return (
-    <section id="how-it-works" ref={sectionRef} style={{ position: 'relative', height: '240vh', background: 'var(--gb-hero)', color: '#fff' }}>
+    <section id="how-it-works" ref={sectionRef} style={{ position: 'relative', height: '240vh', background: SECTION_BG, color: '#fff' }}>
       <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 22px', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1000, width: '100%', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
@@ -120,7 +124,7 @@ export default function HowItWorks() {
           <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, lineHeight: 1.1, margin: '0 0 8px', textAlign: 'center' }}>
             From browse to pickup<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>in minutes.</span>
           </h2>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.55)', fontSize: 15, margin: '0 0 18px' }}>
+          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 10px' }}>
             Follow an order from tap to counter.
           </p>
 
