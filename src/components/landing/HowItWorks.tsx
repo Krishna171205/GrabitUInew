@@ -61,14 +61,14 @@ function Station({
   );
 
   return (
-    <motion.foreignObject x={foX} y={node.y - 60} width={cardW} height={120}
+    <motion.foreignObject x={foX} y={node.y - 78} width={cardW} height={156}
       style={{ opacity: reduced ? 1 : opacity, y: reduced ? 0 : lift, overflow: 'visible' }}>
       <div style={{ borderRadius: 24, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)', padding: 6, boxShadow: '0 18px 46px -26px rgba(0,0,0,.6)' }}>
         <div style={{ display: 'flex', flexDirection: right ? 'row-reverse' : 'row', alignItems: 'center', gap: 14, borderRadius: 18, background: 'rgba(24,14,9,.92)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)', padding: '14px 16px', textAlign: right ? 'right' : 'left' }}>
           {badge}
           <div>
-            <div className="gb-serif" style={{ fontSize: 19, fontWeight: 600, color: '#fff', lineHeight: 1.15 }}>{step.title}</div>
-            <div style={{ fontSize: 13.5, lineHeight: 1.4, color: 'rgba(255,255,255,.7)', marginTop: 3 }}>{step.body}</div>
+            <div className="gb-serif" style={{ fontSize: 30, fontWeight: 600, color: '#fff', lineHeight: 1.12 }}>{step.title}</div>
+            <div style={{ fontSize: 21, lineHeight: 1.38, color: 'rgba(255,255,255,.85)', marginTop: 5 }}>{step.body}</div>
           </div>
         </div>
       </div>
