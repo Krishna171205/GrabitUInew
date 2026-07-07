@@ -189,26 +189,28 @@ export function ReadyToJoinRitual() {
     if (typeof window === "undefined" || !wrapperRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Ghost text parallax
-      gsap.fromTo(
+      // Ghost GRABIT — visible by default; gentle one-shot rise-in if the trigger fires (never hidden if it doesn't).
+      gsap.from(
         giantTextRef.current,
-        { y: "12vh", scale: 0.82, opacity: 0 },
         {
-          y: "0vh", scale: 1, opacity: 1,
-          ease: "power1.out",
-          scrollTrigger: { trigger: wrapperRef.current, start: "top 80%", end: "bottom bottom", scrub: 1 },
+          yPercent: 12, scale: 0.9, opacity: 0,
+          duration: 0.9, ease: "power2.out",
+          immediateRender: false,
+          scrollTrigger: { trigger: wrapperRef.current, start: "top 88%", toggleActions: "play none none none", once: true },
         }
       );
 
-      // Heading + content stagger reveal
-      gsap.fromTo(
+      // Heading + form + pills stay visible by default (this block carries the CTA + policy links).
+      // A scroll-gated reveal on a fixed footer inside a clip-path curtain proved unreliable and could
+      // leave the CTA hidden, so we only add a gentle one-shot fade on enter and never hide by default.
+      gsap.from(
         [headingRef.current, contentRef.current],
-        { y: 48, opacity: 0 },
         {
-          y: 0, opacity: 1,
-          stagger: 0.15,
+          y: 36, opacity: 0,
+          duration: 0.7, stagger: 0.12,
           ease: "power3.out",
-          scrollTrigger: { trigger: wrapperRef.current, start: "top 40%", end: "bottom bottom", scrub: 1 },
+          immediateRender: false, // stay visible by default; only animate if the trigger actually fires
+          scrollTrigger: { trigger: wrapperRef.current, start: "top 90%", toggleActions: "play none none none", once: true },
         }
       );
     }, wrapperRef);
