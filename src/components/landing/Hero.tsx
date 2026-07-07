@@ -1,9 +1,11 @@
 // grabit/src/components/landing/Hero.tsx
 'use client';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+
+// Poster served through the Next image optimizer (same-origin, CSP-safe) for instant first paint.
+const POSTER = `/_next/image?url=${encodeURIComponent('https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=90')}&w=1920&q=80`;
 
 const item = {
   hidden: { opacity: 0, y: 28 },
@@ -12,6 +14,7 @@ const item = {
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
+  const reduced = !!useReducedMotion();
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
   // Scroll-linked parallax depth (dock.cool style): image drifts + zooms slower than the page.
   const imgScale = useTransform(scrollYProgress, [0, 1], [1.02, 1.16]);
@@ -20,11 +23,13 @@ export default function Hero() {
   return (
     <section ref={sectionRef} style={{ position: 'relative', minHeight: '92dvh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
       <motion.div style={{ position: 'absolute', inset: '-14% 0', scale: imgScale, y: imgY, willChange: 'transform' }}>
-        <Image
-          src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=90"
-          alt="Café counter with fresh coffee"
-          fill priority className="object-cover" style={{ objectFit: 'cover' }}
-        />
+        <video
+          autoPlay={!reduced} muted loop playsInline preload="metadata" poster={POSTER}
+          aria-label="Man grabbing coffee from a cafe counter"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        >
+          <source src="/hero-cafe.mp4" type="video/mp4" />
+        </video>
       </motion.div>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(30,18,12,.35) 0%, rgba(30,18,12,0) 30%, rgba(30,18,12,.88) 100%)' }} />
       {/* Marigold wash — ties the hero to the footer's brand grade */}
