@@ -2,13 +2,10 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
-import { RealCafeCard, ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
-import { CafeGate } from '@/components/gb/CafeGate';
+import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
 import { LocationPill } from '@/components/gb/LocationPill';
+import { CafesNearYou } from '@/components/gb/CafesNearYou';
 import { POPULAR, FAVOURITES, CATEGORIES, RECENT_ORDERS, USER, ph } from '@/components/gb/data';
-
-// Guests see this many café cards before a soft login gate; signed-in users see all.
-const FREE_CAFE_LIMIT = 1;
 
 // Real, live cafés — honest data, no fabricated marketplace stats.
 async function getCafes(): Promise<RealCafe[]> {
@@ -41,27 +38,6 @@ function Categories() {
       <div className="gb-scroll" style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '0 20px 4px' }}>
         {CATEGORIES.map((c) => <CategoryCircle key={c.label} cat={c} />)}
       </div>
-    </div>
-  );
-}
-
-function CafesNearYou({ cafes, cta, gate }: { cafes: RealCafe[]; cta: string; gate: boolean }) {
-  const shown = gate ? cafes.slice(0, FREE_CAFE_LIMIT) : cafes;
-  const hiddenCount = cafes.length - shown.length;
-  return (
-    <div style={{ padding: '22px 20px 8px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500 }}>Cafés near you</div>
-        {cafes.length > 0 && <Link href="/explore" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-primary)' }}>See all</Link>}
-      </div>
-      {cafes.length === 0 ? (
-        <div style={{ padding: '16px 0 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>No cafés live near you yet. Check back soon.</div>
-      ) : (
-        <div className="gb-cafe-grid">
-          {shown.map((c) => <RealCafeCard key={c.slug} cafe={c} cta={cta} />)}
-          {hiddenCount > 0 && <CafeGate next="/home" />}
-        </div>
-      )}
     </div>
   );
 }

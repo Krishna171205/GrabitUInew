@@ -4,7 +4,7 @@ import { MS } from './kit';
 import { useSavedLocation } from './location';
 
 export function LocationPill() {
-  const location = useSavedLocation();
+  const { location } = useSavedLocation();
   return (
     <Link
       href="/location"
