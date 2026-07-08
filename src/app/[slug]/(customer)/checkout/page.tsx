@@ -3,10 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
-import { formatPaise } from '@/lib/utils';
-import type { GrabitWallet } from '@gradient365/gradient-commons';
-import { WALLET_BONUS_MIN_ORDER_PAISE } from '@gradient365/gradient-commons';
-import { TopBar, Card, Button, Toggle, Icon } from '@/components/ui/kit';
+import { TopBar, Card, Button, Icon } from '@/components/ui/kit';
 
 const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
 
@@ -17,11 +14,12 @@ export default function CheckoutPage() {
 
   const [pickupSlot, setPickupSlot] = useState<string | null>(null);
   const [cafeId, setCafeId] = useState<number | null>(null);
-  const [customerId, setCustomerId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [wallet, setWallet] = useState<GrabitWallet | null>(null);
-  const [useWallet, setUseWallet] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const phoneValid = /^\d{10}$/.test(phone);
+  const detailsValid = name.trim().length > 0 && phoneValid;
 
   // Read slot from sessionStorage
   useEffect(() => {
@@ -33,7 +31,7 @@ export default function CheckoutPage() {
     setPickupSlot(slot);
   }, [slug, router]);
 
-  // Fetch cafe_id + customer_id, read sessionStorage first (set by menu/home page on first load)
+  // Fetch cafe_id, read sessionStorage first (set by menu/home page on first load)
   useEffect(() => {
     const resolveIds = async () => {
       const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
@@ -46,68 +44,37 @@ export default function CheckoutPage() {
         } catch { /* ignore */ }
       }
       setCafeId(cid);
-
-      try {
-        const me = await fetch('/api/proxy/grabit/auth/me').then(r => r.ok ? r.json() : null);
-        if (me?.id && cid) {
-          setCustomerId(me.id);
-          const walletRes = await fetch(`/api/proxy/grabit/wallet/${me.id}?cafeId=${cid}`);
-          if (walletRes.ok) {
-            const wd = await walletRes.json();
-            setWallet(wd.wallet ?? null);
-          }
-        }
-      } catch { /* ignore, wallet is optional */ }
     };
     resolveIds();
   }, [slug]);
 
-  // Wallet deduction helpers
-  const orderTotalPaise = Math.round(total() * 100);
-  const walletBase = wallet?.base_balance_paise ?? 0;
-  const walletBonus = wallet?.bonus_balance_paise ?? 0;
-  const bonusEligible = orderTotalPaise >= WALLET_BONUS_MIN_ORDER_PAISE && walletBonus > 0;
-  const walletDeductBase = useWallet && walletBase > 0 ? Math.min(walletBase, orderTotalPaise) : 0;
-  const afterBase = orderTotalPaise - walletDeductBase;
-  const walletDeductBonus = useWallet && bonusEligible ? Math.min(walletBonus, afterBase) : 0;
-  const remainingPaise = afterBase - walletDeductBonus;
-
   async function handleOrder(paymentMethod: 'online' | 'counter') {
-    if (!pickupSlot || !cafeId) return;
+    if (!pickupSlot || !cafeId || !detailsValid) return;
     setLoading(true);
     setError('');
     try {
-      if (useWallet && customerId && cafeId && (walletDeductBase + walletDeductBonus) > 0) {
-        const walletRes = await fetch('/api/proxy/grabit/wallet/apply', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customerId, cafeId, orderTotalPaise, useBonus: bonusEligible }),
-        });
-        if (!walletRes.ok) {
-          const wd = await walletRes.json();
-          throw new Error(wd.error || 'Failed to apply wallet');
-        }
-      }
-
-      const effectivePayment = remainingPaise === 0 ? 'counter' : paymentMethod;
-
       const res = await fetch('/api/proxy/grabit/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          customer_name: name.trim(),
+          customer_phone: phone,
           cafe_id: cafeId,
           pickup_slot: pickupSlot,
-          payment_method: effectivePayment,
-          items: items.map(i => ({ menu_item_id: i.menu_item_id, quantity: i.quantity }))
-        })
+          payment_method: paymentMethod,
+          items: items.map(i => ({ menu_item_id: i.menu_item_id, quantity: i.quantity })),
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || 'Failed');
 
-      if (effectivePayment === 'counter') {
+      const token = data.access_token as string;
+      const orderUrl = `/${slug}/order/${data.order_id}?t=${token}`;
+
+      if (paymentMethod === 'counter') {
         clearCart();
         sessionStorage.removeItem('grabit_slot');
-        router.push(`/${slug}/order/${data.order_id}`);
+        router.push(orderUrl);
       } else {
         await new Promise<void>((resolve, reject) => {
           if (document.getElementById('cashfree-sdk')) { resolve(); return; }
@@ -119,12 +86,11 @@ export default function CheckoutPage() {
           document.head.appendChild(script);
         });
         // @ts-ignore
-        Cashfree({
-          mode: process.env.NEXT_PUBLIC_CASHFREE_ENV === 'production' ? 'production' : 'sandbox'
-        }).checkout({
-          paymentSessionId: data.cashfree.payment_session_id,
-          returnUrl: `${window.location.origin}/${slug}/order/${data.order_id}`
-        });
+        Cashfree({ mode: process.env.NEXT_PUBLIC_CASHFREE_ENV === 'production' ? 'production' : 'sandbox' })
+          .checkout({
+            paymentSessionId: data.cashfree.payment_session_id,
+            returnUrl: `${window.location.origin}${orderUrl}`,
+          });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
@@ -189,69 +155,48 @@ export default function CheckoutPage() {
           </Card>
         </div>
 
+        {/* Your details */}
+        <div>
+          <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Your details</div>
+          <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Full name"
+              maxLength={80}
+              style={{ border: '1px solid var(--hairline)', borderRadius: 10, padding: '12px 14px', fontSize: 15 }}
+            />
+            <input
+              value={phone}
+              onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              placeholder="10-digit phone"
+              inputMode="numeric"
+              style={{ border: '1px solid var(--hairline)', borderRadius: 10, padding: '12px 14px', fontSize: 15 }}
+            />
+            {phone.length > 0 && !phoneValid && (
+              <span style={{ color: 'var(--error)', fontSize: 12 }}>Enter a valid 10-digit phone number</span>
+            )}
+          </Card>
+        </div>
+
         {/* Payment */}
         <div>
           <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Payment method</div>
-
-          {/* Wallet card */}
-          {wallet !== null && (
-            <Card style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 12, background: 'var(--primary-tint)', color: 'var(--primary)', display: 'grid', placeItems: 'center', flex: 'none' }}>{Icon.card({ size: 24 })}</div>
-                <div style={{ flex: 1 }}>
-                  <div className="t-headline-card">Pay with Wallet</div>
-                  <div className="t-caption tabular" style={{ marginTop: 2 }}>Balance: {formatPaise(wallet.base_balance_paise)}</div>
-                </div>
-                <Toggle on={useWallet && wallet.base_balance_paise > 0} onChange={(v) => { if (wallet.base_balance_paise === 0) return; setUseWallet(v); }} />
-              </div>
-
-              {useWallet && wallet.base_balance_paise > 0 && (
-                <div style={{ background: 'var(--success-tint)', borderRadius: 'var(--r-md)', padding: 12, marginTop: 12, fontSize: 13 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: bonusEligible ? 6 : 0 }}>
-                    <span style={{ color: 'var(--muted)' }}>From wallet</span>
-                    <span className="tabular" style={{ fontWeight: 600 }}>{formatPaise(walletDeductBase)}</span>
-                  </div>
-                  {bonusEligible && walletDeductBonus > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: remainingPaise > 0 ? 6 : 0 }}>
-                      <span style={{ color: 'var(--success)' }}>Bonus applied</span>
-                      <span className="tabular" style={{ color: 'var(--success)', fontWeight: 600 }}>{formatPaise(walletDeductBonus)}</span>
-                    </div>
-                  )}
-                  {remainingPaise > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--muted)' }}>Pay online</span>
-                      <span className="tabular" style={{ fontWeight: 600 }}>{formatPaise(remainingPaise)}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {useWallet && wallet.base_balance_paise === 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <Link href={`/${slug}/wallet/recharge`} style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>No balance, Recharge now</Link>
-                </div>
-              )}
-            </Card>
-          )}
 
           {error && (
             <div style={{ color: 'var(--error)', fontSize: 14, marginBottom: 16, padding: '12px 14px', background: 'var(--error-tint)', borderRadius: 'var(--r-md)' }}>{error}</div>
           )}
 
-          {/* Pay button, three logic variants preserved */}
-          {useWallet && remainingPaise === 0 ? (
-            <Button full disabled={loading} onClick={() => handleOrder('counter')}>
-              {loading ? 'Processing…' : `Pay ${formatPaise(orderTotalPaise)} from Wallet`}
-            </Button>
-          ) : useWallet && remainingPaise > 0 ? (
-            <Button full disabled={loading} onClick={() => handleOrder('online')}>
-              {loading ? 'Processing…' : `Pay ${formatPaise(orderTotalPaise)} (${formatPaise(walletDeductBase + walletDeductBonus)} wallet + ${formatPaise(remainingPaise)} online)`}
-            </Button>
-          ) : (
-            <Button full disabled={loading} onClick={() => handleOrder('online')}>
-              {loading ? 'Processing…' : `Pay ${inr(total())} online`}
-            </Button>
-          )}
+          <Button full disabled={loading || !detailsValid} onClick={() => handleOrder('online')}>
+            {loading ? 'Processing...' : `Pay ${inr(total())} online`}
+          </Button>
+          <button
+            disabled={loading || !detailsValid}
+            onClick={() => handleOrder('counter')}
+            style={{ marginTop: 10, background: 'transparent', border: '1px solid var(--hairline)', borderRadius: 12, padding: '14px', width: '100%', fontWeight: 700, cursor: detailsValid ? 'pointer' : 'not-allowed' }}
+          >
+            Pay at counter
+          </button>
         </div>
       </div>
     </div>
