@@ -6,7 +6,8 @@
     "dev": "next dev --port 3004",
     "build": "next build",
     "start": "next start --port 3004",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@gradient365/gradient-commons": "file:../types",
@@ -28,6 +29,7 @@
     "@types/react-dom": "^19",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "@typescript/native": "npm:typescript@^7.0.2"
   }
 }
