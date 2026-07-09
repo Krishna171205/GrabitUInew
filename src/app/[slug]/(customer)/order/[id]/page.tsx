@@ -36,6 +36,9 @@ function TimelineNode({ state, icon, title, sub, last }: { state: NodeState; ico
 
 export default function OrderPage() {
   const { id, slug } = useParams<{ slug: string; id: string }>();
+  const token = typeof window !== 'undefined'
+    ? (new URLSearchParams(window.location.search).get('t') ?? '')
+    : '';
   const router = useRouter();
   const [order, setOrder] = useState<GrabitOrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,9 +46,9 @@ export default function OrderPage() {
 
   useEffect(() => {
     const refresh = (isPoll: boolean) =>
-      fetch(`/api/proxy/grabit/orders/${id}`)
+      fetch(`/api/proxy/grabit/orders/${id}?t=${encodeURIComponent(token)}`)
         .then(r => {
-          if (r.status === 401) { router.replace(`/login?next=/${slug}/order/${id}`); return null; }
+          if (r.status === 401 || r.status === 403) { setDenied(true); return null; }
           if (!r.ok) { setDenied(true); return null; }
           return r.json();
         })
@@ -78,7 +81,7 @@ export default function OrderPage() {
       stream.close();
       clearInterval(poll);
     };
-  }, [id, slug, router]);
+  }, [id, slug, router, token]);
 
   const center = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--gb-muted)', fontSize: 16, background: 'var(--gb-surface)' } as const;
   if (loading) return <div style={center}>Loading…</div>;
