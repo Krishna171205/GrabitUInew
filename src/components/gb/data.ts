@@ -46,6 +46,11 @@ export const POPULAR: GbItem[] = [
   { id: 1, slug: 'raydee', name: 'Classic Cold Coffee', cafe: 'The Raydee Cafe', price: 90, photo: 'photo-1541167760496-1628856ab772' },
   { id: 2, slug: 'raydee', name: 'Hazelnut Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },
   { id: 4, slug: 'raydee', name: 'Americano (Hot)', cafe: 'The Raydee Cafe', price: 60, photo: 'photo-1555507036-ab1f4038808a' },
+  { id: 5, slug: 'raydee', name: 'Cappuccino', cafe: 'The Raydee Cafe', price: 95, photo: 'photo-1572442388796-11668a67e53d' },
+  { id: 6, slug: 'raydee', name: 'Almond Croissant', cafe: 'The Raydee Cafe', price: 120, photo: 'photo-1509440159596-0249088772ff' },
+  { id: 7, slug: 'raydee', name: 'Avocado Toast', cafe: 'The Raydee Cafe', price: 180, photo: 'photo-1525351484163-7529414344d8' },
+  { id: 8, slug: 'raydee', name: 'Cold Brew', cafe: 'The Raydee Cafe', price: 130, photo: 'photo-1461023058943-07fcbe16d735' },
+  { id: 9, slug: 'raydee', name: 'Blueberry Muffin', cafe: 'The Raydee Cafe', price: 85, photo: 'photo-1607958996333-41aef7caefaa' },
 ];
 
 export interface GbCategory { label: string; photo: string; }
@@ -55,6 +60,9 @@ export const CATEGORIES: GbCategory[] = [
   { label: 'Bakery', photo: 'photo-1509440159596-0249088772ff' },
   { label: 'Cold Press', photo: 'photo-1622597467836-f3285f2131b8' },
   { label: 'Desserts', photo: 'photo-1488477181946-6428a0291777' },
+  { label: 'Sandwiches', photo: 'photo-1481070555726-e2fe8357725c' },
+  { label: 'Smoothies', photo: 'photo-1502741338009-cac2772e18bc' },
+  { label: 'Pizza', photo: 'photo-1513104890138-7c749659a591' },
 ];
 
 /** Explore's 2x2 category tiles (subset with cover crops). */

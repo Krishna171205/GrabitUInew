@@ -1,20 +1,43 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MS } from '@/components/gb/kit';
-import { setSavedLocation } from '@/components/gb/location';
+import { reverseGeocode, searchLocations, setSavedLocation, type LocationResult } from '@/components/gb/location';
 
-// Static suggestions, no saved-address backend yet (ponytail: swap for real data when addresses land).
-const SUGGESTED = ['MG Road, Bengaluru', 'Indiranagar, Bengaluru', 'Koramangala, Bengaluru', 'HSR Layout, Bengaluru'];
+// Static suggestions shown when the search box is empty (no saved-address backend yet).
+const SUGGESTED: LocationResult[] = [
+  { label: 'MG Road, Bengaluru', city: 'Bengaluru' },
+  { label: 'Indiranagar, Bengaluru', city: 'Bengaluru' },
+  { label: 'Koramangala, Bengaluru', city: 'Bengaluru' },
+  { label: 'HSR Layout, Bengaluru', city: 'Bengaluru' },
+];
 
 export default function LocationPickerPage() {
   const router = useRouter();
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState<LocationResult[]>(SUGGESTED);
+  const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState('');
 
-  function choose(label: string) {
-    setSavedLocation(label);
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) { setResults(SUGGESTED); return; }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        setResults(await searchLocations(q));
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  function choose(label: string, city?: string) {
+    setSavedLocation(label, city);
     router.back();
   }
 
@@ -28,17 +51,8 @@ export default function LocationPickerPage() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await res.json();
-          const label = data?.address
-            ? [data.address.suburb || data.address.neighbourhood, data.address.city || data.address.town]
-                .filter(Boolean)
-                .join(', ')
-            : `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`;
-          choose(label || 'Current location');
+          const { label, city } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+          choose(label, city);
         } catch {
           setError('Could not determine your address');
         } finally {
@@ -51,10 +65,6 @@ export default function LocationPickerPage() {
       }
     );
   }
-
-  const matches = query.trim()
-    ? SUGGESTED.filter((s) => s.toLowerCase().includes(query.trim().toLowerCase()))
-    : SUGGESTED;
 
   return (
     <div className="gb-app">
@@ -98,19 +108,19 @@ export default function LocationPickerPage() {
 
         <div style={{ padding: '10px 4px 30px' }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-faint)', padding: '10px 18px 6px' }}>
-            Suggested areas
+            {query.trim() ? 'Search results' : 'Suggested areas'}
           </div>
-          {matches.map((s) => (
+          {results.map((r, i) => (
             <button
-              key={s}
-              onClick={() => choose(s)}
+              key={`${r.label}-${i}`}
+              onClick={() => choose(r.label, r.city)}
               style={{ display: 'flex', alignItems: 'center', gap: 13, width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--gb-line)', padding: '14px 18px', cursor: 'pointer', textAlign: 'left' }}
             >
               <MS name="location_on" size={20} color="var(--gb-muted)" />
-              <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>{s}</span>
+              <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>{r.label}</span>
             </button>
           ))}
-          {matches.length === 0 && (
+          {!searching && results.length === 0 && (
             <p style={{ padding: '14px 18px', color: 'var(--gb-muted)', fontSize: 14 }}>No matches, try a different search.</p>
           )}
         </div>

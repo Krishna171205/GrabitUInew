@@ -12,6 +12,23 @@ const CATEGORIES: GrabitMenuCategory[] = ['drinks', 'food', 'specials', 'dessert
 const CATEGORY_LABELS: Record<GrabitMenuCategory, string> = {
   drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts',
 };
+// No per-item photos in the backend yet: one honest placeholder per category
+// (not a random cycle) so a coffee never shows a croissant. ponytail: swap
+// for real item.image_url once cafés upload photos.
+const CATEGORY_PLACEHOLDER: Record<GrabitMenuCategory, string> = {
+  drinks: 'photo-1461023058943-07fcbe16d735',
+  food: 'photo-1525351484163-7529414344d8',
+  specials: 'photo-1495474472287-4d71bcdd2085',
+  desserts: 'photo-1488477181946-6428a0291777',
+};
+const HOT_DRINK_PLACEHOLDER = 'photo-1541167760496-1628856ab772';
+
+function placeholderFor(item: GrabitMenuItem) {
+  if (item.category === 'drinks' && /\bhot\b/i.test(item.name) && !/iced|cold/i.test(item.name)) {
+    return HOT_DRINK_PLACEHOLDER;
+  }
+  return CATEGORY_PLACEHOLDER[item.category];
+}
 
 interface TopItem {
   menu_item_id: number;
@@ -221,7 +238,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                   <div style={{ width: 104, flex: 'none', position: 'relative' }}>
                     <div style={{ width: 104, height: 96, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 18px -10px rgba(60,40,25,.4)' }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.image_url || ph(['photo-1541167760496-1628856ab772', 'photo-1461023058943-07fcbe16d735', 'photo-1510707577719-ae7c14805e3a'][item.id % 3])} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <img src={item.image_url || ph(placeholderFor(item))} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
                     {addStep(item)}
                   </div>
