@@ -35,8 +35,6 @@ export default function ContactPage() {
         <br />
         New Employees Colony, 1123 B/23, Gali no. 9
         <br />
-        Near Ram Medical Store
-        <br />
         Jind, District Jind, Haryana 126102
         <br />
         India
