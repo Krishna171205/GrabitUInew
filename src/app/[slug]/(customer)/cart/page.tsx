@@ -45,9 +45,13 @@ export default function CartPage() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
+  const [dineInTable, setDineInTable] = useState<string | null>(null);
+  useEffect(() => { setDineInTable(sessionStorage.getItem('grabit_table')); }, []);
+  const canProceed = dineInTable ? true : !!selectedSlot;
 
   async function placeOrder() {
-    sessionStorage.setItem('grabit_slot', selectedSlot!);
+    if (dineInTable) sessionStorage.removeItem('grabit_slot');
+    else sessionStorage.setItem('grabit_slot', selectedSlot!);
     setCheckingAuth(true);
     const loggedIn = await fetch('/api/proxy/grabit/auth/me').then((r) => r.ok).catch(() => false);
     setCheckingAuth(false);
@@ -56,7 +60,7 @@ export default function CartPage() {
   }
 
   useEffect(() => {
-    if (items.length === 0) return;
+    if (items.length === 0 || dineInTable) return; // dine-in: no pickup slot
     setSlotsLoading(true);
     (async () => {
       try {
@@ -71,7 +75,7 @@ export default function CartPage() {
         setSlotsData({ slots: [], label: null });
       } finally { setSlotsLoading(false); }
     })();
-  }, [slug, items.length]);
+  }, [slug, items.length, dineInTable]);
 
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
   const subtotal = total();
@@ -124,7 +128,17 @@ export default function CartPage() {
         </Link>
       </div>
 
-      {/* pickup slot */}
+      {dineInTable ? (
+        /* dine-in: table service, no pickup slot */
+        <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MS name="restaurant" size={20} fill color="var(--gb-primary)" />
+            <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Dine-in · Table {dineInTable}</div>
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 28 }}>We&apos;ll bring your order to the table.</div>
+        </div>
+      ) : (
+      /* pickup slot */
       <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MS name="schedule" size={20} fill color="var(--gb-primary)" />
@@ -160,6 +174,7 @@ export default function CartPage() {
           })}
         </div>
       </div>
+      )}
 
       {/* bill */}
       <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
@@ -176,12 +191,12 @@ export default function CartPage() {
           <MS name="expand_more" size={18} color="#B0A392" style={{ marginLeft: 'auto' }} />
         </div>
         <button
-          disabled={!selectedSlot || checkingAuth}
+          disabled={!canProceed || checkingAuth}
           onClick={placeOrder}
-          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: selectedSlot && !checkingAuth ? 'pointer' : 'not-allowed', opacity: selectedSlot && !checkingAuth ? 1 : 0.6 }}
+          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: canProceed && !checkingAuth ? 'pointer' : 'not-allowed', opacity: canProceed && !checkingAuth ? 1 : 0.6 }}
         >
           <span style={{ fontSize: 16, fontWeight: 800 }}>Pay {inr(toPay)}</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 700 }}>{checkingAuth ? 'Checking…' : selectedSlot ? 'Place order' : 'Pick a slot'}<MS name="arrow_forward" size={20} /></span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 700 }}>{checkingAuth ? 'Checking…' : canProceed ? 'Place order' : 'Pick a slot'}<MS name="arrow_forward" size={20} /></span>
         </button>
       </div>
 

@@ -45,6 +45,7 @@ interface Props {
   customerName?: string | null;
   topItems?: TopItem[];
   isLoggedIn?: boolean;
+  table?: string | null;
 }
 
 /* veg mark (square outline + dot) — only rendered when veg status is known */
@@ -58,8 +59,15 @@ function Veg({ veg }: { veg?: boolean | null }) {
   );
 }
 
-export default function MenuClient({ slug, cafe, items, customerName, topItems = [], isLoggedIn = false }: Props) {
+export default function MenuClient({ slug, cafe, items, customerName, topItems = [], isLoggedIn = false, table = null }: Props) {
   const router = useRouter();
+
+  // Dine-in QR entry (/{slug}?table=N): remember the table for this session so cart/checkout become
+  // dine-in (no pickup slot); a plain visit (no ?table) clears it back to pickup.
+  useEffect(() => {
+    if (table) sessionStorage.setItem('grabit_table', table);
+    else sessionStorage.removeItem('grabit_table');
+  }, [table]);
   const [activeCat, setActiveCat] = useState<GrabitMenuCategory | 'all'>('all');
   const [query, setQuery] = useState('');
   const { addItem, updateQty, items: cartItems, total } = useCart();

@@ -13,6 +13,7 @@ export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
 
   const [pickupSlot, setPickupSlot] = useState<string | null>(null);
+  const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [cafeId, setCafeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,13 +22,15 @@ export default function CheckoutPage() {
   const phoneValid = /^\d{10}$/.test(phone);
   const detailsValid = name.trim().length > 0 && phoneValid;
 
-  // Read slot from sessionStorage
+  // Dine-in (table QR) needs no slot; pickup requires one, else back to cart.
   useEffect(() => {
+    const table = sessionStorage.getItem('grabit_table');
     const slot = sessionStorage.getItem('grabit_slot');
-    if (!slot) {
+    if (!table && !slot) {
       router.push(`/${slug}/cart`);
       return;
     }
+    setDineInTable(table);
     setPickupSlot(slot);
   }, [slug, router]);
 
@@ -49,7 +52,7 @@ export default function CheckoutPage() {
   }, [slug]);
 
   async function handleOrder(paymentMethod: 'online' | 'counter') {
-    if (!pickupSlot || !cafeId || !detailsValid) return;
+    if ((!pickupSlot && !dineInTable) || !cafeId || !detailsValid) return;
     setLoading(true);
     setError('');
     try {
@@ -60,7 +63,9 @@ export default function CheckoutPage() {
           customer_name: name.trim(),
           customer_phone: phone,
           cafe_id: cafeId,
-          pickup_slot: pickupSlot,
+          ...(dineInTable
+            ? { order_type: 'dine_in', table_number: Number(dineInTable) }
+            : { pickup_slot: pickupSlot }),
           payment_method: paymentMethod,
           items: items.map(i => ({ menu_item_id: i.menu_item_id, quantity: i.quantity })),
         }),
@@ -74,6 +79,7 @@ export default function CheckoutPage() {
       if (paymentMethod === 'counter') {
         clearCart();
         sessionStorage.removeItem('grabit_slot');
+        sessionStorage.removeItem('grabit_table');
         router.push(orderUrl);
       } else {
         await new Promise<void>((resolve, reject) => {
@@ -120,8 +126,18 @@ export default function CheckoutPage() {
       <TopBar title="Checkout" onBack={() => router.push(`/${slug}/cart`)} />
 
       <div style={{ padding: '6px 20px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {/* Pickup slot */}
-        {pickupSlot && (
+        {/* Fulfilment: dine-in table or pickup slot */}
+        {dineInTable ? (
+          <div>
+            <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Dine-in</div>
+            <Card style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div className="t-label">Table {dineInTable}</div>
+                <div className="t-caption" style={{ marginTop: 2 }}>We&apos;ll bring your order to the table</div>
+              </div>
+            </Card>
+          </div>
+        ) : pickupSlot && (
           <div>
             <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Pickup slot</div>
             <Card style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
