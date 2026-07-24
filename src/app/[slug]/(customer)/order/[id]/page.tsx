@@ -57,7 +57,12 @@ export default function OrderPage() {
 
     refresh(false);
 
-    const stream = new EventSource(`/api/stream/grabit/orders/order/${id}`);
+    // Pass the per-order token so magic-link visitors (no cookie) still get live
+    // updates; cookie-authed sessions work with or without it (proxy prefers cookie).
+    const streamUrl = token
+      ? `/api/stream/grabit/orders/order/${id}?t=${encodeURIComponent(token)}`
+      : `/api/stream/grabit/orders/order/${id}`;
+    const stream = new EventSource(streamUrl);
     const eventTypes = [
       'PAYMENT_CAPTURED',
       'ORDER_CONFIRMED',

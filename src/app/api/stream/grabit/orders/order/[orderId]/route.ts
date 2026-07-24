@@ -13,7 +13,13 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> },
 ) {
   const { orderId } = await params;
-  const token = (await cookies()).get('grabit_customer_token')?.value;
+  // Prefer the httpOnly cookie; fall back to the per-order access token in ?t=
+  // so magic-link visitors (token in URL, no cookie) also get the live stream
+  // (matches how the order REST refetch authenticates). EventSource can't send
+  // headers, so the token has to arrive via cookie or query.
+  const token = (await cookies()).get('grabit_customer_token')?.value
+    ?? req.nextUrl.searchParams.get('t')
+    ?? undefined;
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const headers: Record<string, string> = {
