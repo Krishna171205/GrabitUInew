@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
@@ -11,6 +11,12 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, clearCart } = useCart();
 
+  // React state (`loading`) updates asynchronously, so the disabled= guard on the
+  // buttons doesn't stop a second event firing in the same tick - and it did: a
+  // single tap created 3 separate orders (order_id 12 confirmed live) and raced 3
+  // Cashfree checkout() calls, which is what broke the page after payment. A ref
+  // is synchronous and closes that window completely.
+  const submitting = useRef(false);
   const [pickupSlot, setPickupSlot] = useState<string | null>(null);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [cafeId, setCafeId] = useState<number | null>(null);
@@ -76,6 +82,8 @@ export default function CheckoutPage() {
 
   async function handleOrder(paymentMethod: 'online' | 'counter') {
     if ((!pickupSlot && !dineInTable) || !cafeId || !detailsValid) return;
+    if (submitting.current) return;
+    submitting.current = true;
     setLoading(true);
     setError('');
     try {
@@ -132,6 +140,7 @@ export default function CheckoutPage() {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
       setLoading(false);
+      submitting.current = false;
     }
   }
 
