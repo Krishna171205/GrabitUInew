@@ -14,15 +14,16 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com${isDev ? ' http://localhost:8083' : ''}`,
-      // sdk.cashfree.com hosts the loader/ping atoms; payments(-test).cashfree.com hosts the
-      // actual checkout UI (UPI/card/netbanking forms) the SDK opens in a nested iframe - CSP
-      // only allowing the former silently blocked the payment iframe (frame-src violations
-      // don't always surface as console errors), leaving the page stuck on a blank overlay.
-      "frame-src https://sdk.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com${isDev ? ' http://localhost:8083' : ''}`,
+      // sdk.cashfree.com only hosts the loader/ping atoms. The v3 Drop-in renders the actual
+      // checkout by POSTing a form into a modal iframe at api.cashfree.com/pg/view/sessions/checkout
+      // (sandbox.cashfree.com in sandbox), so both frame-src AND form-action must allow it -
+      // confirmed via securitypolicyviolation events, which is the only place this surfaced:
+      // the blocked iframe just left the customer on a blank full-screen overlay with no error.
+      "frame-src https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com",
       "object-src 'none'",
       "base-uri 'self'",
-      "form-action 'self'",
+      "form-action 'self' https://api.cashfree.com https://sandbox.cashfree.com",
       "upgrade-insecure-requests",
     ].join('; '),
   },
