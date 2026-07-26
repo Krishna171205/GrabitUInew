@@ -105,6 +105,13 @@ export default function CheckoutPage() {
         sessionStorage.removeItem('grabit_table');
         router.push(orderUrl);
       } else {
+        // Cashfree order creation is non-fatal server-side (the order is already
+        // placed) - a null session here means the online-payment step itself is
+        // down, not that the whole order failed. Send the customer to pay at
+        // counter instead of crashing on a null payment_session_id.
+        if (!data.cashfree) {
+          throw new Error('Online payment is temporarily unavailable. Please choose "Pay at counter" instead.');
+        }
         await new Promise<void>((resolve, reject) => {
           if (document.getElementById('cashfree-sdk')) { resolve(); return; }
           const script = document.createElement('script');
