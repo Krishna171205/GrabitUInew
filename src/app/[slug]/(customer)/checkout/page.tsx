@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
-import { TopBar, Card, Button, Icon } from '@/components/ui/kit';
-
-const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
+import { MS } from '@/components/gb/kit';
+import { inr } from '@/components/gb/format';
 
 export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -105,13 +104,21 @@ export default function CheckoutPage() {
     }
   }
 
+  const header = (
+    <div style={{ background: '#fff', padding: 'calc(14px + env(safe-area-inset-top)) 18px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--gb-line)' }}>
+      <button onClick={() => router.push(`/${slug}/cart`)} aria-label="Back" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={22} color="var(--gb-ink)" /></button>
+      <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500 }}>Checkout</div>
+    </div>
+  );
+
   if (items.length === 0) {
     return (
-      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
-        <TopBar title="Checkout" onBack={() => router.push(`/${slug}/cart`)} />
-        <div style={{ padding: '80px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <p className="t-caption">Nothing in your cart</p>
-          <Link href={`/${slug}`}><Button>Back to menu</Button></Link>
+      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)' }}>
+        {header}
+        <div style={{ padding: '70px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 92, height: 92, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center' }}><MS name="shopping_bag" size={42} color="var(--gb-primary)" /></div>
+          <div className="gb-serif" style={{ fontSize: 22, fontWeight: 500 }}>Nothing in your cart</div>
+          <Link href={`/${slug}`} style={{ background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', borderRadius: 14, padding: '13px 22px', fontSize: 15, fontWeight: 800 }}>Browse the menu</Link>
         </div>
       </div>
     );
@@ -120,96 +127,106 @@ export default function CheckoutPage() {
   const formattedTime = pickupSlot
     ? new Date(pickupSlot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
     : '';
+  const eyebrow = { fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' as const, color: 'var(--gb-faint)', marginBottom: 8 };
+  const card = { background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' };
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative', paddingBottom: 40 }}>
-      <TopBar title="Checkout" onBack={() => router.push(`/${slug}/cart`)} />
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
+      {header}
 
-      <div style={{ padding: '6px 20px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {/* Fulfilment: dine-in table or pickup slot */}
+      <div style={{ padding: '20px 18px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
         {dineInTable ? (
           <div>
-            <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Dine-in</div>
-            <Card style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={eyebrow}>Dine-in</div>
+            <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)' }}><MS name="restaurant" size={22} fill /></div>
               <div style={{ flex: 1 }}>
-                <div className="t-label">Table {dineInTable}</div>
-                <div className="t-caption" style={{ marginTop: 2 }}>We&apos;ll bring your order to the table</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>Table {dineInTable}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>We&apos;ll bring your order to the table</div>
               </div>
-            </Card>
+            </div>
           </div>
         ) : pickupSlot && (
           <div>
-            <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Pickup slot</div>
-            <Card style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--primary-tint)', display: 'grid', placeItems: 'center', color: 'var(--primary)' }}>{Icon.clock({ size: 24 })}</div>
+            <div style={eyebrow}>Pickup slot</div>
+            <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)' }}><MS name="schedule" size={22} fill /></div>
               <div style={{ flex: 1 }}>
-                <div className="t-label tabular">{formattedTime}</div>
-                <div className="t-caption" style={{ marginTop: 2 }}>Order ahead, walk past the queue</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{formattedTime}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>Order ahead, walk past the queue</div>
               </div>
-              <button onClick={() => router.push(`/${slug}/cart`)} style={{ border: 'none', background: 'transparent', color: 'var(--primary)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                {Icon.edit({ size: 16 })} Edit
+              <button onClick={() => router.push(`/${slug}/cart`)} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 800, fontSize: 13.5, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <MS name="edit" size={16} />Edit
               </button>
-            </Card>
+            </div>
           </div>
         )}
 
-        {/* Order summary */}
         <div>
-          <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Order summary</div>
-          <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {items.map(item => (
-              <div key={item.menu_item_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="t-body">{item.name} × {item.quantity}</span>
-                <span className="tabular" style={{ fontWeight: 600, fontSize: 15 }}>{inr(item.price * item.quantity)}</span>
+          <div style={eyebrow}>Order summary</div>
+          <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
+            {items.map((item, i) => (
+              <div key={item.menu_item_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: i === 0 ? '0 0 10px' : '10px 0 0' }}>
+                <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>{item.name} × {item.quantity}</span>
+                <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price * item.quantity)}</span>
               </div>
             ))}
-            <div style={{ height: 1, background: 'var(--hairline)' }} />
+            <div style={{ height: 1, background: 'var(--gb-line)', margin: '10px 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 700, fontSize: 16 }}>Total</span>
-              <span className="tabular" style={{ fontWeight: 700, fontSize: 18 }}>{inr(total())}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--gb-text)' }}>Total</span>
+              <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(total())}</span>
             </div>
-          </Card>
+          </div>
         </div>
 
-        {/* Your details */}
         <div>
-          <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Your details</div>
-          <Card style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={eyebrow}>Your details</div>
+          <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Full name"
               maxLength={80}
-              style={{ border: '1px solid var(--hairline)', borderRadius: 10, padding: '12px 14px', fontSize: 15 }}
+              style={{ border: '1px solid var(--gb-line-4)', borderRadius: 13, padding: '13px 15px', fontSize: 15, fontFamily: 'var(--gb-sans)', color: 'var(--gb-text)', outline: 'none' }}
             />
             <input
               value={phone}
               onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
               placeholder="10-digit phone"
               inputMode="numeric"
-              style={{ border: '1px solid var(--hairline)', borderRadius: 10, padding: '12px 14px', fontSize: 15 }}
+              style={{ border: '1px solid var(--gb-line-4)', borderRadius: 13, padding: '13px 15px', fontSize: 15, fontFamily: 'var(--gb-sans)', color: 'var(--gb-text)', outline: 'none' }}
             />
             {phone.length > 0 && !phoneValid && (
-              <span style={{ color: 'var(--error)', fontSize: 12 }}>Enter a valid 10-digit phone number</span>
+              <span style={{ color: 'var(--gb-danger)', fontSize: 12, fontWeight: 600 }}>Enter a valid 10-digit phone number</span>
             )}
-          </Card>
+          </div>
         </div>
 
-        {/* Payment */}
         <div>
-          <div className="t-label" style={{ color: 'var(--muted)', marginBottom: 8, fontSize: 13 }}>Payment method</div>
+          <div style={eyebrow}>Payment method</div>
 
           {error && (
-            <div style={{ color: 'var(--error)', fontSize: 14, marginBottom: 16, padding: '12px 14px', background: 'var(--error-tint)', borderRadius: 'var(--r-md)' }}>{error}</div>
+            <div style={{ color: 'var(--gb-danger)', fontSize: 13.5, fontWeight: 600, marginBottom: 14, padding: '12px 14px', background: '#FDECEA', borderRadius: 14 }}>{error}</div>
           )}
 
-          <Button full disabled={loading || !detailsValid} onClick={() => handleOrder('online')}>
-            {loading ? 'Processing...' : `Pay ${inr(total())} online`}
-          </Button>
+          <button
+            disabled={loading || !detailsValid}
+            onClick={() => handleOrder('online')}
+            style={{
+              width: '100%', border: 'none', borderRadius: 15, padding: 16, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)',
+              fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)',
+              cursor: loading || !detailsValid ? 'not-allowed' : 'pointer', opacity: loading || !detailsValid ? 0.6 : 1,
+            }}
+          >
+            {loading ? 'Processing…' : `Pay ${inr(total())} online`}
+          </button>
           <button
             disabled={loading || !detailsValid}
             onClick={() => handleOrder('counter')}
-            style={{ marginTop: 10, background: 'transparent', border: '1px solid var(--hairline)', borderRadius: 12, padding: '14px', width: '100%', fontWeight: 700, cursor: detailsValid ? 'pointer' : 'not-allowed' }}
+            style={{
+              marginTop: 10, width: '100%', border: '1px solid var(--gb-line-2)', borderRadius: 15, padding: 15, background: '#fff', color: 'var(--gb-text)',
+              fontSize: 15, fontWeight: 800, cursor: loading || !detailsValid ? 'not-allowed' : 'pointer', opacity: loading || !detailsValid ? 0.6 : 1,
+            }}
           >
             Pay at counter
           </button>
