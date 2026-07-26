@@ -18,6 +18,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [customerLoaded, setCustomerLoaded] = useState(false);
   const phoneValid = /^\d{10}$/.test(phone);
   const detailsValid = name.trim().length > 0 && phoneValid;
 
@@ -31,6 +32,29 @@ export default function CheckoutPage() {
     }
     setDineInTable(table);
     setPickupSlot(slot);
+  }, [slug, router]);
+
+  // cart's placeOrder() already gates every checkout on a live session (via the
+  // same auth/me check), so name+phone are always known by the time we land here -
+  // re-collecting them would just re-ask for what login already captured. Prefill
+  // from the session; a 401 here means the session expired mid-flow, so bounce back
+  // through login rather than falling back to a guest form.
+  useEffect(() => {
+    fetch('/api/proxy/grabit/auth/me')
+      .then(res => {
+        if (res.status === 401) {
+          router.replace(`/login?next=${encodeURIComponent(`/${slug}/checkout`)}`);
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (!data) return;
+        setName(data.name ?? '');
+        setPhone(data.phone ?? '');
+        setCustomerLoaded(true);
+      })
+      .catch(() => setCustomerLoaded(true));
   }, [slug, router]);
 
   // Fetch cafe_id, read sessionStorage first (set by menu/home page on first load)
@@ -181,24 +205,12 @@ export default function CheckoutPage() {
 
         <div>
           <div style={eyebrow}>Your details</div>
-          <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Full name"
-              maxLength={80}
-              style={{ border: '1px solid var(--gb-line-4)', borderRadius: 13, padding: '13px 15px', fontSize: 15, fontFamily: 'var(--gb-sans)', color: 'var(--gb-text)', outline: 'none' }}
-            />
-            <input
-              value={phone}
-              onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              placeholder="10-digit phone"
-              inputMode="numeric"
-              style={{ border: '1px solid var(--gb-line-4)', borderRadius: 13, padding: '13px 15px', fontSize: 15, fontFamily: 'var(--gb-sans)', color: 'var(--gb-text)', outline: 'none' }}
-            />
-            {phone.length > 0 && !phoneValid && (
-              <span style={{ color: 'var(--gb-danger)', fontSize: 12, fontWeight: 600 }}>Enter a valid 10-digit phone number</span>
-            )}
+          <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)' }}><MS name="person" size={22} fill /></div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>{customerLoaded ? (name || '—') : 'Loading…'}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{customerLoaded && phone ? `+91 ${phone}` : ''}</div>
+            </div>
           </div>
         </div>
 
