@@ -79,8 +79,7 @@ export default function CartPage() {
 
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
   const subtotal = total();
-  const taxes = Math.round(subtotal * 0.05);
-  const toPay = subtotal + taxes;
+  const toPay = subtotal;
 
   if (items.length === 0) {
     return (
@@ -179,7 +178,6 @@ export default function CartPage() {
       {/* bill */}
       <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Taxes &amp; charges</span><span>{inr(taxes)}</span></div>
         <div style={{ height: 1, background: 'var(--gb-line)', margin: '9px 0' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: 'var(--gb-text)' }}><span>To pay</span><span>{inr(toPay)}</span></div>
       </div>
