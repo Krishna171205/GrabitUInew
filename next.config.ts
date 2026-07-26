@@ -14,8 +14,12 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com${isDev ? ' http://localhost:8083' : ''}`,
-      "frame-src https://sdk.cashfree.com",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com${isDev ? ' http://localhost:8083' : ''}`,
+      // sdk.cashfree.com hosts the loader/ping atoms; payments(-test).cashfree.com hosts the
+      // actual checkout UI (UPI/card/netbanking forms) the SDK opens in a nested iframe - CSP
+      // only allowing the former silently blocked the payment iframe (frame-src violations
+      // don't always surface as console errors), leaving the page stuck on a blank overlay.
+      "frame-src https://sdk.cashfree.com https://payments.cashfree.com https://payments-test.cashfree.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
