@@ -128,7 +128,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={cover} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
-        <button onClick={() => router.push('/')} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
+        <button onClick={() => router.push('/home')} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
           <MS name="arrow_back" size={22} color="var(--gb-ink)" />
         </button>
         <div style={{ position: 'absolute', bottom: 18, left: 20, right: 20, color: '#fff' }}>

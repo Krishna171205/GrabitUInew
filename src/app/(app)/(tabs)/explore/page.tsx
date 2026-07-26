@@ -1,8 +1,17 @@
 import { MS, NavSpacer } from '@/components/gb/kit';
-import { CafeCard } from '@/components/gb/cards';
-import { EXPLORE_CATEGORIES, TRENDING, ph } from '@/components/gb/data';
+import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
+import { EXPLORE_CATEGORIES, ph } from '@/components/gb/data';
 
-export default function ExplorePage() {
+async function getCafes(): Promise<RealCafe[]> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
+
+export default async function ExplorePage() {
+  const cafes = await getCafes();
   return (
     <div className="gb-shell gb-shell-wide">
       {/* header + search */}
@@ -29,19 +38,16 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* trending */}
+      {/* live cafés — real data, no fabricated trending/rating stats */}
       <div style={{ padding: '24px 20px 8px' }}>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>Trending this week</div>
-        <div className="gb-cafe-grid">
-          {TRENDING.map((c) => (
-            <CafeCard
-              key={c.slug}
-              cafe={c}
-              coverHeight={150}
-              badge={{ icon: 'trending_up', iconColor: '#C1502E', text: c.rank }}
-            />
-          ))}
-        </div>
+        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>Cafés on Grabit</div>
+        {cafes.length === 0 ? (
+          <div style={{ padding: '16px 0 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>No cafés live yet. Check back soon.</div>
+        ) : (
+          <div className="gb-cafe-grid">
+            {cafes.map((c) => <RealCafeCard key={c.slug} cafe={c} cta="View menu" coverHeight={150} />)}
+          </div>
+        )}
       </div>
       <NavSpacer />
     </div>
