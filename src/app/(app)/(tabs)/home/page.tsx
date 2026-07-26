@@ -5,12 +5,33 @@ import { inr } from '@/components/gb/format';
 import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
 import { LocationPill } from '@/components/gb/LocationPill';
 import { CafesNearYou } from '@/components/gb/CafesNearYou';
-import { POPULAR, FAVOURITES, CATEGORIES, RECENT_ORDERS, USER, ph } from '@/components/gb/data';
+import { POPULAR, FAVOURITES, CATEGORIES } from '@/components/gb/data';
+
+interface Me { name: string | null; phone: string | null; avatar_url: string | null; }
+interface TopItem { menu_item_id: number; menu_item_name: string; price: number; image_url: string | null; total_ordered: number; }
 
 // Real, live cafés — honest data, no fabricated marketplace stats.
 async function getCafes(): Promise<RealCafe[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
+
+async function getMe(token: string): Promise<Me | null> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/me`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
+
+// "Order again" = this customer's most-ordered items at their cafe. Cafe-scoped
+// (ponytail: uses the first live cafe — there's only one, Raydee, today).
+async function getTopItems(token: string, cafeId: number): Promise<TopItem[]> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/orders/top-items?cafeId=${cafeId}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch { return []; }
@@ -91,18 +112,22 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
   );
 }
 
-function SignedInHome({ cafes }: { cafes: RealCafe[] }) {
+function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[]; me: Me | null; topItems: TopItem[]; reorderSlug?: string }) {
+  const firstName = me?.name?.trim()?.split(' ')[0] || 'there';
+  const initial = (me?.name?.trim()?.[0] || me?.phone?.slice(-1) || '?').toUpperCase();
   return (
     <div className="gb-shell gb-shell-wide">
       <div style={heroStyle} className="gb-hero">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>Good morning</div>
-            <div className="gb-serif" style={{ fontSize: 29, fontWeight: 500, letterSpacing: '-.01em', marginTop: 3 }}>{USER.first}</div>
+            <div className="gb-serif" style={{ fontSize: 29, fontWeight: 500, letterSpacing: '-.01em', marginTop: 3 }}>{firstName}</div>
           </div>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', border: '1.5px solid rgba(255,255,255,.35)' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ph(USER.avatar)} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff' }}>
+            {me?.avatar_url
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={me.avatar_url} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : initial}
           </div>
         </div>
         <LocationPill />
@@ -112,26 +137,30 @@ function SignedInHome({ cafes }: { cafes: RealCafe[] }) {
         <SearchBar />
       </div>
 
-      {/* recent orders */}
-      <div style={{ margin: '-34px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, padding: '16px 16px 4px', boxShadow: 'var(--gb-shadow-pop)', border: '1px solid var(--gb-line-2)' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Order again</div>
-          <Link href="/orders" style={{ fontSize: 12, fontWeight: 700, color: 'var(--gb-muted-2)' }}>All orders</Link>
-        </div>
-        {RECENT_ORDERS.map((o, i) => (
-          <div key={o.title} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '12px 0', borderBottom: i < RECENT_ORDERS.length - 1 ? '1px solid var(--gb-line)' : 'none' }}>
-            <div style={{ width: 50, height: 50, borderRadius: 13, overflow: 'hidden', flex: 'none' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={ph(o.photo)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{o.title}</div>
-              <div style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 2, fontWeight: 600 }}>{inr(o.price)} · {o.when}</div>
-            </div>
-            <div style={{ border: '1.5px solid #E7DCCC', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, padding: '9px 15px', borderRadius: 11, flex: 'none' }}>Reorder</div>
+      {/* order again — this customer's most-ordered items, real order history */}
+      {topItems.length > 0 && (
+        <div style={{ margin: '-34px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, padding: '16px 16px 4px', boxShadow: 'var(--gb-shadow-pop)', border: '1px solid var(--gb-line-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Order again</div>
+            <Link href="/orders" style={{ fontSize: 12, fontWeight: 700, color: 'var(--gb-muted-2)' }}>All orders</Link>
           </div>
-        ))}
-      </div>
+          {topItems.map((it, i) => (
+            <Link key={it.menu_item_id} href={reorderSlug ? `/${reorderSlug}` : '/explore'} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '12px 0', borderBottom: i < topItems.length - 1 ? '1px solid var(--gb-line)' : 'none' }}>
+              <div style={{ width: 50, height: 50, borderRadius: 13, overflow: 'hidden', flex: 'none', background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {it.image_url
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={it.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  : <MS name="restaurant" size={22} color="var(--gb-primary)" />}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.menu_item_name}</div>
+                <div style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 2, fontWeight: 600 }}>{inr(it.price)} · ordered {it.total_ordered}×</div>
+              </div>
+              <div style={{ border: '1.5px solid #E7DCCC', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, padding: '9px 15px', borderRadius: 11, flex: 'none' }}>Reorder</div>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* favourites */}
       <div style={{ padding: '24px 0 0' }}>
@@ -156,5 +185,11 @@ export default async function HomePage() {
     cookies().then((c) => c.get('grabit_customer_token')?.value),
     getCafes(),
   ]);
-  return token ? <SignedInHome cafes={cafes} /> : <GuestHome cafes={cafes} />;
+  if (!token) return <GuestHome cafes={cafes} />;
+  const primaryCafe = cafes[0];
+  const [me, topItems] = await Promise.all([
+    getMe(token),
+    primaryCafe ? getTopItems(token, primaryCafe.id) : Promise.resolve([]),
+  ]);
+  return <SignedInHome cafes={cafes} me={me} topItems={topItems} reorderSlug={primaryCafe?.slug} />;
 }

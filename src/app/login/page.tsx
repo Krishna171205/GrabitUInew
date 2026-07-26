@@ -30,13 +30,14 @@ function LoginForm() {
   const [otp, setOtp] = useState(process.env.NEXT_PUBLIC_DEV_OTP ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [otpError, setOtpError] = useState(false);
   const [timer, setTimer] = useState(0);
   const [showNoAccount, setShowNoAccount] = useState(false);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   const valid = phone.length === 10;
 
   async function sendOtp() {
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setOtpError(false);
     try {
       if (mode === 'login') {
         const existsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/customer-exists?phone=${phone}`);
@@ -60,7 +61,7 @@ function LoginForm() {
   }
 
   async function verifyOtp() {
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setOtpError(false);
     try {
       const res = await fetch('/api/auth/customer', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -73,6 +74,9 @@ function LoginForm() {
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Verification failed');
+      setOtpError(true);
+      setOtp('');
+      setTimeout(() => boxes.current[0]?.focus(), 50);
     } finally { setLoading(false); }
   }
 
@@ -90,6 +94,7 @@ function LoginForm() {
     const nextD = digits.map((c) => c.trim()).join('').padEnd(6).split('');
     nextD[i] = d || ' ';
     setOtp(nextD.join('').replace(/\s/g, '').slice(0, 6));
+    setOtpError(false); setError('');
     if (d && i < 5) boxes.current[i + 1]?.focus();
   };
 
@@ -190,13 +195,13 @@ function LoginForm() {
           </>
         ) : (
           <>
-            <button onClick={() => { setStep('phone'); setOtp(''); setError(''); }} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3, marginBottom: 10 }}>
+            <button onClick={() => { setStep('phone'); setOtp(''); setError(''); setOtpError(false); }} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3, marginBottom: 10 }}>
               <MS name="chevron_left" size={18} />Edit number
             </button>
             <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500 }}>Enter the code</div>
             <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6 }}>Sent to <b style={{ color: 'var(--gb-text)' }}>+91 {phone}</b></div>
 
-            <div style={{ display: 'flex', gap: 9, marginTop: 22 }}>
+            <div className={otpError ? 'gb-shake' : undefined} style={{ display: 'flex', gap: 9, marginTop: 22 }}>
               {digits.map((d, i) => {
                 const filled = !!d.trim();
                 return (
@@ -207,11 +212,23 @@ function LoginForm() {
                     onChange={(e) => setDigit(i, e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Backspace' && !d.trim() && i > 0) boxes.current[i - 1]?.focus(); if (e.key === 'Enter' && otp.length === 6) verifyOtp(); }}
                     inputMode="numeric" maxLength={1}
-                    style={{ flex: 1, minWidth: 0, height: 60, textAlign: 'center', fontSize: 24, fontWeight: 700, borderRadius: 14, outline: 'none', border: `1.5px solid ${filled ? 'var(--gb-primary)' : '#E7DCCC'}`, background: filled ? 'var(--gb-primary-pale)' : '#fff', color: 'var(--gb-text)', fontFamily: 'var(--gb-sans)' }}
+                    style={{
+                      flex: 1, minWidth: 0, height: 60, textAlign: 'center', fontSize: 24, fontWeight: 700, borderRadius: 14, outline: 'none', fontFamily: 'var(--gb-sans)',
+                      border: `1.5px solid ${otpError ? 'var(--gb-danger)' : filled ? 'var(--gb-primary)' : '#E7DCCC'}`,
+                      background: otpError ? '#FBEAE7' : filled ? 'var(--gb-primary-pale)' : '#fff',
+                      color: otpError ? 'var(--gb-danger)' : 'var(--gb-text)',
+                    }}
                   />
                 );
               })}
             </div>
+
+            {otpError && error && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
+                <MS name="error" size={16} fill color="var(--gb-danger)" />
+                <span style={{ color: 'var(--gb-danger)', fontSize: 13.5, fontWeight: 600 }}>{error}</span>
+              </div>
+            )}
 
             <button onClick={verifyOtp} disabled={otp.length !== 6 || loading} style={{ width: '100%', marginTop: 22, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, height: 56, fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: otp.length === 6 && !loading ? 'pointer' : 'not-allowed', opacity: otp.length === 6 ? 1 : 0.55 }}>
               {loading ? 'Verifying…' : 'Verify & continue'}
@@ -223,7 +240,7 @@ function LoginForm() {
           </>
         )}
 
-        {error && <p style={{ color: 'var(--gb-danger)', fontSize: 14, marginTop: 14, textAlign: 'center' }}>{error}</p>}
+        {error && step === 'phone' && <p style={{ color: 'var(--gb-danger)', fontSize: 14, marginTop: 14, textAlign: 'center' }}>{error}</p>}
       </div>
 
       {showNoAccount && (
