@@ -53,33 +53,23 @@ export const POPULAR: GbItem[] = [
   { id: 9, slug: 'raydee', name: 'Blueberry Muffin', cafe: 'The Raydee Cafe', price: 85, photo: 'photo-1607958996333-41aef7caefaa' },
 ];
 
+// Kept to categories actually on the one live café's (raydee) menu —
+// no bakery/cold-press/desserts/breakfast/pizza items exist there yet.
 export interface GbCategory { label: string; photo: string; }
 export const CATEGORIES: GbCategory[] = [
   { label: 'Coffee', photo: 'photo-1447933601403-0c6688de566e' },
-  { label: 'Breakfast', photo: 'photo-1525351484163-7529414344d8' },
-  { label: 'Bakery', photo: 'photo-1509440159596-0249088772ff' },
-  { label: 'Cold Press', photo: 'photo-1622597467836-f3285f2131b8' },
-  { label: 'Desserts', photo: 'photo-1488477181946-6428a0291777' },
+  { label: 'Shakes', photo: 'photo-1502741338009-cac2772e18bc' },
   { label: 'Sandwiches', photo: 'photo-1481070555726-e2fe8357725c' },
-  { label: 'Smoothies', photo: 'photo-1502741338009-cac2772e18bc' },
-  { label: 'Pizza', photo: 'photo-1513104890138-7c749659a591' },
 ];
 
-/** Explore's 2x2 category tiles (subset with cover crops). */
-export const EXPLORE_CATEGORIES: GbCategory[] = [
-  { label: 'Coffee', photo: 'photo-1447933601403-0c6688de566e' },
-  { label: 'Breakfast', photo: 'photo-1525351484163-7529414344d8' },
-  { label: 'Bakery', photo: 'photo-1509440159596-0249088772ff' },
-  { label: 'Desserts', photo: 'photo-1488477181946-6428a0291777' },
-];
+/** Explore's category tiles (same set as Home, see note above). */
+export const EXPLORE_CATEGORIES: GbCategory[] = CATEGORIES;
 
 export interface GbRecentOrder { title: string; price: number; when: string; photo: string; }
 export const RECENT_ORDERS: GbRecentOrder[] = [
   { title: 'Oat Flat White · The Roastery', price: 280, when: '2 days ago', photo: 'photo-1541167760496-1628856ab772' },
   { title: 'Baked Shakshuka · Olive & Sage', price: 340, when: 'last week', photo: 'photo-1482049016688-2d3e1b311543' },
 ];
-
-export const FAVOURITES: GbItem[] = POPULAR;
 
 export interface GbActiveOrder {
   cafe: string; slug: string; items: string; total: number; code: string; status: string; photo: string;

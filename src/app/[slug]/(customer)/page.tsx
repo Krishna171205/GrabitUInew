@@ -20,6 +20,17 @@ async function getTopItems(cafeId: number, token: string) {
   } catch { return []; }
 }
 
+async function getFavorites(cafeId: number, token: string) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/grabit/favorites?cafeId=${cafeId}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
+
 async function getCustomerProfile(token: string) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/me`, {
@@ -48,9 +59,9 @@ export default async function HomePage(
     );
   }
 
-  const [profile, topItems] = token
-    ? await Promise.all([getCustomerProfile(token), getTopItems(cafe.id, token)])
-    : [{ name: null, isProfileComplete: false }, []];
+  const [profile, topItems, favorites] = token
+    ? await Promise.all([getCustomerProfile(token), getTopItems(cafe.id, token), getFavorites(cafe.id, token)])
+    : [{ name: null, isProfileComplete: false }, [], []];
 
   return (
     <MenuClient
@@ -59,6 +70,7 @@ export default async function HomePage(
       items={items}
       customerName={profile.name}
       topItems={topItems}
+      favorites={favorites}
       isLoggedIn={!!token}
       table={table ?? null}
     />

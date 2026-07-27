@@ -5,7 +5,7 @@ import { inr } from '@/components/gb/format';
 import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
 import { LocationPill } from '@/components/gb/LocationPill';
 import { CafesNearYou } from '@/components/gb/CafesNearYou';
-import { POPULAR, FAVOURITES, CATEGORIES } from '@/components/gb/data';
+import { POPULAR, CATEGORIES } from '@/components/gb/data';
 
 interface Me { name: string | null; phone: string | null; avatar_url: string | null; }
 interface TopItem { menu_item_id: number; menu_item_name: string; price: number; image_url: string | null; total_ordered: number; }
@@ -161,17 +161,6 @@ function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[];
           ))}
         </div>
       )}
-
-      {/* favourites */}
-      <div style={{ padding: '24px 0 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 20px 14px' }}>
-          <MS name="favorite" size={20} fill color="#C1502E" />
-          <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500 }}>Your favourites</div>
-        </div>
-        <div className="gb-scroll" style={{ display: 'flex', gap: 14, overflowX: 'auto', padding: '0 20px 4px' }}>
-          {FAVOURITES.map((it) => <ItemCard key={it.name} item={it} heart />)}
-        </div>
-      </div>
 
       <Categories />
       <CafesNearYou cafes={cafes} cta="Pre-order" gate={false} />

@@ -38,12 +38,20 @@ interface TopItem {
   total_ordered: number;
 }
 
+interface FavItem {
+  menu_item_id: number;
+  menu_item_name: string;
+  price: number;
+  image_url: string | null;
+}
+
 interface Props {
   slug: string;
   cafe: GrabitCafe;
   items: GrabitMenuItem[];
   customerName?: string | null;
   topItems?: TopItem[];
+  favorites?: FavItem[];
   isLoggedIn?: boolean;
   table?: string | null;
 }
@@ -59,7 +67,30 @@ function Veg({ veg }: { veg?: boolean | null }) {
   );
 }
 
-export default function MenuClient({ slug, cafe, items, customerName, topItems = [], isLoggedIn = false, table = null }: Props) {
+export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null }: Props) {
+  const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
+
+  async function toggleFavorite(menuItemId: number) {
+    const wasFav = favIds.has(menuItemId);
+    setFavIds(prev => {
+      const next = new Set(prev);
+      wasFav ? next.delete(menuItemId) : next.add(menuItemId);
+      return next;
+    });
+    try {
+      await fetch('/api/proxy/grabit/favorites/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cafeId: cafe.id, menuItemId }),
+      });
+    } catch {
+      setFavIds(prev => {
+        const next = new Set(prev);
+        wasFav ? next.add(menuItemId) : next.delete(menuItemId);
+        return next;
+      });
+    }
+  }
   const router = useRouter();
 
   // Dine-in QR entry (/{slug}?table=N): remember the table for this session so cart/checkout become
@@ -77,6 +108,8 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   function addTop(item: TopItem) {
     addItem({ menu_item_id: item.menu_item_id, name: item.menu_item_name, price: item.price, quantity: 1, image_url: item.image_url }, slug);
   }
+
+  const favoriteItems = items.filter(i => favIds.has(i.id));
 
   useEffect(() => {
     if (cafe?.id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cafe.id));
@@ -214,6 +247,38 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
           </div>
         </div>
       )}
+      {isLoggedIn && favoriteItems.length > 0 && (
+        <div style={{ padding: '14px 0 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
+            <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Your favourites</span>
+          </div>
+          <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
+            {favoriteItems.map(item => (
+              <div key={item.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
+                <div style={{ position: 'relative', height: 96 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  {qtyOf(item.id) > 0 ? (
+                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
+                      <button onClick={() => updateQty(item.id, qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+                      <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.id)}</span>
+                      <button onClick={() => updateQty(item.id, qtyOf(item.id) + 1)} aria-label="Add one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                    </div>
+                  ) : (
+                    <button onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                      <MS name="add" size={17} />
+                    </button>
+                  )}
+                </div>
+                <div style={{ padding: '8px 10px 10px' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(item.price)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* menu search */}
       <div style={{ padding: '18px 16px 0' }}>
@@ -256,6 +321,11 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={item.image_url || ph(placeholderFor(item))} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
+                    {isLoggedIn && (
+                      <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
+                        <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
+                      </button>
+                    )}
                     {addStep(item)}
                   </div>
                 </div>
