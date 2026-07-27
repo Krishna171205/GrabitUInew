@@ -40,6 +40,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Next 15 defaults the client router cache to 0s for dynamic routes, so tapping
+  // back (or re-tapping a tab) refetches the whole RSC payload every time. 30s of
+  // reuse makes back/forward and tab re-visits instant.
+  experimental: { staleTimes: { dynamic: 30, static: 180 } },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' }
