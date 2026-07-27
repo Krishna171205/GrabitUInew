@@ -55,16 +55,18 @@ export const POPULAR: GbItem[] = [
 
 // photo = real raydee menu image (one representative variant per craving),
 // full CDN URL — not an unsplash id, so CategoryCircle renders it directly.
-export interface GbCategory { label: string; photo: string; }
+// query = keyword matched against menu item names (MenuClient's search filter)
+// to land on this craving's items when the circle is tapped.
+export interface GbCategory { label: string; photo: string; query: string; }
 export const CATEGORIES: GbCategory[] = [
-  { label: 'Coffee', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cold-coffee.png' },
-  { label: 'Shakes', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/oreo-shake.png' },
-  { label: 'Sandwiches', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-grilled-sandwich.png' },
-  { label: 'Burgers', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-burger.png' },
-  { label: 'Mojitos', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/peach-mojito.png' },
-  { label: 'Wraps', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-wrap.png' },
-  { label: 'Fries', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/salted-fries.png' },
-  { label: 'Maggi', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cheese-maggi.png' },
+  { label: 'Coffee', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cold-coffee.png', query: 'coffee' },
+  { label: 'Shakes', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/oreo-shake.png', query: 'shake' },
+  { label: 'Sandwiches', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-grilled-sandwich.png', query: 'sandwich' },
+  { label: 'Burgers', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-burger.png', query: 'burger' },
+  { label: 'Mojitos', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/peach-mojito.png', query: 'mojito' },
+  { label: 'Wraps', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-wrap.png', query: 'wrap' },
+  { label: 'Fries', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/salted-fries.png', query: 'fries' },
+  { label: 'Maggi', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cheese-maggi.png', query: 'maggi' },
 ];
 
 /** Explore's category tiles (same set as Home, see note above). */

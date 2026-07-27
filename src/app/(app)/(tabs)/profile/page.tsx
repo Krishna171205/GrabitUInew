@@ -8,6 +8,7 @@ import type { RealCafe } from '@/components/gb/cards';
 
 interface Me { customerId: number; name: string | null; email: string | null; phone: string; avatar_url: string | null; }
 interface Wallet { base_balance_paise: number; }
+interface OrderView { status: string; payment_status: string; total_amount: number; }
 
 function Stat({ value, label, color }: { value: string; label: string; color: string }) {
   return (
@@ -39,6 +40,9 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
+  const [ordersCount, setOrdersCount] = useState<number | null>(null);
+  const [totalSpentPaise, setTotalSpentPaise] = useState<number | null>(null);
+  const [favouritesCount, setFavouritesCount] = useState<number | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
@@ -56,9 +60,37 @@ export default function ProfilePage() {
           .then((r) => (r.ok ? r.json() : null))
           .then((wd) => { if (wd?.wallet) setWallet(wd.wallet); })
           .catch(() => {});
+
+        fetch(`/api/proxy/grabit/favorites?cafeId=${cafe.id}`)
+          .then((r) => (r.ok ? r.json() : []))
+          .then((favs: unknown[]) => setFavouritesCount(favs.length))
+          .catch(() => setFavouritesCount(0));
+      }
+      if (meData?.customerId) {
+        fetch('/api/proxy/grabit/orders/mine')
+          .then((r) => (r.ok ? r.json() : []))
+          .then((orders: OrderView[]) => {
+            const real = orders.filter((o) => o.status !== 'cancelled');
+            setOrdersCount(real.length);
+            setTotalSpentPaise(real.filter((o) => o.payment_status === 'paid').reduce((sum, o) => sum + Math.round(Number(o.total_amount) * 100), 0));
+          })
+          .catch(() => { setOrdersCount(0); setTotalSpentPaise(0); });
       }
     });
   }, []);
+
+  // One retry on a network-level failure (fetch throwing rather than a clean
+  // HTTP error) — the direct-to-S3 PUT is a single flaky connection with no
+  // server-side fallback, and a transient blip there shouldn't fail the upload.
+  async function putWithRetry(url: string, file: File) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await fetch(url, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+      } catch (e) {
+        if (attempt > 0) throw e;
+      }
+    }
+  }
 
   async function uploadAvatar(file: File) {
     setUploadingAvatar(true); setAvatarError('');
@@ -67,7 +99,7 @@ export default function ProfilePage() {
       if (!presignRes.ok) throw new Error('Could not start upload');
       const { uploadUrl, publicUrl } = await presignRes.json();
 
-      const putRes = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+      const putRes = await putWithRetry(uploadUrl, file);
       if (!putRes.ok) throw new Error('Upload failed');
 
       const saveRes = await fetch('/api/proxy/grabit/auth/profile', {
@@ -77,7 +109,8 @@ export default function ProfilePage() {
       if (!saveRes.ok) throw new Error('Could not save photo');
       setMe((prev) => (prev ? { ...prev, avatar_url: publicUrl } : prev));
     } catch (e) {
-      setAvatarError(e instanceof Error ? e.message : 'Something went wrong');
+      console.error('avatar upload failed', e);
+      setAvatarError('Could not upload photo. Please try again.');
     } finally {
       setUploadingAvatar(false);
     }
@@ -173,9 +206,9 @@ export default function ProfilePage() {
 
       {/* stats */}
       <div style={{ margin: '-30px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-shadow-pop)', display: 'flex', padding: '16px 4px' }}>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value="24" label="Orders" color="var(--gb-text)" /></div>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value="3.5h" label="Time saved" color="var(--gb-green)" /></div>
-        <div style={{ flex: 1, textAlign: 'center' }}><Stat value="8" label="Favourites" color="#C1502E" /></div>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" /></div>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={totalSpentPaise === null ? '—' : formatPaise(totalSpentPaise)} label="Total spent" color="var(--gb-green)" /></div>
+        <div style={{ flex: 1, textAlign: 'center' }}><Stat value={favouritesCount === null ? '—' : String(favouritesCount)} label="Favourites" color="#C1502E" /></div>
       </div>
 
       {/* gold membership */}

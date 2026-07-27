@@ -43,10 +43,10 @@ async function getCustomerProfile(token: string) {
 }
 
 export default async function HomePage(
-  { params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ table?: string }> },
+  { params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ table?: string; craving?: string }> },
 ) {
   const { slug } = await params;
-  const { table } = await searchParams;
+  const { table, craving } = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get('grabit_customer_token')?.value ?? null;
 
@@ -73,6 +73,7 @@ export default async function HomePage(
       favorites={favorites}
       isLoggedIn={!!token}
       table={table ?? null}
+      initialQuery={craving ?? null}
     />
   );
 }

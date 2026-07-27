@@ -54,6 +54,7 @@ interface Props {
   favorites?: FavItem[];
   isLoggedIn?: boolean;
   table?: string | null;
+  initialQuery?: string | null;
 }
 
 /* veg mark (square outline + dot) — only rendered when veg status is known */
@@ -67,7 +68,7 @@ function Veg({ veg }: { veg?: boolean | null }) {
   );
 }
 
-export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null }: Props) {
+export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null }: Props) {
   const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
 
   async function toggleFavorite(menuItemId: number) {
@@ -100,7 +101,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
     else sessionStorage.removeItem('grabit_table');
   }, [table]);
   const [activeCat, setActiveCat] = useState<GrabitMenuCategory | 'all'>('all');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery ?? '');
   const { addItem, updateQty, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
