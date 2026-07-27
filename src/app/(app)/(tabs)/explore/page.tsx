@@ -1,6 +1,6 @@
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
-import { EXPLORE_CATEGORIES, ph } from '@/components/gb/data';
+import { EXPLORE_CATEGORIES } from '@/components/gb/data';
 
 async function getCafes(): Promise<RealCafe[]> {
   try {
@@ -30,7 +30,7 @@ export default async function ExplorePage() {
           {EXPLORE_CATEGORIES.map((c) => (
             <div key={c.label} style={{ position: 'relative', height: 96, borderRadius: 16, overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={ph(c.photo)} alt={c.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <img src={c.photo} alt={c.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(20,10,5,.62) 100%)' }} />
               <div style={{ position: 'absolute', bottom: 10, left: 12, color: '#fff', fontSize: 15, fontWeight: 800 }}>{c.label}</div>
             </div>
