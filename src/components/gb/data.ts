@@ -53,13 +53,18 @@ export const POPULAR: GbItem[] = [
   { id: 9, slug: 'raydee', name: 'Blueberry Muffin', cafe: 'The Raydee Cafe', price: 85, photo: 'photo-1607958996333-41aef7caefaa' },
 ];
 
-// Kept to categories actually on the one live café's (raydee) menu —
-// no bakery/cold-press/desserts/breakfast/pizza items exist there yet.
+// photo = real raydee menu image (one representative variant per craving),
+// full CDN URL — not an unsplash id, so CategoryCircle renders it directly.
 export interface GbCategory { label: string; photo: string; }
 export const CATEGORIES: GbCategory[] = [
-  { label: 'Coffee', photo: 'photo-1447933601403-0c6688de566e' },
-  { label: 'Shakes', photo: 'photo-1502741338009-cac2772e18bc' },
-  { label: 'Sandwiches', photo: 'photo-1481070555726-e2fe8357725c' },
+  { label: 'Coffee', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cold-coffee.png' },
+  { label: 'Shakes', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/oreo-shake.png' },
+  { label: 'Sandwiches', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-grilled-sandwich.png' },
+  { label: 'Burgers', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-burger.png' },
+  { label: 'Mojitos', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/peach-mojito.png' },
+  { label: 'Wraps', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/veg-wrap.png' },
+  { label: 'Fries', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/salted-fries.png' },
+  { label: 'Maggi', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cheese-maggi.png' },
 ];
 
 /** Explore's category tiles (same set as Home, see note above). */

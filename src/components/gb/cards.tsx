@@ -150,7 +150,7 @@ export function CategoryCircle({ cat }: { cat: GbCategory }) {
     <div style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 72 }}>
       <div style={{ width: 66, height: 66, borderRadius: 20, overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(60,40,25,.4)', border: '1px solid #EFE7DB' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={ph(cat.photo)} alt={cat.label} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, display: 'block' }} />
+        <img src={cat.photo} alt={cat.label} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, display: 'block' }} />
       </div>
       <span style={{ fontSize: 12, fontWeight: 600, color: '#4A4038', textAlign: 'center', lineHeight: 1.1 }}>{cat.label}</span>
     </div>
