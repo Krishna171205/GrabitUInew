@@ -4,20 +4,19 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Link from "next/link";
-import Image from "next/image";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STYLES
+// STYLES — cream paper, espresso ink, one marigold accent. No photography:
+// the closing section is a printed page, not a hero.
 // ─────────────────────────────────────────────────────────────────────────────
 const STYLES = `
 @keyframes ritual-breathe {
-  0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.5; }
-  100% { transform: translate(-50%, -50%) scale(1.12); opacity: 1;   }
+  0%   { transform: translate(-50%, -50%) scale(1);    opacity: 0.45; }
+  100% { transform: translate(-50%, -50%) scale(1.14); opacity: 0.9;  }
 }
 
 @keyframes ritual-marquee {
@@ -26,86 +25,153 @@ const STYLES = `
 }
 
 @keyframes ritual-coffee {
-  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 4px rgba(255,177,0,0.4)); }
-  15%, 45% { transform: scale(1.25); filter: drop-shadow(0 0 12px rgba(255,177,0,0.9)); }
-  30%      { transform: scale(1);   }
+  0%, 100% { transform: scale(1);    }
+  15%, 45% { transform: scale(1.18); }
+  30%      { transform: scale(1);    }
 }
 
-.ritual-animate-breathe  { animation: ritual-breathe  8s ease-in-out infinite alternate; }
-.ritual-animate-marquee  { animation: ritual-marquee  38s linear        infinite; }
-.ritual-animate-coffee   { animation: ritual-coffee   2s  cubic-bezier(0.25,1,0.5,1) infinite; }
+.ritual-animate-breathe { animation: ritual-breathe 9s ease-in-out infinite alternate; }
+.ritual-animate-marquee { animation: ritual-marquee 46s linear infinite; }
+.ritual-animate-coffee  { animation: ritual-coffee 2.4s cubic-bezier(0.25,1,0.5,1) infinite; }
 
-/* Amber-warm aurora */
+/* Marigold aurora — the only light source in the composition */
 .ritual-aurora {
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(255, 177, 0, 0.08) 0%,
-    rgba(255, 150, 50, 0.05) 40%,
-    transparent 70%
+    rgba(255, 177, 0, 0.16) 0%,
+    rgba(255, 150, 50, 0.07) 42%,
+    transparent 72%
   );
 }
 
-/* Near-invisible warm grid */
+/* Paper tooth — barely-there warm grid, reads as texture not as lines */
 .ritual-bg-grid {
-  background-size: 56px 56px;
+  background-size: 64px 64px;
   background-image:
-    linear-gradient(to right,  rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
-  mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+    linear-gradient(to right,  rgba(43,25,10,0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(43,25,10,0.022) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, transparent, black 34%, black 72%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 34%, black 72%, transparent);
 }
 
-/* Ghost GRABIT — espresso wordmark embossed over the cafe photo */
+/* GRABIT letterpressed into the paper — cream on cream, lit from above.
+   Sits above the footer bars, which are taller on small screens. */
 .ritual-giant-bg {
-  font-size: 26vw;
-  line-height: 0.75;
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  color: rgba(43,25,10,0.42);
-  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+  position: absolute;
+  bottom: 16vh;
+  left: 50%;
+  white-space: nowrap;
+  font-size: 27vw;
+  line-height: 0.72;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  color: rgba(43, 25, 10, 0.07);
+  text-shadow: 0 1.5px 0 rgba(255, 255, 255, 0.95);
   user-select: none;
   pointer-events: none;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 34%, black 74%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 34%, black 74%, transparent 100%);
+}
+@media (max-width: 640px) {
+  .ritual-giant-bg { bottom: 30vh; font-size: 32vw; }
 }
 
-/* Amber-tinted warm glass pills */
-.ritual-glass-pill {
-  --pill-bg1:     rgba(255, 205, 120, 0.22);
-  --pill-bg2:     rgba(240, 170, 70, 0.16);
-  --pill-border:  rgba(43, 25, 10, 0.32);
-  --pill-shadow:  rgba(255, 177, 0, 0.08);
-  --pill-hi:      rgba(255, 255, 255, 0.8);
-  background: linear-gradient(145deg, var(--pill-bg1) 0%, var(--pill-bg2) 100%);
-  box-shadow:
-    0 8px 28px -8px var(--pill-shadow),
-    inset 0 1px 1px var(--pill-hi),
-    inset 0 -1px 1px rgba(255,177,0,0.04);
-  border: 1px solid var(--pill-border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+/* Signup: two stacked pills on phones, one nested capsule from sm up */
+.ritual-signup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 460px;
+}
+.ritual-signup-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  background: var(--gb-card);
+  border: 1px solid var(--gb-line-3);
+  border-radius: 999px;
+  padding: 5px;
+  box-shadow: 0 12px 30px -22px rgba(60,40,25,0.55);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.ritual-signup-cta {
+  width: 100%;
+  height: 52px;
+  flex: none;
+  border: none;
+  border-radius: 999px;
+  background: var(--gb-primary);
+  color: var(--gb-on-primary);
+  font-family: var(--gb-sans);
+  font-size: 14.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.ritual-signup input { border: none; background: transparent; min-width: 0; flex: 1; }
+.ritual-signup input::placeholder { color: var(--gb-muted-3); }
+.ritual-signup input:focus { outline: none; }
+.ritual-signup-row:focus-within {
+  border-color: rgba(255, 177, 0, 0.75);
+  box-shadow: 0 10px 30px -18px rgba(60,40,25,0.5), 0 0 0 4px rgba(255, 177, 0, 0.14);
 }
 
-.ritual-glass-pill:hover {
-  --pill-bg1:    rgba(255, 205, 120, 0.34);
-  --pill-bg2:    rgba(240, 170, 70, 0.26);
-  --pill-border: rgba(43, 25, 10, 0.5);
-  --pill-shadow: rgba(255, 177, 0, 0.18);
-  --pill-hi:     rgba(255, 255, 255, 0.9);
-  color: #1d1d1f;
+@media (min-width: 640px) {
+  .ritual-signup {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    background: var(--gb-card);
+    border: 1px solid var(--gb-line-3);
+    border-radius: 999px;
+    padding: 5px;
+    box-shadow: 0 12px 30px -22px rgba(60,40,25,0.55);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .ritual-signup:focus-within {
+    border-color: rgba(255, 177, 0, 0.75);
+    box-shadow: 0 10px 30px -18px rgba(60,40,25,0.5), 0 0 0 4px rgba(255, 177, 0, 0.14);
+  }
+  .ritual-signup-row { flex: 1; border: none; padding: 0; box-shadow: none; background: transparent; }
+  .ritual-signup-row:focus-within { border: none; box-shadow: none; }
+  .ritual-signup-cta { width: auto; height: 48px; padding: 0 24px; }
 }
 
-/* Charcoal gradient heading */
-.ritual-text-glow {
-  background: linear-gradient(180deg, #1d1d1f 0%, rgba(29,29,31,0.45) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 24px rgba(255,177,0,0.12));
+/* Quiet text links — hairline underline grows on hover, no chrome */
+.ritual-link {
+  position: relative;
+  color: rgba(43, 25, 10, 0.62);
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ritual-link::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -3px;
+  width: 100%; height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ritual-link:hover { color: var(--gb-text-strong); }
+.ritual-link:hover::after { transform: scaleX(1); transform-origin: left; }
+.ritual-link:focus-visible { outline: 2px solid var(--gb-gold); outline-offset: 4px; border-radius: 2px; }
+
+.ritual-top-btn {
+  transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+.ritual-top-btn:hover { border-color: var(--gb-text-strong); color: var(--gb-text-strong); }
+.ritual-top-btn:focus-visible { outline: 2px solid var(--gb-gold); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ritual-animate-breathe,
+  .ritual-animate-marquee,
+  .ritual-animate-coffee { animation: none; }
 }
 `;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAGNETIC BUTTON (GSAP spring pull)
+// MAGNETIC BUTTON (GSAP spring pull) — reserved for the two real actions
 // ─────────────────────────────────────────────────────────────────────────────
 type MagneticProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -120,16 +186,17 @@ const MagneticButton = React.forwardRef<HTMLElement, MagneticProps>(
       if (typeof window === "undefined") return;
       const el = localRef.current;
       if (!el) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
       const ctx = gsap.context(() => {
         const onMove = (e: MouseEvent) => {
           const r = el.getBoundingClientRect();
           const x = e.clientX - r.left - r.width / 2;
           const y = e.clientY - r.top - r.height / 2;
-          gsap.to(el, { x: x * 0.38, y: y * 0.38, rotationX: -y * 0.12, rotationY: x * 0.12, scale: 1.05, ease: "power2.out", duration: 0.38 });
+          gsap.to(el, { x: x * 0.22, y: y * 0.22, scale: 1.03, ease: "power2.out", duration: 0.4 });
         };
         const onLeave = () => {
-          gsap.to(el, { x: 0, y: 0, rotationX: 0, rotationY: 0, scale: 1, ease: "elastic.out(1, 0.3)", duration: 1.2 });
+          gsap.to(el, { x: 0, y: 0, scale: 1, ease: "elastic.out(1, 0.35)", duration: 1 });
         };
         el.addEventListener("mousemove", onMove as EventListener);
         el.addEventListener("mouseleave", onLeave);
@@ -160,59 +227,66 @@ const MagneticButton = React.forwardRef<HTMLElement, MagneticProps>(
 MagneticButton.displayName = "MagneticButton";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MARQUEE STRIP
+// MARQUEE STRIP — flat hairline band, no rotation, no glass
 // ─────────────────────────────────────────────────────────────────────────────
+const MARQUEE_WORDS = [
+  "Skip the queue",
+  "Order ahead",
+  "Pick your slot",
+  "Fresh every time",
+  "Your daily ritual",
+  "Zero wait, all craft",
+];
+
 function MarqueeItem() {
   return (
-    <div className="flex items-center space-x-10 px-6 text-zinc-500">
-      <span>Skip The Queue</span>      <span style={{ color: "#E09A00", opacity: 0.8 }}>✦</span>
-      <span>Order Ahead</span>         <span style={{ color: "#E09A00", opacity: 0.8 }}>✦</span>
-      <span>Pick Your Slot</span>      <span style={{ color: "#E09A00", opacity: 0.8 }}>✦</span>
-      <span>Fresh Every Time</span>    <span style={{ color: "#E09A00", opacity: 0.8 }}>✦</span>
-      <span>Your Daily Ritual</span>   <span style={{ color: "#E09A00", opacity: 0.8 }}>✦</span>
-      <span>Zero Wait. All Craft.</span> <span style={{ color: "#E09A00", opacity: 0.8 }}>✦</span>
+    <div className="flex items-center" aria-hidden="true">
+      {MARQUEE_WORDS.map((w) => (
+        <span key={w} className="flex items-center">
+          <span className="px-6">{w}</span>
+          <span style={{ color: "var(--gb-gold)", opacity: 0.55 }}>✦</span>
+        </span>
+      ))}
     </div>
   );
 }
+
+const FOOTER_LINKS = [
+  { href: "/contact", label: "Contact" },
+  { href: "/terms", label: "Terms" },
+  { href: "/refunds", label: "Refunds" },
+  { href: "/privacy", label: "Privacy" },
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export function ReadyToJoinRitual() {
-  const wrapperRef   = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const giantTextRef = useRef<HTMLDivElement>(null);
-  const headingRef   = useRef<HTMLHeadingElement>(null);
-  const contentRef   = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [phone, setPhone] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined" || !wrapperRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Ghost GRABIT — visible by default; gentle one-shot rise-in if the trigger fires (never hidden if it doesn't).
-      gsap.from(
-        giantTextRef.current,
-        {
-          yPercent: 12, scale: 0.9, opacity: 0,
-          duration: 0.9, ease: "power2.out",
-          immediateRender: false,
-          scrollTrigger: { trigger: wrapperRef.current, start: "top 88%", toggleActions: "play none none none", once: true },
-        }
-      );
+      // Everything is visible by default; the scroll trigger only adds a one-shot
+      // rise-in. A gated reveal here once left the CTA + policy links hidden.
+      gsap.from(giantTextRef.current, {
+        yPercent: 10, opacity: 0,
+        duration: 0.9, ease: "power2.out",
+        immediateRender: false,
+        scrollTrigger: { trigger: wrapperRef.current, start: "top 88%", toggleActions: "play none none none", once: true },
+      });
 
-      // Heading + form + pills stay visible by default (this block carries the CTA + policy links).
-      // A scroll-gated reveal on a fixed footer inside a clip-path curtain proved unreliable and could
-      // leave the CTA hidden, so we only add a gentle one-shot fade on enter and never hide by default.
-      gsap.from(
-        [headingRef.current, contentRef.current],
-        {
-          y: 36, opacity: 0,
-          duration: 0.7, stagger: 0.12,
-          ease: "power3.out",
-          immediateRender: false, // stay visible by default; only animate if the trigger actually fires
-          scrollTrigger: { trigger: wrapperRef.current, start: "top 90%", toggleActions: "play none none none", once: true },
-        }
-      );
+      gsap.from([headingRef.current, contentRef.current], {
+        y: 34, opacity: 0,
+        duration: 0.75, stagger: 0.12, ease: "power3.out",
+        immediateRender: false,
+        scrollTrigger: { trigger: wrapperRef.current, start: "top 90%", toggleActions: "play none none none", once: true },
+      });
     }, wrapperRef);
 
     return () => ctx.revert();
@@ -225,10 +299,8 @@ export function ReadyToJoinRitual() {
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
       {/*
-        Curtain reveal wrapper:
-        - Sits in normal flow, height = viewport
-        - clip-path constrains visibility to its own bounding box
-        - The inner footer is fixed, so it "peeks through" this cutout
+        Curtain reveal wrapper: sits in normal flow at viewport height, clip-path
+        constrains visibility to its own box, and the fixed footer peeks through.
       */}
       <div
         id="join-ritual"
@@ -238,115 +310,73 @@ export function ReadyToJoinRitual() {
       >
         <footer
           className="fixed bottom-0 left-0 flex h-screen w-full flex-col justify-between overflow-hidden"
-          style={{ background: "#ffffff", color: "#1d1d1f", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ background: "var(--gb-surface)", color: "var(--gb-text-strong)", fontFamily: "var(--gb-sans)" }}
         >
-          {/* Aurora glow */}
+          {/* Marigold aurora */}
           <div
             className="ritual-aurora ritual-animate-breathe absolute pointer-events-none z-0"
-            style={{ left: "50%", top: "50%", width: "80vw", height: "60vh", borderRadius: "50%", filter: "blur(80px)" }}
+            style={{ left: "50%", top: "52%", width: "78vw", height: "56vh", borderRadius: "50%", filter: "blur(90px)" }}
           />
 
-          {/* Warm grid */}
+          {/* Paper tooth */}
           <div className="ritual-bg-grid absolute inset-0 z-0 pointer-events-none" />
 
-          {/* Photographic base — warm cafe scene, marigold-graded (dock.cool-style depth) */}
-          <div
-            className="absolute bottom-0 left-0 w-full z-0 pointer-events-none overflow-hidden"
-            style={{
-              height: "62vh",
-              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 42%)",
-              maskImage: "linear-gradient(to bottom, transparent 0%, black 42%)",
-            }}
-          >
-            <Image
-              src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1600&q=80"
-              alt=""
-              fill
-              loading="lazy"
-              sizes="100vw"
-              style={{ objectFit: "cover", objectPosition: "center 60%", opacity: 0.5 }}
-            />
-            {/* Marigold wash — pulls the photo into brand hue */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(180deg, rgba(255,177,0,0.22) 0%, rgba(255,150,40,0.4) 100%)",
-                mixBlendMode: "soft-light",
-              }}
-            />
-          </div>
-
-          {/* Ghost GRABIT */}
+          {/* GRABIT, letterpressed */}
           <div
             ref={giantTextRef}
-            className="ritual-giant-bg absolute z-0 select-none"
-            style={{ bottom: "-4vh", left: "50%", transform: "translateX(-50%)", whiteSpace: "nowrap" }}
+            className="ritual-giant-bg z-0 select-none"
+            style={{ transform: "translateX(-50%)" }}
+            aria-hidden="true"
           >
             GRABIT
           </div>
 
-          {/* ── Diagonal marquee strip ─────────────────────────────────────── */}
-          <div
-            className="absolute top-12 left-0 w-full overflow-hidden z-10 py-4 -rotate-2 scale-110 shadow-xl"
-            style={{
-              borderTop: "1px solid rgba(0,0,0,0.05)",
-              borderBottom: "1px solid rgba(0,0,0,0.05)",
-              background: "rgba(255,255,255,0.75)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-            }}
-          >
-            <div
-              className="ritual-animate-marquee flex w-max text-xs font-bold tracking-[0.28em] uppercase"
-            >
-              <MarqueeItem />
-              <MarqueeItem />
-            </div>
-          </div>
-
           {/* ── Center content ─────────────────────────────────────────────── */}
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 mt-20 w-full max-w-4xl mx-auto">
-
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 w-full max-w-3xl mx-auto text-center">
             <h2
               ref={headingRef}
-              className="ritual-text-glow text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-center mb-4"
-              style={{ lineHeight: 1.05 }}
+              className="gb-serif"
+              style={{
+                fontSize: "clamp(38px, 7vw, 76px)",
+                fontWeight: 600,
+                lineHeight: 1.04,
+                letterSpacing: "-0.02em",
+                margin: 0,
+                color: "var(--gb-text-strong)",
+              }}
             >
-              Ready to join<br />the ritual?
+              Ready to join
+              <br />
+              <span style={{ fontStyle: "italic", color: "var(--gb-gold)" }}>the ritual?</span>
             </h2>
 
             <p
-              className="text-center mb-10 text-sm md:text-base leading-relaxed"
-              style={{ color: "rgba(29,29,31,0.5)", maxWidth: "480px" }}
+              style={{
+                color: "var(--gb-muted)",
+                fontSize: 16,
+                lineHeight: 1.55,
+                maxWidth: 430,
+                margin: "20px 0 0",
+              }}
             >
-              Get exclusive offers from local cafes and be the first to know about new artisan partnerships.
+              Exclusive offers from cafés near you, and first word on new artisan partnerships.
             </p>
 
-            <div ref={contentRef} className="flex flex-col items-center gap-5 w-full">
-
-              {/* Phone form */}
-              <form
-                className="flex flex-col sm:flex-row gap-3 w-full max-w-md"
-                onSubmit={(e) => e.preventDefault()}
-              >
-                <div
-                  className="flex-grow flex items-center rounded-full overflow-hidden"
-                  style={{ height: "56px", background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
-                >
+            <div ref={contentRef} className="flex flex-col items-center w-full" style={{ marginTop: 34 }}>
+              {/* One nested capsule on desktop, two stacked pills on phones. */}
+              <form className="ritual-signup" onSubmit={(e) => e.preventDefault()}>
+                <div className="ritual-signup-row">
                   <span
-                    className="pl-5 pr-3 font-bold text-sm select-none flex items-center"
-                    style={{
-                      color: "rgba(29,29,31,0.45)",
-                      borderRight: "1px solid rgba(0,0,0,0.08)",
-                      height: "28px",
-                    }}
+                    className="select-none"
+                    style={{ padding: "0 12px 0 18px", fontSize: 14, fontWeight: 700, color: "var(--gb-muted)" }}
                   >
                     +91
                   </span>
+                  <span style={{ width: 1, height: 22, background: "var(--gb-line-3)", flex: "none" }} />
                   <input
-                    className="flex-1 h-full px-4 bg-transparent text-sm focus:outline-none"
-                    style={{ color: "#1d1d1f" }}
+                    style={{ padding: "0 14px", height: 48, fontSize: 15, fontWeight: 500, color: "var(--gb-text)", fontFamily: "var(--gb-sans)" }}
                     placeholder="Mobile number"
+                    aria-label="Mobile number"
                     type="tel"
                     inputMode="numeric"
                     maxLength={10}
@@ -354,83 +384,105 @@ export function ReadyToJoinRitual() {
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                   />
                 </div>
-                <MagneticButton
-                  as="button"
-                  type="submit"
-                  className="ritual-glass-pill px-8 rounded-full font-bold text-sm whitespace-nowrap flex items-center justify-center"
-                  style={{
-                    height: "56px",
-                    background: "#FFB100",
-                    border: "none",
-                    color: "#241612",
-                    boxShadow: "0 4px 24px rgba(255,177,0,0.4)",
-                  }}
-                >
-                  Get Early Access
+                <MagneticButton as="button" type="submit" className="ritual-signup-cta">
+                  Get early access
                 </MagneticButton>
               </form>
 
-              {/* Secondary pill links */}
-              <div className="flex flex-wrap justify-center gap-3 mt-1">
-                <MagneticButton as="a" href="/contact" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
-                  Contact
-                </MagneticButton>
-                <MagneticButton as="a" href="/terms" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
-                  Terms
-                </MagneticButton>
-                <MagneticButton as="a" href="/refunds" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
-                  Refunds
-                </MagneticButton>
-                <MagneticButton as="a" href="/privacy" className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
-                  Privacy
-                </MagneticButton>
-                <MagneticButton as="a" href="#cafe-search" onClick={(e: React.MouseEvent) => { e.preventDefault(); document.getElementById("cafe-search")?.scrollIntoView({ behavior: "smooth" }); }} className="ritual-glass-pill px-5 py-2.5 rounded-full text-xs font-semibold" style={{ color: "rgba(43,25,10,0.92)" }}>
-                  Explore Cafes
+              <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--gb-muted-2)", fontWeight: 500 }}>
+                No spam. Only the good stuff, once in a while.
+              </p>
+            </div>
+          </div>
+
+          {/* ── Marquee band, sitting on the masthead like a printed rule ──── */}
+          <div className="relative z-20 w-full mt-auto">
+            <div
+              className="w-full overflow-hidden"
+              style={{
+                borderTop: "1px solid var(--gb-line-2)",
+                padding: "12px 0",
+                background: "rgba(255,248,236,0.86)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+              }}
+            >
+              <div
+                className="ritual-animate-marquee flex w-max uppercase"
+                style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.3em", color: "var(--gb-faint)" }}
+              >
+                <MarqueeItem />
+                <MarqueeItem />
+              </div>
+            </div>
+
+            {/* ── Masthead bar ─────────────────────────────────────────────── */}
+            <div
+              className="w-full"
+              style={{ borderTop: "1px solid var(--gb-line-2)", background: "rgba(255,248,236,0.86)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
+            >
+            <div
+              className="mx-auto flex w-full max-w-6xl flex-col items-center gap-5 px-6 lg:flex-row lg:justify-between lg:gap-8"
+              style={{ paddingTop: 20, paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}
+            >
+              {/* Policy links — quiet type, not five glass pills */}
+              <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 order-1" style={{ fontSize: 13, fontWeight: 600 }}>
+                {FOOTER_LINKS.map((l) => (
+                  <a key={l.href} href={l.href} className="ritual-link">
+                    {l.label}
+                  </a>
+                ))}
+                <a
+                  href="#cafe-search"
+                  className="ritual-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById("cafe-search")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Explore cafés
+                </a>
+              </nav>
+
+              <div className="flex items-center gap-5 order-2">
+                <span
+                  className="hidden sm:inline uppercase"
+                  style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.18em", color: "var(--gb-faint-2)" }}
+                >
+                  Crafted for the{" "}
+                  <span className="ritual-animate-coffee" style={{ display: "inline-block" }}>
+                    ☕
+                  </span>{" "}
+                  urban alchemist
+                </span>
+                <MagneticButton
+                  as="button"
+                  onClick={scrollToTop}
+                  aria-label="Back to top"
+                  className="ritual-top-btn flex items-center justify-center"
+                  style={{
+                    width: 38, height: 38, borderRadius: 999,
+                    border: "1px solid var(--gb-line-3)",
+                    background: "var(--gb-card)",
+                    color: "var(--gb-muted)",
+                    flex: "none",
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
                 </MagneticButton>
               </div>
 
-            </div>
-          </div>
-
-          {/* ── Bottom bar ─────────────────────────────────────────────────── */}
-          <div
-            className="relative z-20 w-full pb-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4"
-          >
-            {/* Copyright */}
-            <p
-              className="text-[10px] md:text-xs font-semibold tracking-widest uppercase order-2 md:order-1"
-              style={{ color: "rgba(43,25,10,0.92)" }}
-            >
-              © 2026 Unified Nexgrade Private Limited · Delhi NCR
-            </p>
-
-            {/* Crafted badge */}
-            <div
-              className="ritual-glass-pill px-5 py-2.5 rounded-full flex items-center gap-2 order-1 md:order-2 cursor-default"
-            >
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(43,25,10,0.92)" }}>Crafted for the</span>
-              <span className="ritual-animate-coffee text-sm md:text-base" style={{ display: "inline-block" }}>☕</span>
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(43,25,10,0.92)" }}>Urban Alchemist</span>
-            </div>
-
-            {/* Back to top */}
-            <MagneticButton
-              as="button"
-              onClick={scrollToTop}
-              className="ritual-glass-pill w-11 h-11 rounded-full flex items-center justify-center group order-3"
-              style={{ color: "rgba(43,25,10,0.92)" }}
-            >
-              <svg
-                className="w-4 h-4 group-hover:-translate-y-1 transition-transform duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <p
+                className="uppercase order-3 lg:order-none text-center lg:whitespace-nowrap"
+                style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em", color: "var(--gb-faint-2)" }}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-            </MagneticButton>
+                © 2026 Unified Nexgrade Private Limited · Delhi NCR
+              </p>
+            </div>
+            </div>
           </div>
-
         </footer>
       </div>
     </>

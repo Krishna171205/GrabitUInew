@@ -139,7 +139,7 @@ export default function ManagePage() {
                       key={order.id}
                       order={order}
                       onReject={() => updateStatus(order.id, 'cancelled')}
-                      onAccept={() => updateStatus(order.id, 'confirmed')}
+                      onAccept={(prepMins) => updateStatus(order.id, 'confirmed', prepMins)}
                       onAdvance={() => updateStatus(order.id, STATUS_ACTIONS[order.status].next)}
                     />
                   ))}
@@ -158,10 +158,15 @@ function QueueCard({
 }: {
   order: GrabitOrderWithItems;
   onReject: () => void;
-  onAccept: () => void;
+  onAccept: (prepMins: number) => void;
   onAdvance: () => void;
 }) {
   const isNew = order.status === 'new_order';
+  // Chef times from the menu give a starting number, so accepting is one tap and
+  // adjusting is a nudge, not a calculation.
+  const [prepMins, setPrepMins] = useState(order.suggested_prep_minutes ?? 10);
+  const startBy = new Date(new Date(order.pickup_slot).getTime() - prepMins * 60000);
+  const startsLate = startBy.getTime() <= Date.now();
   const mins = minsUntil(order.pickup_slot);
   const overdue = mins < 0;
   const dueText = overdue ? `Overdue ${Math.abs(mins)}m` : mins === 0 ? 'Due now' : `Due in ${mins}m`;
@@ -209,6 +214,39 @@ function QueueCard({
         ))}
       </div>
 
+      {/* Customer instructions — only when present */}
+      {order.notes && (
+        <div style={{ display: 'flex', gap: 7, marginBottom: 11, padding: '9px 10px', background: 'var(--warning-tint)', borderRadius: 'var(--r-sm)' }}>
+          {Icon.edit({ size: 14 })}
+          <span style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>{order.notes}</span>
+        </div>
+      )}
+
+      {/* Prep estimate — only while deciding; after accept the timer takes over */}
+      {isNew && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 11, padding: '9px 10px', background: 'var(--surface-low)', borderRadius: 'var(--r-sm)' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="t-caption" style={{ fontWeight: 700, color: 'var(--on-surface-variant)' }}>Prep time</div>
+            <div className="t-caption" style={{ color: startsLate ? 'var(--error)' : 'var(--muted)' }}>
+              {startsLate ? 'Start now to make the slot' : `Start by ${startBy.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: 'var(--surface-card)', border: '1px solid var(--hairline)', borderRadius: 'var(--r-pill)', padding: 2 }}>
+            <button
+              onClick={() => setPrepMins((m) => Math.max(1, m - 5))}
+              aria-label="Less prep time"
+              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'transparent', color: 'var(--on-surface-variant)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+            >−</button>
+            <span className="tabular" style={{ minWidth: 44, textAlign: 'center', fontSize: 13, fontWeight: 700 }}>{prepMins}m</span>
+            <button
+              onClick={() => setPrepMins((m) => Math.min(120, m + 5))}
+              aria-label="More prep time"
+              style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'transparent', color: 'var(--on-surface-variant)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+            >+</button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <span style={{
@@ -222,7 +260,7 @@ function QueueCard({
         {isNew && (
           <div style={{ display: 'flex', gap: 8 }}>
             <Button size="sm" variant="danger" onClick={onReject}>Reject</Button>
-            <Button size="sm" variant="success" onClick={onAccept}>Accept</Button>
+            <Button size="sm" variant="success" onClick={() => onAccept(prepMins)}>Accept</Button>
           </div>
         )}
         {!isNew && action && (

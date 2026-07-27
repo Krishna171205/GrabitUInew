@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
@@ -46,12 +46,31 @@ export default function CartPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
-  useEffect(() => { setDineInTable(sessionStorage.getItem('grabit_table')); }, []);
+  const [notes, setNotes] = useState('');
+  const slotRef = useRef<HTMLDivElement>(null);
+  const [shakeSlot, setShakeSlot] = useState(false);
+  useEffect(() => {
+    setDineInTable(sessionStorage.getItem('grabit_table'));
+    setNotes(sessionStorage.getItem('grabit_notes') ?? '');
+  }, []);
   const canProceed = dineInTable ? true : !!selectedSlot;
 
+  // Habit is to jump straight to Pay: instead of a dead disabled button, point at
+  // the thing that's missing (scroll + shake + a short haptic).
+  function nudgeSlot() {
+    slotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    navigator.vibrate?.(60);
+    // off for a frame first so a second tap replays the animation instead of no-op
+    setShakeSlot(false);
+    requestAnimationFrame(() => setShakeSlot(true));
+    setTimeout(() => setShakeSlot(false), 550);
+  }
+
   async function placeOrder() {
+    if (!canProceed) { nudgeSlot(); return; }
     if (dineInTable) sessionStorage.removeItem('grabit_slot');
     else sessionStorage.setItem('grabit_slot', selectedSlot!);
+    sessionStorage.setItem('grabit_notes', notes.trim());
     setCheckingAuth(true);
     const loggedIn = await fetch('/api/proxy/grabit/auth/me').then((r) => r.ok).catch(() => false);
     setCheckingAuth(false);
@@ -138,7 +157,7 @@ export default function CartPage() {
         </div>
       ) : (
       /* pickup slot */
-      <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '22px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MS name="schedule" size={20} fill color="var(--gb-primary)" />
           <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Pickup time</div>
@@ -175,6 +194,25 @@ export default function CartPage() {
       </div>
       )}
 
+      {/* cooking instructions — always optional */}
+      <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MS name="edit_note" size={20} fill color="var(--gb-primary)" />
+          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Cooking instructions</div>
+          <span style={{ marginLeft: 'auto', fontSize: 11.5, fontWeight: 700, color: 'var(--gb-muted-2)' }}>Optional</span>
+        </div>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value.slice(0, 200))}
+          rows={2}
+          placeholder="Less sugar, no ice, extra spicy…"
+          style={{ width: '100%', marginTop: 12, border: '1px solid #EEE4D6', borderRadius: 13, padding: '11px 13px', fontSize: 14, fontFamily: 'var(--gb-sans)', fontWeight: 500, color: 'var(--gb-text)', background: 'var(--gb-surface)', outline: 'none', resize: 'none' }}
+        />
+        <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 4 }}>
+          The cafe will try its best. {notes.length}/200
+        </div>
+      </div>
+
       {/* bill */}
       <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
@@ -189,9 +227,9 @@ export default function CartPage() {
           <MS name="expand_more" size={18} color="#B0A392" style={{ marginLeft: 'auto' }} />
         </div>
         <button
-          disabled={!canProceed || checkingAuth}
+          disabled={checkingAuth}
           onClick={placeOrder}
-          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: canProceed && !checkingAuth ? 'pointer' : 'not-allowed', opacity: canProceed && !checkingAuth ? 1 : 0.6 }}
+          style={{ width: '100%', border: 'none', background: 'var(--gb-primary)', color: '#fff', borderRadius: 15, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: checkingAuth ? 'not-allowed' : 'pointer', opacity: checkingAuth ? 0.6 : 1 }}
         >
           <span style={{ fontSize: 16, fontWeight: 800 }}>Pay {inr(toPay)}</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 700 }}>{checkingAuth ? 'Checking…' : canProceed ? 'Place order' : 'Pick a slot'}<MS name="arrow_forward" size={20} /></span>

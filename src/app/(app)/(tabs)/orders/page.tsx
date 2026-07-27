@@ -54,7 +54,8 @@ function OrderRow({ o, cafeName, cafeSlug }: { o: Order; cafeName: string; cafeS
       {cafeSlug && <MS name="chevron_right" size={20} color="var(--gb-icon)" />}
     </div>
   );
-  return cafeSlug ? <Link href={`/${cafeSlug}`}>{inner}</Link> : inner;
+  // Tapping an order opens that order's tracking page, not the cafe menu.
+  return cafeSlug ? <Link href={`/${cafeSlug}/order/${o.id}`}>{inner}</Link> : inner;
 }
 
 export default function OrdersPage() {

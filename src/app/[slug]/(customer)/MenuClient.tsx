@@ -192,9 +192,17 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                 <div style={{ position: 'relative', height: 96 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  <button onClick={() => addTop(item)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
-                    <MS name="add" size={17} />
-                  </button>
+                  {qtyOf(item.menu_item_id) > 0 ? (
+                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
+                      <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+                      <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.menu_item_id)}</span>
+                      <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) + 1)} aria-label="Add one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                    </div>
+                  ) : (
+                    <button onClick={() => addTop(item)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                      <MS name="add" size={17} />
+                    </button>
+                  )}
                 </div>
                 <div style={{ padding: '8px 10px 10px' }}>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.menu_item_name}</div>
@@ -216,8 +224,8 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         </div>
       </div>
 
-      {/* filter chips */}
-      <div className="gb-scroll" style={{ display: 'flex', gap: 9, overflowX: 'auto', padding: '14px 16px 6px' }}>
+      {/* filter chips — sticky so switching category is always one tap away */}
+      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', gap: 9, overflowX: 'auto', padding: '14px 16px 10px' }}>
         <div style={chip(false)}><MS name="tune" size={17} color="var(--gb-primary)" />Filters</div>
         <button style={chip(activeCat === 'all')} onClick={() => setActiveCat('all')}>All</button>
         {categoriesPresent.map(c => (

@@ -80,6 +80,8 @@ export interface GrabitOrder {
   accepted_by_staff_id?: number | null;
   prep_time_minutes?: number | null;
   prep_ready_at?: string | null;
+  notes?: string | null; // optional customer cooking instructions
+  suggested_prep_minutes?: number | null; // chef-time estimate, staff accept from it
   created_at: string;
   updated_at: string;
 }

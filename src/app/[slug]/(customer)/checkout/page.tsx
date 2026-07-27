@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const submitting = useRef(false);
   const [pickupSlot, setPickupSlot] = useState<string | null>(null);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
+  const [notes, setNotes] = useState('');
   const [cafeId, setCafeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,6 +39,7 @@ export default function CheckoutPage() {
     }
     setDineInTable(table);
     setPickupSlot(slot);
+    setNotes(sessionStorage.getItem('grabit_notes') ?? '');
   }, [slug, router]);
 
   // cart's placeOrder() already gates every checkout on a live session (via the
@@ -97,6 +99,7 @@ export default function CheckoutPage() {
           ...(dineInTable
             ? { order_type: 'dine_in', table_number: Number(dineInTable) }
             : { pickup_slot: pickupSlot }),
+          ...(notes ? { notes } : {}),
           payment_method: paymentMethod,
           items: items.map(i => ({ menu_item_id: i.menu_item_id, quantity: i.quantity })),
         }),
@@ -111,6 +114,7 @@ export default function CheckoutPage() {
         clearCart();
         sessionStorage.removeItem('grabit_slot');
         sessionStorage.removeItem('grabit_table');
+        sessionStorage.removeItem('grabit_notes');
         router.push(orderUrl);
       } else {
         // Cashfree order creation is non-fatal server-side (the order is already
@@ -211,6 +215,12 @@ export default function CheckoutPage() {
                 <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price * item.quantity)}</span>
               </div>
             ))}
+            {notes && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 12, padding: '10px 12px', background: 'var(--gb-surface)', borderRadius: 12 }}>
+                <MS name="edit_note" size={18} color="var(--gb-primary)" />
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gb-muted)', lineHeight: 1.4 }}>{notes}</span>
+              </div>
+            )}
             <div style={{ height: 1, background: 'var(--gb-line)', margin: '10px 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--gb-text)' }}>Total</span>
