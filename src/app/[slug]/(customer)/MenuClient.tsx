@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
@@ -160,7 +161,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
       {/* cover */}
       <div style={{ position: 'relative', height: 250 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cover} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <Image src={cover} alt={cafe.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
         <button onClick={() => router.push('/home')} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
           <MS name="arrow_back" size={22} color="var(--gb-ink)" />
@@ -224,8 +225,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
             {topItems.map(item => (
               <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   {qtyOf(item.menu_item_id) > 0 ? (
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
@@ -258,7 +258,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
               <div key={item.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   {qtyOf(item.id) > 0 ? (
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(item.id, qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
@@ -320,9 +320,8 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                     <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8 }}>{inr(item.price)}</div>
                   </div>
                   <div style={{ width: 104, flex: 'none', position: 'relative' }}>
-                    <div style={{ width: 104, height: 96, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 18px -10px rgba(60,40,25,.4)' }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.image_url || ph(placeholderFor(item))} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ width: 104, height: 96, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 18px -10px rgba(60,40,25,.4)', position: 'relative' }}>
+                      <Image src={item.image_url || ph(placeholderFor(item))} alt={item.name} fill sizes="104px" style={{ objectFit: 'cover' }} />
                     </div>
                     {isLoggedIn && (
                       <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>

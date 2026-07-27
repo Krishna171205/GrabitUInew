@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
@@ -125,8 +126,7 @@ function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[];
           </div>
           <div style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff' }}>
             {me?.avatar_url
-              // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={me.avatar_url} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              ? <Image src={me.avatar_url} alt="You" width={44} height={44} sizes="44px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               : initial}
           </div>
         </div>
@@ -148,8 +148,7 @@ function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[];
             <Link key={it.menu_item_id} href={reorderSlug ? `/${reorderSlug}` : '/explore'} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '12px 0', borderBottom: i < topItems.length - 1 ? '1px solid var(--gb-line)' : 'none' }}>
               <div style={{ width: 50, height: 50, borderRadius: 13, overflow: 'hidden', flex: 'none', background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {it.image_url
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={it.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  ? <Image src={it.image_url} alt="" width={50} height={50} sizes="50px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   : <MS name="restaurant" size={22} color="var(--gb-primary)" />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
