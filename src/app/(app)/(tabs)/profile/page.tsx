@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { formatPaise } from '@/lib/utils';
 import type { RealCafe } from '@/components/gb/cards';
@@ -109,7 +110,12 @@ export default function ProfilePage() {
       if (!saveRes.ok) throw new Error('Could not save photo');
       setMe((prev) => (prev ? { ...prev, avatar_url: publicUrl } : prev));
     } catch (e) {
+      // The user gets a generic message (the raw error can carry the S3 bucket
+      // hostname), but the real one has to reach us or the failure is invisible:
+      // a browser fetch to S3 that 403s reports only "Load failed", because S3
+      // omits CORS headers on error responses.
       console.error('avatar upload failed', e);
+      Sentry.captureException(e, { tags: { feature: 'avatar-upload' } });
       setAvatarError('Could not upload photo. Please try again.');
     } finally {
       setUploadingAvatar(false);
