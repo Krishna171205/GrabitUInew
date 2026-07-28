@@ -122,7 +122,7 @@ export default function CheckoutPage() {
         // down, not that the whole order failed. Send the customer to pay at
         // counter instead of crashing on a null payment_session_id.
         if (!data.cashfree) {
-          throw new Error('Online payment is temporarily unavailable. Please choose "Pay at counter" instead.');
+          throw new Error('Online payment is temporarily unavailable. Please try again in a moment.');
         }
         await new Promise<void>((resolve, reject) => {
           if (document.getElementById('cashfree-sdk')) { resolve(); return; }
@@ -257,16 +257,6 @@ export default function CheckoutPage() {
             }}
           >
             {loading ? 'Processing…' : `Pay ${inr(total())} online`}
-          </button>
-          <button
-            disabled={loading || !detailsValid}
-            onClick={() => handleOrder('counter')}
-            style={{
-              marginTop: 10, width: '100%', border: '1px solid var(--gb-line-2)', borderRadius: 15, padding: 15, background: '#fff', color: 'var(--gb-text)',
-              fontSize: 15, fontWeight: 800, cursor: loading || !detailsValid ? 'not-allowed' : 'pointer', opacity: loading || !detailsValid ? 0.6 : 1,
-            }}
-          >
-            Pay at counter
           </button>
         </div>
       </div>

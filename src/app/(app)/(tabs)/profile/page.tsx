@@ -8,7 +8,6 @@ import { formatPaise } from '@/lib/utils';
 import type { RealCafe } from '@/components/gb/cards';
 
 interface Me { customerId: number; name: string | null; email: string | null; phone: string; avatar_url: string | null; }
-interface Wallet { base_balance_paise: number; }
 interface OrderView { status: string; payment_status: string; total_amount: number; }
 
 function Stat({ value, label, color }: { value: string; label: string; color: string }) {
@@ -35,7 +34,6 @@ function MenuRow({ icon, label, href, badge, last }: { icon: string; label: stri
 export default function ProfilePage() {
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
-  const [wallet, setWallet] = useState<Wallet | null>(null);
   const [primaryCafe, setPrimaryCafe] = useState<RealCafe | undefined>(undefined);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState('');
@@ -57,11 +55,6 @@ export default function ProfilePage() {
       const cafe = cafes[0];
       setPrimaryCafe(cafe);
       if (meData?.customerId && cafe) {
-        fetch(`/api/proxy/grabit/wallet/${meData.customerId}?cafeId=${cafe.id}`)
-          .then((r) => (r.ok ? r.json() : null))
-          .then((wd) => { if (wd?.wallet) setWallet(wd.wallet); })
-          .catch(() => {});
-
         fetch(`/api/proxy/grabit/favorites?cafeId=${cafe.id}`)
           .then((r) => (r.ok ? r.json() : []))
           .then((favs: unknown[]) => setFavouritesCount(favs.length))
@@ -264,7 +257,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* wallet — real balance for the customer's one live cafe */}
+      {/* wallet — top-up not live yet */}
       {primaryCafe && (
         <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: '15px 16px', display: 'flex', alignItems: 'center', gap: 13 }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F4EBDF', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
@@ -272,9 +265,10 @@ export default function ProfilePage() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>Grabit Credits</div>
-            <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600 }}>Balance {wallet ? formatPaise(wallet.base_balance_paise) : '₹0'}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600 }}>Pay from your balance, soon</div>
           </div>
-          <Link href={`/${primaryCafe.slug}/wallet`} style={{ border: '1.5px solid #E7DCCC', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, padding: '9px 14px', borderRadius: 11 }}>Add money</Link>
+          {/* Wallet top-up is not live yet, so no Add money entry point. */}
+          <span style={{ border: '1.5px solid var(--gb-line-2)', color: 'var(--gb-muted-2)', fontSize: 12.5, fontWeight: 800, padding: '9px 14px', borderRadius: 11 }}>Coming soon</span>
         </div>
       )}
 
