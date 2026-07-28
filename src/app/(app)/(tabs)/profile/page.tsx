@@ -93,9 +93,43 @@ export default function ProfilePage() {
     }
   }
 
-  async function uploadAvatar(file: File) {
+  /**
+   * Shrink the picked photo before uploading. A phone camera JPEG is several MB
+   * and this renders at 44-66px, so the full-resolution original is wasted
+   * upload time on mobile and wasted storage forever. Re-encoding through a
+   * canvas also normalises HEIC (which iOS hands over) to JPEG.
+   * Returns the original file if the browser cannot decode it.
+   */
+  async function downscaleImage(file: File, maxDim = 512, quality = 0.85): Promise<File> {
+    let bitmap: ImageBitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      return file;
+    }
+    try {
+      const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+      const w = Math.max(1, Math.round(bitmap.width * scale));
+      const h = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return file;
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', quality));
+      if (!blob) return file;
+      return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } finally {
+      bitmap.close();
+    }
+  }
+
+  async function uploadAvatar(original: File) {
     setUploadingAvatar(true); setAvatarError('');
     try {
+      if (!original.type.startsWith('image/')) throw new Error('Not an image');
+      const file = await downscaleImage(original);
+
       const presignRes = await fetch(`/api/proxy/grabit/auth/avatar/presign?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`, { method: 'POST' });
       if (!presignRes.ok) throw new Error('Could not start upload');
       const { uploadUrl, publicUrl } = await presignRes.json();
