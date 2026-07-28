@@ -4,7 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs'
 const isDev = process.env.NODE_ENV === 'development';
 
 const securityHeaders = [
-  // XSS: only allow scripts from self + Cashfree SDK + Supabase
+  // XSS: only allow scripts from self + Cashfree SDK
   {
     key: 'Content-Security-Policy',
     value: [
@@ -14,7 +14,11 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com${isDev ? ' http://localhost:8083' : ''}`,
+      // The avatar upload PUTs straight to S3 on a presigned URL, so the bucket host
+      // has to be allowed here or the browser blocks the request before it is sent.
+      // That failure is invisible server-side (no S3 log, no object) and surfaces to
+      // the user only as "Load failed", the same way the Cashfree iframe did below.
+      `connect-src 'self' https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com https://gradient-cafe-assets-676591241313.s3.ap-south-1.amazonaws.com${isDev ? ' http://localhost:8083' : ''}`,
       // sdk.cashfree.com only hosts the loader/ping atoms. The v3 Drop-in renders the actual
       // checkout by POSTing a form into a modal iframe at api.cashfree.com/pg/view/sessions/checkout
       // (sandbox.cashfree.com in sandbox), so both frame-src AND form-action must allow it -
