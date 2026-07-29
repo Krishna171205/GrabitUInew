@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      # Real build gate: catches type errors + the Next.js prerender/Suspense
+      # class that tsc alone misses. Deploys are manual, so this verifies master
+      # is always build-clean before it can be shipped.
+      - run: npm run build
