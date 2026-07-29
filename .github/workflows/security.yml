@@ -18,7 +18,6 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install semgrep
-      # Report-only during rollout (no --error) so findings surface without
-      # blocking. Promote to blocking (append --error) per repo after triage.
+      # Blocking: findings fail the check (triaged clean 2026-07-29).
       - name: Semgrep scan
-        run: semgrep scan --config p/default --config p/secrets --skip-unknown-extensions .
+        run: semgrep scan --config p/default --config p/secrets --error --skip-unknown-extensions .
