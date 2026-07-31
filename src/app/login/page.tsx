@@ -26,8 +26,8 @@ function LoginForm() {
 
   const [mode, setMode] = useState<Mode>('login');
   const [step, setStep] = useState<Step>('phone');
-  const [phone, setPhone] = useState(process.env.NEXT_PUBLIC_DEV_PHONE ?? '');
-  const [otp, setOtp] = useState(process.env.NEXT_PUBLIC_DEV_OTP ?? '');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [otpError, setOtpError] = useState(false);
@@ -87,6 +87,20 @@ function LoginForm() {
     const f = setTimeout(() => boxes.current[0]?.focus(), 250);
     return () => { clearInterval(iv); clearTimeout(f); };
   }, [step]);
+
+  // Auto-submit once all 6 digits are in (typed or SMS-autofilled), after a brief
+  // animated pause on the button so the submit doesn't feel instant/jarring. Guarded
+  // by a ref (not state) so a retry after a wrong code - which clears otp back to ''
+  // - can trigger this again without double-firing mid-animation.
+  const autoSubmitted = useRef(false);
+  useEffect(() => {
+    if (otp.length !== 6) { autoSubmitted.current = false; return; }
+    if (loading || otpError || autoSubmitted.current) return;
+    autoSubmitted.current = true;
+    const t = setTimeout(() => verifyOtp(), 550);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otp, loading, otpError]);
 
   const digits = otp.padEnd(6).slice(0, 6).split('');
   const setDigit = (i: number, v: string) => {
@@ -211,7 +225,7 @@ function LoginForm() {
                     value={d.trim()}
                     onChange={(e) => setDigit(i, e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Backspace' && !d.trim() && i > 0) boxes.current[i - 1]?.focus(); if (e.key === 'Enter' && otp.length === 6) verifyOtp(); }}
-                    inputMode="numeric" maxLength={1}
+                    inputMode="numeric" maxLength={1} autoComplete="one-time-code"
                     style={{
                       flex: 1, minWidth: 0, height: 60, textAlign: 'center', fontSize: 24, fontWeight: 700, borderRadius: 14, outline: 'none', fontFamily: 'var(--gb-sans)',
                       border: `1.5px solid ${otpError ? 'var(--gb-danger)' : filled ? 'var(--gb-primary)' : '#E7DCCC'}`,
@@ -230,8 +244,11 @@ function LoginForm() {
               </div>
             )}
 
-            <button onClick={verifyOtp} disabled={otp.length !== 6 || loading} style={{ width: '100%', marginTop: 22, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, height: 56, fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: otp.length === 6 && !loading ? 'pointer' : 'not-allowed', opacity: otp.length === 6 ? 1 : 0.55 }}>
-              {loading ? 'Verifying…' : 'Verify & continue'}
+            <button onClick={verifyOtp} disabled={otp.length !== 6 || loading} style={{ width: '100%', marginTop: 22, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, height: 56, fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: otp.length === 6 && !loading ? 'pointer' : 'not-allowed', opacity: otp.length === 6 ? 1 : 0.55, position: 'relative', overflow: 'hidden' }}>
+              {otp.length === 6 && !loading && (
+                <span className="gb-fill-sweep" style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,.22)' }} />
+              )}
+              <span style={{ position: 'relative' }}>{loading ? 'Verifying…' : 'Verify & continue'}</span>
             </button>
 
             <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: 'var(--gb-muted)', fontWeight: 600 }}>

@@ -133,12 +133,33 @@ export default function CheckoutPage() {
           script.onerror = () => reject(new Error('Failed to load Cashfree SDK'));
           document.head.appendChild(script);
         });
+        // mode comes from the same order-creation response as the session id, not a
+        // separately-configured frontend flag - the two can never disagree now (a
+        // sandbox-created session opened in production mode, or vice versa, is exactly
+        // what Cashfree's "payment_session_id is not present or invalid" error means).
         // @ts-ignore
-        Cashfree({ mode: process.env.NEXT_PUBLIC_CASHFREE_ENV === 'production' ? 'production' : 'sandbox' })
+        const result = await Cashfree({ mode: data.cashfree.env === 'production' ? 'production' : 'sandbox' })
           .checkout({
             paymentSessionId: data.cashfree.payment_session_id,
             returnUrl: `${window.location.origin}${orderUrl}`,
+            redirectTarget: '_modal',
           });
+        // Three terminal states (Cashfree Checkout JS v3 contract) - result.error covers
+        // both real SDK/network failures AND the customer just closing the modal, so it
+        // is never "payment failed", only "not completed". Actual success/failure is
+        // decided server-side (webhook + the order page's own status polling), never here.
+        if (result?.error) {
+          setError('Payment was not completed. You can try again or pay at the counter.');
+          return;
+        }
+        if (result?.redirect) {
+          return; // navigating to Cashfree's hosted page (in-app browser fallback); return_url picks it up
+        }
+        clearCart();
+        sessionStorage.removeItem('grabit_slot');
+        sessionStorage.removeItem('grabit_table');
+        sessionStorage.removeItem('grabit_notes');
+        router.push(orderUrl); // order page polls its own status; a payment attempt was made either way
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
