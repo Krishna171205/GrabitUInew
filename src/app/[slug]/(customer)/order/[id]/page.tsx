@@ -55,6 +55,18 @@ export default function OrderPage() {
         .then(d => { if (d) setOrder(d); if (!isPoll) setLoading(false); })
         .catch(() => { if (!isPoll) setLoading(false); });
 
+    // The customer lands here straight from Cashfree checkout, so their arrival is the
+    // earliest reliable signal that a payment happened. Ask the backend to confirm it
+    // server-to-server right now rather than waiting on the webhook (which is delivered
+    // by a third party and can be rejected or dropped) or on the reconciliation cron.
+    // Without this the cafe's POS can sit blind for minutes on an order that is already
+    // paid, which defeats the point of pre-ordering. Backend ignores the call unless the
+    // order is genuinely online+pending, so a refresh or remount costs nothing.
+    // Fire-and-forget: refresh() below renders whatever the truth turns out to be.
+    fetch(`/api/proxy/grabit/orders/${id}/verify-payment?t=${encodeURIComponent(token)}`, { method: 'POST' })
+      .catch(() => { /* cron remains the backstop */ })
+      .finally(() => refresh(true));
+
     refresh(false);
 
     // Pass the per-order token so magic-link visitors (no cookie) still get live
