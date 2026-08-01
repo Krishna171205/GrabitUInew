@@ -31,6 +31,7 @@ export default function TermsPage() {
         <li>All prices are listed in Indian Rupees (INR / ₹) and are inclusive of applicable taxes unless stated otherwise.</li>
         <li>Menu items, availability, and prices are set by each Merchant and may change without notice.</li>
         <li>An order is confirmed only after successful payment or after the Merchant accepts a pay-at-counter order.</li>
+        <li>A paid order cannot be cancelled. It goes to the Merchant immediately so your pickup slot can be held. See our <a href="/refunds">Refunds &amp; Cancellations</a> policy for when a refund still applies.</li>
         <li>You must arrive within the selected pickup slot. Orders unclaimed after the cafe&apos;s stated holding time may be forfeited.</li>
       </ul>
 

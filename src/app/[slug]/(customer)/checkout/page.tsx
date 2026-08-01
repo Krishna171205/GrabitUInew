@@ -279,6 +279,14 @@ export default function CheckoutPage() {
           >
             {loading ? 'Processing…' : `Pay ${inr(total())} online`}
           </button>
+
+          {/* Paid orders go straight to the cafe and cannot be cancelled. Saying so
+              here, before the money moves, is the difference between a clear rule and
+              a chargeback. */}
+          <p style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 12, lineHeight: 1.5, textAlign: 'center' }}>
+            Paid orders go straight to the cafe and can’t be cancelled. Check your items and pickup
+            slot first. <a href="/refunds" style={{ color: 'var(--gb-muted)', textDecoration: 'underline' }}>Refund policy</a>
+          </p>
         </div>
       </div>
     </div>
