@@ -6,7 +6,9 @@ import { MS } from '@/components/gb/kit';
 import { OnboardingSteps, primaryButtonStyle, secondaryButtonStyle } from '../shared';
 
 interface OnboardingView {
-  cafe_name: string; cafe_slug: string; legal_name: string; business_type: string; pan: string; gst: string | null;
+  cafe_name: string; cafe_slug: string; cafe_address: string | null; cafe_city: string | null;
+  legal_name: string; business_type: string; pan: string; gst: string | null;
+  contact_email: string; state: string; postal_code: string;
   fssai_number: string; fssai_expiry: string; bank_account_number_masked: string; bank_ifsc: string; bank_account_holder: string; bank_name: string;
 }
 
@@ -53,16 +55,19 @@ export default function ReviewStep() {
         <OnboardingSteps current={4} />
         <div className="gb-serif" style={{ fontSize: 24, fontWeight: 500, marginTop: 18 }}>Review &amp; submit</div>
         <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 4, marginBottom: 22 }}>
-          Double-check everything, then send it for verification.
+          We send this to our payment partner so your money settles straight to your bank.
+          Check it over — a typo here costs you a couple of days.
         </div>
 
         <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: '4px 16px', marginBottom: 16 }}>
           <Row label="Café name" value={data.cafe_name} />
           <Row label="Grabit URL" value={`grabit365.com/${data.cafe_slug}`} />
+          <Row label="Address" value={[data.cafe_address, data.cafe_city, data.state, data.postal_code].filter(Boolean).join(', ')} />
           <Row label="Legal name" value={data.legal_name} />
           <Row label="Business type" value={data.business_type?.replace('_', ' ')} />
           <Row label="PAN" value={data.pan} />
           <Row label="GST" value={data.gst} />
+          <Row label="Email" value={data.contact_email} />
           <Row label="FSSAI" value={data.fssai_number} />
           <Row label="Bank account" value={data.bank_account_number_masked} />
           <Row label="IFSC" value={data.bank_ifsc} />

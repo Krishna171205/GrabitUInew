@@ -19,11 +19,19 @@ export default function BusinessStep() {
       .then((d) => {
         if (d.cafe_name && d.cafe_name !== 'New Café') setName(d.cafe_name);
         if (d.cafe_slug && !d.cafe_slug.startsWith('draft-')) setUrlSlug(d.cafe_slug);
+        if (d.cafe_address) setAddress(d.cafe_address);
+        if (d.cafe_city) setCity(d.cafe_city);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const valid = name.trim().length > 0 && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(urlSlug);
+  // Address and city are no longer optional: they go on the business address your
+  // payment account is registered against, and KYC fails without them.
+  const valid =
+    name.trim().length > 0 &&
+    /^[a-z0-9]+(-[a-z0-9]+)*$/.test(urlSlug) &&
+    address.trim().length > 4 &&
+    city.trim().length > 1;
 
   async function save() {
     setSaving(true);
@@ -52,7 +60,7 @@ export default function BusinessStep() {
         <OnboardingSteps current={1} />
         <div className="gb-serif" style={{ fontSize: 24, fontWeight: 500, marginTop: 18 }}>Tell us about your café</div>
         <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 4, marginBottom: 22 }}>
-          This is what customers will see.
+          This is what customers see, and the address your payouts are registered to.
         </div>
 
         <div style={fieldWrap}>

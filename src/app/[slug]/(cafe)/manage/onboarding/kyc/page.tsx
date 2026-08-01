@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { OnboardingSteps, inputStyle, labelStyle, primaryButtonStyle, fieldWrap } from '../shared';
+import { OnboardingSteps, inputStyle, labelStyle, primaryButtonStyle, fieldWrap, INDIAN_STATES } from '../shared';
 
 const BUSINESS_TYPES = [
   { value: 'proprietorship', label: 'Proprietorship' },
@@ -13,6 +13,8 @@ const BUSINESS_TYPES = [
 const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const GST_RE = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const FSSAI_RE = /^\d{14}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PIN_RE = /^\d{6}$/;
 
 export default function KycStep() {
   const { slug } = useParams<{ slug: string }>();
@@ -21,6 +23,9 @@ export default function KycStep() {
   const [businessType, setBusinessType] = useState('proprietorship');
   const [pan, setPan] = useState('');
   const [gst, setGst] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [state, setState] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [fssaiNumber, setFssaiNumber] = useState('');
   const [fssaiExpiry, setFssaiExpiry] = useState('');
   const [loading, setLoading] = useState(true);
@@ -35,6 +40,9 @@ export default function KycStep() {
         if (d.business_type) setBusinessType(d.business_type);
         if (d.pan) setPan(d.pan);
         if (d.gst) setGst(d.gst);
+        if (d.contact_email) setContactEmail(d.contact_email);
+        if (d.state) setState(d.state);
+        if (d.postal_code) setPostalCode(d.postal_code);
         if (d.fssai_number) setFssaiNumber(d.fssai_number);
         if (d.fssai_expiry) setFssaiExpiry(d.fssai_expiry);
       })
@@ -45,6 +53,9 @@ export default function KycStep() {
     legalName.trim().length >= 3 &&
     PAN_RE.test(pan) &&
     (gst === '' || GST_RE.test(gst)) &&
+    EMAIL_RE.test(contactEmail) &&
+    !!state &&
+    PIN_RE.test(postalCode) &&
     FSSAI_RE.test(fssaiNumber) &&
     !!fssaiExpiry && new Date(fssaiExpiry) > new Date();
 
@@ -55,7 +66,15 @@ export default function KycStep() {
       const profileRes = await fetch('/api/proxy/grabit/vendor/onboarding/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ legal_name: legalName.trim(), business_type: businessType, pan, gst: gst || null }),
+        body: JSON.stringify({
+          legal_name: legalName.trim(),
+          business_type: businessType,
+          pan,
+          gst: gst || null,
+          contact_email: contactEmail.trim().toLowerCase(),
+          state,
+          postal_code: postalCode,
+        }),
       });
       const profileData = await profileRes.json();
       if (!profileRes.ok) throw new Error(profileData.error || 'Failed to save profile');
@@ -84,7 +103,8 @@ export default function KycStep() {
         <OnboardingSteps current={2} />
         <div className="gb-serif" style={{ fontSize: 24, fontWeight: 500, marginTop: 18 }}>Legal &amp; food licence details</div>
         <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 4, marginBottom: 22 }}>
-          Needed for payouts and to keep things compliant.
+          These go to our payment partner so your money reaches your bank directly. We handle
+          the paperwork; you just check what we filled in.
         </div>
 
         <div style={fieldWrap}>
@@ -107,6 +127,42 @@ export default function KycStep() {
         <div style={fieldWrap}>
           <label style={labelStyle}>GST (optional)</label>
           <input value={gst} onChange={(e) => setGst(e.target.value.toUpperCase().slice(0, 15))} placeholder="22ABCDE1234F1Z5" style={inputStyle} />
+        </div>
+
+        <div style={fieldWrap}>
+          <label style={labelStyle}>Your email</label>
+          <input
+            type="email"
+            value={contactEmail}
+            onChange={(e) => setContactEmail(e.target.value)}
+            placeholder="you@yourcafe.com"
+            autoComplete="email"
+            inputMode="email"
+            style={inputStyle}
+          />
+          <p style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 8 }}>
+            Your payment account is verified against this address, so use one you actually check.
+          </p>
+        </div>
+
+        <div style={fieldWrap}>
+          <label style={labelStyle}>State</label>
+          <select value={state} onChange={(e) => setState(e.target.value)} style={{ ...inputStyle, appearance: 'auto' }}>
+            <option value="">Select a state</option>
+            {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+          </select>
+        </div>
+
+        <div style={fieldWrap}>
+          <label style={labelStyle}>PIN code</label>
+          <input
+            value={postalCode}
+            onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="560001"
+            inputMode="numeric"
+            autoComplete="postal-code"
+            style={inputStyle}
+          />
         </div>
 
         <div style={fieldWrap}>
