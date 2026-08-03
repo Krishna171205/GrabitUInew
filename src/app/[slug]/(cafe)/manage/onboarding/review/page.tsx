@@ -52,7 +52,7 @@ export default function ReviewStep() {
   return (
     <div className="gb-app">
       <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', padding: '32px 26px 40px' }}>
-        <OnboardingSteps current={4} />
+        <OnboardingSteps current={5} />
         <div className="gb-serif" style={{ fontSize: 24, fontWeight: 500, marginTop: 18 }}>Review &amp; submit</div>
         <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 4, marginBottom: 22 }}>
           We send this to our payment partner so your money settles straight to your bank.
@@ -85,7 +85,7 @@ export default function ReviewStep() {
         <button onClick={submit} disabled={submitting} style={primaryButtonStyle}>
           {submitting ? 'Submitting…' : 'Submit for verification'}
         </button>
-        <button onClick={() => router.push(`/${slug}/manage/onboarding/bank`)} style={secondaryButtonStyle}>
+        <button onClick={() => router.push(`/${slug}/manage/onboarding/documents`)} style={secondaryButtonStyle}>
           Back to edit
         </button>
         {error && <p style={{ color: 'var(--gb-danger)', fontSize: 14, marginTop: 4, textAlign: 'center' }}>{error}</p>}

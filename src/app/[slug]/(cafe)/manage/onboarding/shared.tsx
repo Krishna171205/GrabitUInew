@@ -1,6 +1,21 @@
 import type { CSSProperties } from 'react';
 
-const STEPS = ['Business', 'KYC', 'Bank', 'Review'];
+const STEPS = ['Business', 'KYC', 'Bank', 'Documents', 'Review'];
+
+/**
+ * Cashfree accepts any ONE of these as proof the business exists, and requires one.
+ * Udyam leads because it is the only one a cafe without paperwork can get today:
+ * free, online, issued instantly against Aadhaar and PAN.
+ */
+export const BUSINESS_PROOFS = [
+  { value: 'udyam_certificate', label: 'Udyam / Udyog Aadhaar certificate' },
+  { value: 'shop_establishment', label: 'Shops & Establishment licence (Gumasta)' },
+  { value: 'municipal_licence', label: 'Municipal or trade licence' },
+  { value: 'gst_cert', label: 'GST certificate' },
+  { value: 'tax_return', label: 'Income or sales tax return' },
+  { value: 'registration_proof', label: 'Government registration certificate' },
+  { value: 'roc_certificate', label: 'Registrar of Companies certificate' },
+] as const;
 
 /**
  * Cashfree validates the registered state on the business address, so this is a

@@ -29,7 +29,7 @@ export default function BankStep() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save bank details');
-      router.push(`/${slug}/manage/onboarding/review`);
+      router.push(`/${slug}/manage/onboarding/documents`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
