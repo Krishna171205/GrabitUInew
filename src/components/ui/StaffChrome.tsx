@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { GrabitLogo, Icon } from './Icon';
 
-export type StaffTab = 'queue' | 'history' | 'menumgmt' | 'slots' | 'analytics';
+export type StaffTab = 'queue' | 'history' | 'menumgmt' | 'slots' | 'analytics' | 'payouts';
 
 const NAV: { k: StaffTab; label: string; short: string; icon: (typeof Icon)[string]; path: string }[] = [
   { k: 'queue',     label: 'Live Queue', short: 'Queue',  icon: Icon.grid,    path: '' },
@@ -17,6 +17,7 @@ const NAV: { k: StaffTab; label: string; short: string; icon: (typeof Icon)[stri
   { k: 'menumgmt',  label: 'Menu',       short: 'Menu',   icon: Icon.menu,    path: '/menu' },
   { k: 'slots',     label: 'Slots',      short: 'Slots',  icon: Icon.slots,   path: '/slots' },
   { k: 'analytics', label: 'Analytics',  short: 'Stats',  icon: Icon.chart,   path: '/analytics' },
+  { k: 'payouts',   label: 'Payouts',    short: 'Payouts', icon: Icon.card,    path: '/payouts' },
 ];
 
 export function StaffChrome({

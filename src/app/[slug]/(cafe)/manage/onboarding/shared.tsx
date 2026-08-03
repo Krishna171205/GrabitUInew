@@ -8,12 +8,14 @@ const STEPS = ['Business', 'KYC', 'Bank', 'Documents', 'Review'];
  * free, online, issued instantly against Aadhaar and PAN.
  */
 export const BUSINESS_PROOFS = [
-  { value: 'udyam_certificate', label: 'Udyam / Udyog Aadhaar certificate' },
+  { value: 'udyam_certificate', label: 'Udyam registration certificate (all 4 pages)' },
   { value: 'shop_establishment', label: 'Shops & Establishment licence (Gumasta)' },
   { value: 'municipal_licence', label: 'Municipal or trade licence' },
-  { value: 'gst_cert', label: 'GST certificate' },
-  { value: 'tax_return', label: 'Income or sales tax return' },
-  { value: 'registration_proof', label: 'Government registration certificate' },
+  { value: 'utility_bill', label: 'Utility bill (electricity, water, landline)' },
+  { value: 'gst_cert', label: 'GST, VAT or CST certificate' },
+  { value: 'income_tax_return_full', label: 'Complete income tax return (not the acknowledgement)' },
+  { value: 'tax_return', label: 'Sales tax return' },
+  { value: 'registration_proof', label: 'Sales, service or professional tax registration' },
   { value: 'roc_certificate', label: 'Registrar of Companies certificate' },
 ] as const;
 

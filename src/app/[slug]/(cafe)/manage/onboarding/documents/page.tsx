@@ -46,7 +46,7 @@ const CHEQUE: Slot = {
 const BUSINESS_PROOF: Slot = {
   id: 'business_proof',
   label: 'Proof your business exists',
-  help: 'Any one of these. If you have none, Udyam registration is free and issued instantly online.',
+  help: 'Any one of these. If you have none, Udyam registration is free and issued instantly at udyamregistration.gov.in.',
   choices: BUSINESS_PROOFS,
 };
 
