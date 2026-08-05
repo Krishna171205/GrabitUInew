@@ -109,11 +109,11 @@ export default function CheckoutPage() {
         // Stale cart: an item was deactivated/removed on the cafe's menu since it was
         // added. Drop it and let the customer retry instead of a dead-end error - the
         // old flow left them stuck on the same items forever.
-        if (data.code === 'ITEMS_UNAVAILABLE' && Array.isArray(data.invalidItemIds)) {
+        if (data.code === 'ITEMS_UNAVAILABLE' && Array.isArray(data.invalid_item_ids)) {
           const staleNames = items
-            .filter(i => data.invalidItemIds.includes(i.menu_item_id))
+            .filter(i => data.invalid_item_ids.includes(i.menu_item_id))
             .map(i => i.name);
-          data.invalidItemIds.forEach((id: number) => removeItem(id));
+          data.invalid_item_ids.forEach((id: number) => removeItem(id));
           const who = staleNames.length ? staleNames.join(', ') : 'One or more items';
           const plural = staleNames.length !== 1;
           setError(`${who} ${plural ? 'are' : 'is'} no longer available and ${plural ? 'were' : 'was'} removed from your cart. Please review and try again.`);
