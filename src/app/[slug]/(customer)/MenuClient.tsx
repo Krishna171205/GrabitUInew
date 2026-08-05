@@ -103,12 +103,9 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   }, [table]);
   const [activeCat, setActiveCat] = useState<GrabitMenuCategory | 'all'>('all');
   const [query, setQuery] = useState(initialQuery ?? '');
-  const { addItem, updateQty, items: cartItems, total } = useCart();
+  const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
-
-  const [cartBarDismissed, setCartBarDismissed] = useState(false);
-  useEffect(() => { setCartBarDismissed(false); }, [cartCount]);
 
   function addTop(item: TopItem) {
     addItem({ menu_item_id: item.menu_item_id, name: item.menu_item_name, price: item.price, quantity: 1, image_url: item.image_url }, slug);
@@ -341,14 +338,14 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
       </div>
 
       {/* floating cart bar */}
-      {cartCount > 0 && !cartBarDismissed && (
+      {cartCount > 0 && (
         <div style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, background: 'var(--gb-ink)', color: '#fff', borderRadius: 16, padding: '14px 14px 14px 18px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'var(--gb-shadow-bar)' }}>
           <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: '#fff', minWidth: 0 }}>
             <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 9, padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
             <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>Next<MS name="arrow_forward" size={19} /></span>
           </Link>
-          <button onClick={() => setCartBarDismissed(true)} aria-label="Dismiss" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+          <button onClick={() => clearCart()} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
             <MS name="close" size={16} />
           </button>
         </div>
