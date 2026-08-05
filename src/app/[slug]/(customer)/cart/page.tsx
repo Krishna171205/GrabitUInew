@@ -173,7 +173,7 @@ export default function CartPage() {
             const sel = selectedSlot === slot.slot_start;
             const minsFromNow = Math.round((new Date(slot.slot_start).getTime() - Date.now()) / 60000);
             const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const label = !slotsData?.label && idx === 0 && minsFromNow <= 20 ? `ASAP · ${Math.max(minsFromNow, 1)} min` : time;
+            const label = !slotsData?.label && idx === 0 ? `ASAP · ${Math.max(minsFromNow, 1)} min` : time;
             return (
               <button
                 key={slot.slot_start}
