@@ -107,6 +107,9 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
 
+  const [cartBarDismissed, setCartBarDismissed] = useState(false);
+  useEffect(() => { setCartBarDismissed(false); }, [cartCount]);
+
   function addTop(item: TopItem) {
     addItem({ menu_item_id: item.menu_item_id, name: item.menu_item_name, price: item.price, quantity: 1, image_url: item.image_url }, slug);
   }
@@ -285,7 +288,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
       <div style={{ padding: '18px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '12px 14px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
           <MS name="search" size={20} color="#B0A08C" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 14, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 16, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
           {query
             ? <button type="button" onClick={() => setQuery('')} aria-label="Clear search" style={{ display: 'flex', border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}><MS name="close" size={20} color="#B0A08C" /></button>
             : <MS name="mic" size={20} color="#C1502E" />}
@@ -338,12 +341,17 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
       </div>
 
       {/* floating cart bar */}
-      {cartCount > 0 && (
-        <Link href={`/${slug}/cart`} style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, background: 'var(--gb-ink)', color: '#fff', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: 'var(--gb-shadow-bar)' }}>
-          <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 9, padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
-          <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>Next<MS name="arrow_forward" size={19} /></span>
-        </Link>
+      {cartCount > 0 && !cartBarDismissed && (
+        <div style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, background: 'var(--gb-ink)', color: '#fff', borderRadius: 16, padding: '14px 14px 14px 18px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'var(--gb-shadow-bar)' }}>
+          <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: '#fff', minWidth: 0 }}>
+            <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 9, padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>Next<MS name="arrow_forward" size={19} /></span>
+          </Link>
+          <button onClick={() => setCartBarDismissed(true)} aria-label="Dismiss" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+            <MS name="close" size={16} />
+          </button>
+        </div>
       )}
     </div>
   );
