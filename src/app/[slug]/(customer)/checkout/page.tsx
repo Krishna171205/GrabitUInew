@@ -9,7 +9,7 @@ import { inr } from '@/components/gb/format';
 export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, removeItem } = useCart();
 
   // React state (`loading`) updates asynchronously, so the disabled= guard on the
   // buttons doesn't stop a second event firing in the same tick - and it did: a
@@ -105,7 +105,22 @@ export default function CheckoutPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed');
+      if (!res.ok) {
+        // Stale cart: an item was deactivated/removed on the cafe's menu since it was
+        // added. Drop it and let the customer retry instead of a dead-end error - the
+        // old flow left them stuck on the same items forever.
+        if (data.code === 'ITEMS_UNAVAILABLE' && Array.isArray(data.invalidItemIds)) {
+          const staleNames = items
+            .filter(i => data.invalidItemIds.includes(i.menu_item_id))
+            .map(i => i.name);
+          data.invalidItemIds.forEach((id: number) => removeItem(id));
+          const who = staleNames.length ? staleNames.join(', ') : 'One or more items';
+          const plural = staleNames.length !== 1;
+          setError(`${who} ${plural ? 'are' : 'is'} no longer available and ${plural ? 'were' : 'was'} removed from your cart. Please review and try again.`);
+          return;
+        }
+        throw new Error(data.error || 'Failed');
+      }
 
       const token = data.access_token as string;
       const orderUrl = `/${slug}/order/${data.order_id}?t=${token}`;
