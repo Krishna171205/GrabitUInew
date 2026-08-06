@@ -1,4 +1,4 @@
-// grabit/src/components/landing/HowItWorks.tsx
+// grabbit/src/components/landing/HowItWorks.tsx
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import {

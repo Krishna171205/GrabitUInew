@@ -1,4 +1,4 @@
-// grabit/src/components/landing/TrustBand.tsx
+// grabbit/src/components/landing/TrustBand.tsx
 'use client';
 import { MS } from '@/components/gb/kit';
 

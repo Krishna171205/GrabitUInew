@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useCafeId } from '../../CafeProvider';
-import type { GrabitMenuItem } from '@gradient365/gradient-commons';
+import type { GrabbitMenuItem } from '@gradient365/gradient-commons';
 import { StaffChrome, Button, Toggle, Icon } from '@/components/ui/kit';
 
 const CATEGORIES = ['drinks', 'food', 'specials', 'desserts'] as const;
@@ -11,7 +11,7 @@ export default function MenuManagePage() {
   const { slug } = useParams<{ slug: string }>();
   const cafeId = useCafeId();
 
-  const [items, setItems] = useState<GrabitMenuItem[]>([]);
+  const [items, setItems] = useState<GrabbitMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: 'drinks', sort_order: '0', prep_time_minutes: '5' });
@@ -73,10 +73,10 @@ export default function MenuManagePage() {
   }
 
   const grouped = useMemo(
-    () => CATEGORIES.reduce<Record<string, GrabitMenuItem[]>>((acc, cat) => {
+    () => CATEGORIES.reduce<Record<string, GrabbitMenuItem[]>>((acc, cat) => {
       acc[cat] = items.filter(i => i.category === cat);
       return acc;
-    }, {} as Record<string, GrabitMenuItem[]>),
+    }, {} as Record<string, GrabbitMenuItem[]>),
     [items]
   );
 

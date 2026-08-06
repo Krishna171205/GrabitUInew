@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Button, GrabitLogo } from '@/components/ui/kit';
+import { Button, GrabbitLogo } from '@/components/ui/kit';
 
 type Step = 'phone' | 'otp';
 
@@ -62,7 +62,7 @@ export default function StaffLoginPage() {
         borderRadius: 'var(--r-xl)', border: '1px solid var(--hairline)',
         boxShadow: 'var(--shadow-card)', padding: 32,
       }}>
-        <div style={{ marginBottom: 22 }}><GrabitLogo height={26} /></div>
+        <div style={{ marginBottom: 22 }}><GrabbitLogo height={26} /></div>
 
         <p style={{
           fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',

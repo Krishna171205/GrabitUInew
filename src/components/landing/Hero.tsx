@@ -1,4 +1,4 @@
-// grabit/src/components/landing/Hero.tsx
+// grabbit/src/components/landing/Hero.tsx
 'use client';
 import Link from 'next/link';
 import { useRef } from 'react';

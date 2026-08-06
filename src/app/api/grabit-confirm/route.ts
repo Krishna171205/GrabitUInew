@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   const secret = process.env.INTERNAL_SECRET;
   if (!secret) {
-    console.error('[grabit-confirm] INTERNAL_SECRET env var is not set');
+    console.error('[grabbit-confirm] INTERNAL_SECRET env var is not set');
     return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
   }
 

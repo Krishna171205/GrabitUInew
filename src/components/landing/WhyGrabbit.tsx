@@ -1,4 +1,4 @@
-// grabit/src/components/landing/WhyGrabit.tsx
+// grabbit/src/components/landing/WhyGrabbit.tsx
 'use client';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion';
@@ -119,12 +119,12 @@ function FeatureMock({ kind }: { kind: 'slot' | 'pay' | 'chat' }) {
 
 const MOCK_KINDS = ['slot', 'pay', 'chat'] as const;
 
-export default function WhyGrabit() {
+export default function WhyGrabbit() {
   return (
     <section style={{ background: 'var(--gb-surface)', padding: '88px 22px' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto' }}>
         <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 600, letterSpacing: '-.01em', margin: '0 0 40px', color: 'var(--gb-text-strong)' }}>
-          Why Grabit
+          Why Grabbit
         </h2>
         <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr' }} className="gb-why-grid">
           {FEATURES.map((f, i) => (

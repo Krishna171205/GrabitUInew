@@ -69,7 +69,7 @@ export default function BusinessStep() {
         </div>
 
         <div style={fieldWrap}>
-          <label style={labelStyle}>Grabit URL</label>
+          <label style={labelStyle}>Grabbit URL</label>
           <div style={{ display: 'flex', alignItems: 'center', ...inputStyle, padding: '0 16px' }}>
             <span style={{ color: 'var(--gb-muted)', fontSize: 14 }}>grabit365.com/</span>
             <input

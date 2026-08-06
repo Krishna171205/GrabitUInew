@@ -54,7 +54,7 @@ const STYLES = `
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 34%, black 72%, transparent);
 }
 
-/* GRABIT letterpressed into the paper — cream on cream, lit from above.
+/* GRABBIT letterpressed into the paper — cream on cream, lit from above.
    Sits above the footer bars, which are taller on small screens. */
 .ritual-giant-bg {
   position: absolute;
@@ -321,14 +321,14 @@ export function ReadyToJoinRitual() {
           {/* Paper tooth */}
           <div className="ritual-bg-grid absolute inset-0 z-0 pointer-events-none" />
 
-          {/* GRABIT, letterpressed */}
+          {/* GRABBIT, letterpressed */}
           <div
             ref={giantTextRef}
             className="ritual-giant-bg z-0 select-none"
             style={{ transform: "translateX(-50%)" }}
             aria-hidden="true"
           >
-            GRABIT
+            GRABBIT
           </div>
 
           {/* ── Center content ─────────────────────────────────────────────── */}

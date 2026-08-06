@@ -23,7 +23,7 @@ const CONTENT: Record<Status, { icon: string; color: string; title: string; body
   merchant_pending: { icon: 'schedule', color: 'var(--gb-gold)', title: 'Almost there', body: 'One last step to confirm it’s really you.' },
   // Retired Easy Split state. Older rows can still land here.
   vendor_pending: { icon: 'schedule', color: 'var(--gb-gold)', title: "You're under review", body: "We're verifying your payout details." },
-  active: { icon: 'check_circle', color: 'var(--gb-green)', title: "You're live!", body: 'Customers can now find and order from your café on Grabit.' },
+  active: { icon: 'check_circle', color: 'var(--gb-green)', title: "You're live!", body: 'Customers can now find and order from your café on Grabbit.' },
   rejected: { icon: 'error', color: 'var(--gb-danger)', title: 'Needs another look', body: 'Something didn’t verify, fix it and resubmit.' },
 };
 

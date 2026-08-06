@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { useCafeId } from '../../CafeProvider';
 import { StaffChrome, Segmented, Chip, StatusPill } from '@/components/ui/kit';
 import type { OrderStatus } from '@/components/ui/kit';
-import type { GrabitOrderWithItems } from '@gradient365/gradient-commons';
+import type { GrabbitOrderWithItems } from '@gradient365/gradient-commons';
 
 const DATE_TABS = [
   { v: 'today',     l: 'Today' },
@@ -34,7 +34,7 @@ export default function OrderHistoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const cafeId = useCafeId();
 
-  const [orders, setOrders] = useState<GrabitOrderWithItems[]>([]);
+  const [orders, setOrders] = useState<GrabbitOrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week'>('today');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -51,7 +51,7 @@ export default function OrderHistoryPage() {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
-        let fetched: GrabitOrderWithItems[] = data.orders ?? data;
+        let fetched: GrabbitOrderWithItems[] = data.orders ?? data;
 
         if (dateFilter === 'week') {
           const cutoff = new Date();

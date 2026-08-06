@@ -2,8 +2,8 @@
 /** Saved delivery-area label, client-only (no saved-address backend yet). */
 import { useEffect, useState } from 'react';
 
-const KEY = 'grabit_location';
-const CITY_KEY = 'grabit_location_city';
+const KEY = 'grabbit_location';
+const CITY_KEY = 'grabbit_location_city';
 export const DEFAULT_LOCATION = 'MG Road, Bengaluru';
 const DEFAULT_CITY = 'Bengaluru';
 

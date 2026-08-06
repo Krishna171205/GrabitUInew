@@ -13,8 +13,8 @@ async function proxyRequest(req: NextRequest, pathParts: string[], method: strin
   }
 
   const cookieStore = await cookies();
-  const staffToken    = cookieStore.get('grabit_staff_token')?.value;
-  const customerToken = cookieStore.get('grabit_customer_token')?.value;
+  const staffToken    = cookieStore.get('grabbit_staff_token')?.value;
+  const customerToken = cookieStore.get('grabbit_customer_token')?.value;
   const token = staffToken || customerToken;
 
   const url = `${process.env.NEXT_PUBLIC_API_URL}/api/${pathParts.join('/')}${req.nextUrl.search}`;

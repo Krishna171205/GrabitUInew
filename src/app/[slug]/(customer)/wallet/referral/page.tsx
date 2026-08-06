@@ -28,13 +28,13 @@ export default function ReferralPage() {
         return r.json();
       }),
       (() => {
-        const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
+        const cached = sessionStorage.getItem(`grabbit_cafe_id_${slug}`);
         if (cached) return Promise.resolve(Number(cached));
         return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`)
           .then(r => r.json())
           .then(d => {
             const id = d.cafe?.id ?? null;
-            if (id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(id));
+            if (id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(id));
             return id;
           });
       })(),
@@ -63,7 +63,7 @@ export default function ReferralPage() {
 
   function shareWhatsApp() {
     if (!data?.referralCode) return;
-    const text = encodeURIComponent(`Use my code ${data.referralCode} on Grabit to get ₹50 bonus on your first wallet recharge!`);
+    const text = encodeURIComponent(`Use my code ${data.referralCode} on Grabbit to get ₹50 bonus on your first wallet recharge!`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
   }
 
@@ -80,7 +80,7 @@ export default function ReferralPage() {
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--tertiary-bright))', display: 'grid', placeItems: 'center', fontSize: 32, margin: '0 auto 16px' }}>🎁</div>
           <p style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 8 }}>Give ₹50, Get ₹50</p>
-          <p className="t-body" style={{ color: 'var(--muted)' }}>Invite friends to Grabit. When they recharge their wallet for the first time, you both get ₹50 bonus.</p>
+          <p className="t-body" style={{ color: 'var(--muted)' }}>Invite friends to Grabbit. When they recharge their wallet for the first time, you both get ₹50 bonus.</p>
         </div>
 
         {/* Code card */}

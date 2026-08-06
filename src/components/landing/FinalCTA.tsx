@@ -1,4 +1,4 @@
-// grabit/src/components/landing/FinalCTA.tsx
+// grabbit/src/components/landing/FinalCTA.tsx
 'use client';
 import Link from 'next/link';
 

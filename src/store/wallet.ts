@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GrabitWallet } from '@gradient365/gradient-commons';
+import type { GrabbitWallet } from '@gradient365/gradient-commons';
 
 interface WalletState {
   baseBalancePaise: number;
@@ -9,7 +9,7 @@ interface WalletState {
   autoRechargeEnabled: boolean;
   autoRechargeThresholdPaise: number;
   loaded: boolean;
-  setWallet: (wallet: GrabitWallet) => void;
+  setWallet: (wallet: GrabbitWallet) => void;
   incrementBalance: (basePaise: number, bonusPaise: number) => void;
   reset: () => void;
 }
@@ -23,7 +23,7 @@ export const useWallet = create<WalletState>()((set) => ({
   autoRechargeThresholdPaise: 10000,
   loaded: false,
 
-  setWallet: (wallet: GrabitWallet) =>
+  setWallet: (wallet: GrabbitWallet) =>
     set({
       baseBalancePaise: wallet.base_balance_paise,
       bonusBalancePaise: wallet.bonus_balance_paise,

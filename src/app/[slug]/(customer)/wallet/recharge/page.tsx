@@ -4,13 +4,13 @@ import { useRouter, useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatPaise } from '@/lib/utils';
-import type { GrabitWallet } from '@gradient365/gradient-commons';
+import type { GrabbitWallet } from '@gradient365/gradient-commons';
 import { WALLET_SLABS } from '@gradient365/gradient-commons';
 import { TopBar, Button } from '@/components/ui/kit';
 
 type WalletSlab = { readonly amountPaise: number; readonly bonusPaise: number; readonly expiryDays: number };
 
-interface WalletData { wallet: GrabitWallet; }
+interface WalletData { wallet: GrabbitWallet; }
 
 const CONFETTI_COLORS = ['#FFB100', '#4ade80', '#60a5fa', '#FF4D6D', '#ec4899', '#8b5cf6'];
 
@@ -34,13 +34,13 @@ export default function RechargePage() {
         return r.json();
       }),
       (() => {
-        const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
+        const cached = sessionStorage.getItem(`grabbit_cafe_id_${slug}`);
         if (cached) return Promise.resolve(Number(cached));
         return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`)
           .then(r => r.json())
           .then(d => {
             const id = d.cafe?.id ?? null;
-            if (id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(id));
+            if (id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(id));
             return id;
           });
       })(),

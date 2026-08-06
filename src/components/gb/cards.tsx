@@ -1,5 +1,5 @@
 'use client';
-/** Grabit consumer app, presentational cards shared across Home & Explore. */
+/** Grabbit consumer app, presentational cards shared across Home & Explore. */
 import Link from 'next/link';
 import Image from 'next/image';
 import { MS } from './kit';

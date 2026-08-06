@@ -32,15 +32,15 @@ export default function CheckoutPage() {
 
   // Dine-in (table QR) needs no slot; pickup requires one, else back to cart.
   useEffect(() => {
-    const table = sessionStorage.getItem('grabit_table');
-    const slot = sessionStorage.getItem('grabit_slot');
+    const table = sessionStorage.getItem('grabbit_table');
+    const slot = sessionStorage.getItem('grabbit_slot');
     if (!table && !slot) {
       router.push(`/${slug}/cart`);
       return;
     }
     setDineInTable(table);
     setPickupSlot(slot);
-    setNotes(sessionStorage.getItem('grabit_notes') ?? '');
+    setNotes(sessionStorage.getItem('grabbit_notes') ?? '');
   }, [slug, router]);
 
   // cart's placeOrder() already gates every checkout on a live session (via the
@@ -69,13 +69,13 @@ export default function CheckoutPage() {
   // Fetch cafe_id, read sessionStorage first (set by menu/home page on first load)
   useEffect(() => {
     const resolveIds = async () => {
-      const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
+      const cached = sessionStorage.getItem(`grabbit_cafe_id_${slug}`);
       let cid: number | null = cached ? Number(cached) : null;
       if (!cid) {
         try {
           const d = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`).then(r => r.json());
           cid = d.cafe?.id ?? null;
-          if (cid) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cid));
+          if (cid) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cid));
         } catch { /* ignore */ }
       }
       setCafeId(cid);
@@ -135,9 +135,9 @@ export default function CheckoutPage() {
 
       if (paymentMethod === 'counter') {
         clearCart();
-        sessionStorage.removeItem('grabit_slot');
-        sessionStorage.removeItem('grabit_table');
-        sessionStorage.removeItem('grabit_notes');
+        sessionStorage.removeItem('grabbit_slot');
+        sessionStorage.removeItem('grabbit_table');
+        sessionStorage.removeItem('grabbit_notes');
         router.push(orderUrl);
       } else {
         // Cashfree order creation is non-fatal server-side (the order is already
@@ -179,9 +179,9 @@ export default function CheckoutPage() {
           return; // navigating to Cashfree's hosted page (in-app browser fallback); return_url picks it up
         }
         clearCart();
-        sessionStorage.removeItem('grabit_slot');
-        sessionStorage.removeItem('grabit_table');
-        sessionStorage.removeItem('grabit_notes');
+        sessionStorage.removeItem('grabbit_slot');
+        sessionStorage.removeItem('grabbit_table');
+        sessionStorage.removeItem('grabbit_notes');
         router.push(orderUrl); // order page polls its own status; a payment attempt was made either way
       }
     } catch (e) {

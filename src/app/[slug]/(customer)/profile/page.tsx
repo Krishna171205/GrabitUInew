@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useCart } from '@/store/cart';
 import { formatPaise } from '@/lib/utils';
-import type { GrabitWallet } from '@gradient365/gradient-commons';
+import type { GrabbitWallet } from '@gradient365/gradient-commons';
 import { TopBar, Card, Button, Icon } from '@/components/ui/kit';
 
 interface TopItem {
@@ -29,7 +29,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fromCart, setFromCart] = useState(false);
-  const [wallet, setWallet] = useState<GrabitWallet | null>(null);
+  const [wallet, setWallet] = useState<GrabbitWallet | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,7 +50,7 @@ export default function ProfilePage() {
         const cid = menuData?.cafe?.id;
         setCafeName(menuData?.cafe?.name ?? '');
         if (cid) {
-          sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cid));
+          sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cid));
           const topItemsPromise = fetch(`/api/proxy/grabit/orders/top-items?cafeId=${cid}`).then(r => r.json()).then(setTopItems);
           if (meData.id) {
             fetch(`/api/proxy/grabit/wallet/${meData.id}?cafeId=${cid}`)

@@ -1,6 +1,6 @@
 'use client';
 /**
- * Grabit: shared UI primitives. Ported from the prototype design system.
+ * Grabbit: shared UI primitives. Ported from the prototype design system.
  * Style via CSS vars from globals.css (--primary, --surface-card, --r-md, ...).
  */
 import { useState, type ReactNode, type CSSProperties } from 'react';

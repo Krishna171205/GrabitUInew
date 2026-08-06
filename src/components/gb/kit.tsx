@@ -1,7 +1,7 @@
 'use client';
 /**
- * Grabit consumer app, shared UI kit for the warm editorial theme.
- * Faithful to Design References/grabit-designs. Style via --gb-* vars
+ * Grabbit consumer app, shared UI kit for the warm editorial theme.
+ * Faithful to Design References/grabbit-designs. Style via --gb-* vars
  * (globals.css, scoped to .gb-app). Icons = Material Symbols Rounded.
  */
 import Link from 'next/link';
@@ -74,7 +74,7 @@ export function DesktopTopNav() {
     <nav className="gb-topnav">
       <Link href="/home" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <MS name="storefront" size={24} color="var(--gb-primary)" />
-        <span className="gb-serif" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabit</span>
+        <span className="gb-serif" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabbit</span>
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
         {TABS.map((t) => {

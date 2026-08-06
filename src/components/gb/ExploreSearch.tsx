@@ -88,7 +88,7 @@ export function ExploreSearch({ cafes, categories }: { cafes: RealCafe[]; catego
 
       <div style={{ padding: '24px 0 8px' }}>
         <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>
-          {query ? 'Cafés' : 'Cafés on Grabit'}
+          {query ? 'Cafés' : 'Cafés on Grabbit'}
         </div>
         {cafeResults.length === 0 ? (
           <div style={{ padding: '16px 0 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>

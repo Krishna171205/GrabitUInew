@@ -1,5 +1,5 @@
 /**
- * Grabit: SF-Symbols-style icon set. Thin, rounded, 1.5px stroke.
+ * Grabbit: SF-Symbols-style icon set. Thin, rounded, 1.5px stroke.
  * All icons inherit currentColor. Ported from the prototype.
  */
 import type { ReactNode } from 'react';
@@ -84,8 +84,8 @@ export const Icon: Record<string, IconFn> = {
   arrowR: (p) => <Svg {...p}><path d="M5 12h14M13 6l6 6-6 6" /></Svg>,
 };
 
-/** Grabit logo: fork glyph + charcoal wordmark, crimson dot on the "i". */
-export function GrabitLogo({
+/** Grabbit logo: fork glyph + charcoal wordmark, crimson dot on the "i". */
+export function GrabbitLogo({
   height = 26,
   mono = false,
   color = '#3d3d3d',

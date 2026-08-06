@@ -61,7 +61,7 @@ export default function ReviewStep() {
 
         <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: '4px 16px', marginBottom: 16 }}>
           <Row label="Café name" value={data.cafe_name} />
-          <Row label="Grabit URL" value={`grabit365.com/${data.cafe_slug}`} />
+          <Row label="Grabbit URL" value={`grabit365.com/${data.cafe_slug}`} />
           <Row label="Address" value={[data.cafe_address, data.cafe_city, data.state, data.postal_code].filter(Boolean).join(', ')} />
           <Row label="Legal name" value={data.legal_name} />
           <Row label="Business type" value={data.business_type?.replace('_', ' ')} />

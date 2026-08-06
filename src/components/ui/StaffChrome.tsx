@@ -1,13 +1,13 @@
 'use client';
 /**
- * Grabit staff chrome, responsive.
+ * Grabbit staff chrome, responsive.
  *  >= 1024px: prototype desktop shell (sidebar + top bar).
  *  < 1024px:  mobile header + bottom tab bar (legacy layout).
  * Presentational; routing via slug-aware Next Links.
  */
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { GrabitLogo, Icon } from './Icon';
+import { GrabbitLogo, Icon } from './Icon';
 
 export type StaffTab = 'queue' | 'history' | 'menumgmt' | 'slots' | 'analytics' | 'payouts';
 
@@ -52,7 +52,7 @@ export function StaffChrome({
 
       {/* Desktop sidebar */}
       <aside className="gb-staff-sidebar" style={{ width: 236, flex: 'none', background: 'var(--surface-card)', borderRight: '1px solid var(--hairline)', flexDirection: 'column', padding: '20px 16px' }}>
-        <div style={{ padding: '4px 8px 22px' }}><GrabitLogo height={26} /></div>
+        <div style={{ padding: '4px 8px 22px' }}><GrabbitLogo height={26} /></div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {NAV.map(n => {
             const on = active === n.k;
@@ -78,7 +78,7 @@ export function StaffChrome({
       <div className="gb-staff-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Mobile header */}
         <header className="gb-staff-mobtop" style={{ alignItems: 'center', gap: 10, height: 56, padding: '0 16px', background: 'var(--glass-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid var(--glass-border)', flex: 'none' }}>
-          <GrabitLogo height={22} />
+          <GrabbitLogo height={22} />
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>{right}</div>
         </header>
 

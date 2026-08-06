@@ -1,10 +1,10 @@
-// grabit/src/app/LandingClient.tsx
+// grabbit/src/app/LandingClient.tsx
 'use client';
 import LandingNav from '@/components/landing/LandingNav';
 import Hero from '@/components/landing/Hero';
 import TrustBand from '@/components/landing/TrustBand';
 import HowItWorks from '@/components/landing/HowItWorks';
-import WhyGrabit from '@/components/landing/WhyGrabit';
+import WhyGrabbit from '@/components/landing/WhyGrabbit';
 import ProductPreview from '@/components/landing/ProductPreview';
 import PartnerPitch from '@/components/landing/PartnerPitch';
 import FinalCTA from '@/components/landing/FinalCTA';
@@ -19,7 +19,7 @@ export default function LandingClient() {
         <Hero />
         <TrustBand />
         <HowItWorks />
-        <WhyGrabit />
+        <WhyGrabbit />
         <ProductPreview />
         <TestimonialsSection />
         <PartnerPitch />

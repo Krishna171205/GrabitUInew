@@ -48,7 +48,7 @@ export default async function HomePage(
   const { slug } = await params;
   const { table, craving } = await searchParams;
   const cookieStore = await cookies();
-  const token = cookieStore.get('grabit_customer_token')?.value ?? null;
+  const token = cookieStore.get('grabbit_customer_token')?.value ?? null;
 
   const { cafe, items } = await getCafeMenu(slug);
   if (!cafe) {

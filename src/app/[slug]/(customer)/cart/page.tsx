@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/store/cart';
-import type { GrabitAvailableSlot } from '@gradient365/gradient-commons';
+import type { GrabbitAvailableSlot } from '@gradient365/gradient-commons';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 
-interface SlotsData { slots: GrabitAvailableSlot[]; label: string | null; }
+interface SlotsData { slots: GrabbitAvailableSlot[]; label: string | null; }
 
 function dateStr(offsetDays: number) {
   const d = new Date();
@@ -51,8 +51,8 @@ export default function CartPage() {
   const slotRef = useRef<HTMLDivElement>(null);
   const [shakeSlot, setShakeSlot] = useState(false);
   useEffect(() => {
-    setDineInTable(sessionStorage.getItem('grabit_table'));
-    setNotes(sessionStorage.getItem('grabit_notes') ?? '');
+    setDineInTable(sessionStorage.getItem('grabbit_table'));
+    setNotes(sessionStorage.getItem('grabbit_notes') ?? '');
   }, []);
   const canProceed = dineInTable ? true : !!selectedSlot;
 
@@ -77,9 +77,9 @@ export default function CartPage() {
       .then((d) => d.acceptingOrders !== false)
       .catch(() => true); // fail open, same as the server-side check
     if (!accepting) { setCheckingAuth(false); setShowOfflineModal(true); return; }
-    if (dineInTable) sessionStorage.removeItem('grabit_slot');
-    else sessionStorage.setItem('grabit_slot', selectedSlot!);
-    sessionStorage.setItem('grabit_notes', notes.trim());
+    if (dineInTable) sessionStorage.removeItem('grabbit_slot');
+    else sessionStorage.setItem('grabbit_slot', selectedSlot!);
+    sessionStorage.setItem('grabbit_notes', notes.trim());
     const loggedIn = await fetch('/api/proxy/grabit/auth/me').then((r) => r.ok).catch(() => false);
     setCheckingAuth(false);
     if (!loggedIn) { setShowLoginPrompt(true); return; }
@@ -93,10 +93,10 @@ export default function CartPage() {
       try {
         const todayRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(0)}`);
         if (!todayRes.ok) throw new Error('slots fetch failed');
-        const todayData = await todayRes.json() as { slots: GrabitAvailableSlot[] };
+        const todayData = await todayRes.json() as { slots: GrabbitAvailableSlot[] };
         if (todayData.slots.length > 0) { setSlotsData({ slots: todayData.slots, label: null }); return; }
         const tomorrowRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(1)}`);
-        const tomorrowData = tomorrowRes.ok ? await tomorrowRes.json() as { slots: GrabitAvailableSlot[] } : { slots: [] };
+        const tomorrowData = tomorrowRes.ok ? await tomorrowRes.json() as { slots: GrabbitAvailableSlot[] } : { slots: [] };
         setSlotsData({ slots: tomorrowData.slots, label: 'Tomorrow' });
       } catch {
         setSlotsData({ slots: [], label: null });

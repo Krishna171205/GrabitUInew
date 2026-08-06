@@ -5,16 +5,16 @@ import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { formatPaise } from '@/lib/utils';
-import type { GrabitWallet, GrabitWalletTransaction, GrabitWalletTransactionType } from '@gradient365/gradient-commons';
+import type { GrabbitWallet, GrabbitWalletTransaction, GrabbitWalletTransactionType } from '@gradient365/gradient-commons';
 import { TopBar, Card, Button, Toggle, Icon } from '@/components/ui/kit';
 
 interface WalletData {
-  wallet: GrabitWallet;
-  transactions: GrabitWalletTransaction[];
+  wallet: GrabbitWallet;
+  transactions: GrabbitWalletTransaction[];
   streak: { months: number; lastRechargeMonth: string | null };
 }
 
-function txIcon(type: GrabitWalletTransactionType) {
+function txIcon(type: GrabbitWalletTransactionType) {
   const base: React.CSSProperties = {
     width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0,
   };
@@ -39,8 +39,8 @@ function formatTxDate(iso: string): string {
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-function groupTransactionsByDate(txs: GrabitWalletTransaction[]): Array<{ date: string; items: GrabitWalletTransaction[] }> {
-  const groups: Record<string, GrabitWalletTransaction[]> = {};
+function groupTransactionsByDate(txs: GrabbitWalletTransaction[]): Array<{ date: string; items: GrabbitWalletTransaction[] }> {
+  const groups: Record<string, GrabbitWalletTransaction[]> = {};
   for (const tx of txs) {
     const label = formatTxDate(tx.created_at);
     (groups[label] ??= []).push(tx);
@@ -48,7 +48,7 @@ function groupTransactionsByDate(txs: GrabitWalletTransaction[]): Array<{ date: 
   return Object.entries(groups).map(([date, items]) => ({ date, items }));
 }
 
-function isCredit(type: GrabitWalletTransactionType): boolean {
+function isCredit(type: GrabbitWalletTransactionType): boolean {
   return ['recharge', 'bonus_credit', 'referral_bonus', 'streak_bonus'].includes(type);
 }
 
@@ -66,13 +66,13 @@ export default function WalletPage() {
         return r.json();
       }),
       (() => {
-        const cached = sessionStorage.getItem(`grabit_cafe_id_${slug}`);
+        const cached = sessionStorage.getItem(`grabbit_cafe_id_${slug}`);
         if (cached) return Promise.resolve(Number(cached));
         return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`)
           .then(r => r.json())
           .then(d => {
             const id = d.cafe?.id ?? null;
-            if (id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(id));
+            if (id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(id));
             return id;
           });
       })(),

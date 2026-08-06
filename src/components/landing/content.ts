@@ -1,5 +1,5 @@
-// grabit/src/components/landing/content.ts
-// Landing copy, Grabit-original. Shared by section components (DRY).
+// grabbit/src/components/landing/content.ts
+// Landing copy, Grabbit-original. Shared by section components (DRY).
 
 export interface Feature { n: string; icon: string; title: string; body: string; }
 export interface Step { n: string; title: string; body: string; }

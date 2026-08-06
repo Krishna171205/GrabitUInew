@@ -249,7 +249,7 @@ export default function ProfilePage() {
         <div style={{ position: 'absolute', right: -20, top: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <MS name="workspace_premium" size={19} fill color="#F2D48A" />
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: '#F2D48A' }}>Grabit Gold</span>
+          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: '#F2D48A' }}>Grabbit Gold</span>
         </div>
         <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 8, lineHeight: 1.25, maxWidth: 250 }}>Priority pickup & member-only prices</div>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.34)', color: '#F2D48A', fontSize: 12.5, fontWeight: 800, padding: '9px 15px', borderRadius: 11, letterSpacing: '.03em' }}>
@@ -264,7 +264,7 @@ export default function ProfilePage() {
             <MS name="account_balance_wallet" size={23} fill color="var(--gb-primary)" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>Grabit Credits</div>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>Grabbit Credits</div>
             <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600 }}>Pay from your balance, soon</div>
           </div>
           {/* Wallet top-up is not live yet, so no Add money entry point. */}

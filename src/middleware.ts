@@ -43,7 +43,7 @@ export function middleware(req: NextRequest) {
     !pathname.includes('/manage/login');
 
   if (isManage) {
-    const token = req.cookies.get('grabit_staff_token')?.value;
+    const token = req.cookies.get('grabbit_staff_token')?.value;
     if (!token || isTokenExpired(token)) {
       const slug = pathname.split('/')[1];
       return NextResponse.redirect(new URL(`/${slug}/manage/login`, req.url));

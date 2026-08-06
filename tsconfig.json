@@ -26,7 +26,7 @@
         "./src/*"
       ],
       "@gradient365/gradient-commons": [
-        "./src/types/grabit.ts"
+        "./src/types/grabbit.ts"
       ]
     },
     "target": "ES2017"

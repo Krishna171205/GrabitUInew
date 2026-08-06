@@ -71,7 +71,7 @@ export default function SettingsPage() {
           <NavRow icon="description" label="Terms & policies" last />
         </div>
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--gb-faint-2)', fontWeight: 600, marginTop: 22 }}>Grabit · version 1.0.0</div>
+        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--gb-faint-2)', fontWeight: 600, marginTop: 22 }}>Grabbit · version 1.0.0</div>
       </div>
     </div>
   );

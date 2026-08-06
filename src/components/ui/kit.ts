@@ -1,5 +1,5 @@
-// Grabit design-system kit, barrel export for primitives + icons.
-export { Icon, GrabitLogo, FoodMark } from './Icon';
+// Grabbit design-system kit, barrel export for primitives + icons.
+export { Icon, GrabbitLogo, FoodMark } from './Icon';
 export type { IconProps } from './Icon';
 export {
   Button, Chip, Card, QtyStepper, AddButton, Photo, BottomSheet, StatusPill, Toggle, Segmented,

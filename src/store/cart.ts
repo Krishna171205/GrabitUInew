@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { GrabitCartItem } from '@gradient365/gradient-commons';
+import type { GrabbitCartItem } from '@gradient365/gradient-commons';
 
 interface CartState {
   cafeSlug: string | null;
-  items: GrabitCartItem[];
-  addItem: (item: GrabitCartItem, slug: string) => void;
+  items: GrabbitCartItem[];
+  addItem: (item: GrabbitCartItem, slug: string) => void;
   removeItem: (menuItemId: number) => void;
   updateQty: (menuItemId: number, quantity: number) => void;
   clearCart: () => void;
@@ -50,6 +50,6 @@ export const useCart = create<CartState>()(
       total: () =>
         get().items.reduce((sum, i) => sum + i.price * i.quantity, 0)
     }),
-    { name: 'grabit-cart' }
+    { name: 'grabbit-cart' }
   )
 );

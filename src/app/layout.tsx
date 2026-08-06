@@ -3,7 +3,7 @@ import { Baloo_2, Mukta } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 
-// Grabit brand type, Marigold system.
+// Grabbit brand type, Marigold system.
 // Display / wordmark: Baloo 2 (rounded, playful, native Devanagari).
 const baloo = Baloo_2({
   subsets: ['latin', 'devanagari'],
@@ -34,9 +34,9 @@ const mukta = Mukta({
 });
 
 export const metadata: Metadata = {
-  title: 'Grabit: Order Ahead',
+  title: 'Grabbit: Order Ahead',
   description: 'Pre-order from your favourite cafe',
-  icons: { icon: '/grabit-logo.svg' }
+  icons: { icon: '/grabbit-logo.svg' }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

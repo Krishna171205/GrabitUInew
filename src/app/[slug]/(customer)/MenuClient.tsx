@@ -3,20 +3,20 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import type { GrabitCafe, GrabitMenuItem, GrabitMenuCategory } from '@gradient365/gradient-commons';
+import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory } from '@gradient365/gradient-commons';
 import { useCart } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr, cafeOpenNow, fmtTime12 } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
-const CATEGORIES: GrabitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];
-const CATEGORY_LABELS: Record<GrabitMenuCategory, string> = {
+const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];
+const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
   drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts',
 };
 // No per-item photos in the backend yet: one honest placeholder per category
 // (not a random cycle) so a coffee never shows a croissant. ponytail: swap
 // for real item.image_url once cafés upload photos.
-const CATEGORY_PLACEHOLDER: Record<GrabitMenuCategory, string> = {
+const CATEGORY_PLACEHOLDER: Record<GrabbitMenuCategory, string> = {
   drinks: 'photo-1461023058943-07fcbe16d735',
   food: 'photo-1525351484163-7529414344d8',
   specials: 'photo-1495474472287-4d71bcdd2085',
@@ -24,7 +24,7 @@ const CATEGORY_PLACEHOLDER: Record<GrabitMenuCategory, string> = {
 };
 const HOT_DRINK_PLACEHOLDER = 'photo-1541167760496-1628856ab772';
 
-function placeholderFor(item: GrabitMenuItem) {
+function placeholderFor(item: GrabbitMenuItem) {
   if (item.category === 'drinks' && /\bhot\b/i.test(item.name) && !/iced|cold/i.test(item.name)) {
     return HOT_DRINK_PLACEHOLDER;
   }
@@ -48,8 +48,8 @@ interface FavItem {
 
 interface Props {
   slug: string;
-  cafe: GrabitCafe;
-  items: GrabitMenuItem[];
+  cafe: GrabbitCafe;
+  items: GrabbitMenuItem[];
   customerName?: string | null;
   topItems?: TopItem[];
   favorites?: FavItem[];
@@ -108,10 +108,10 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   // Dine-in QR entry (/{slug}?table=N): remember the table for this session so cart/checkout become
   // dine-in (no pickup slot); a plain visit (no ?table) clears it back to pickup.
   useEffect(() => {
-    if (table) sessionStorage.setItem('grabit_table', table);
-    else sessionStorage.removeItem('grabit_table');
+    if (table) sessionStorage.setItem('grabbit_table', table);
+    else sessionStorage.removeItem('grabbit_table');
   }, [table]);
-  const [activeCat, setActiveCat] = useState<GrabitMenuCategory | 'all'>('all');
+  const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
   const [query, setQuery] = useState(initialQuery ?? '');
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
@@ -124,7 +124,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const favoriteItems = items.filter(i => favIds.has(i.id));
 
   useEffect(() => {
-    if (cafe?.id) sessionStorage.setItem(`grabit_cafe_id_${slug}`, String(cafe.id));
+    if (cafe?.id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cafe.id));
   }, [slug, cafe?.id]);
 
   const q = query.trim().toLowerCase();
@@ -133,7 +133,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const shownCats = activeCat === 'all' ? categoriesPresent : categoriesPresent.filter(c => c === activeCat);
   const cover = cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
 
-  // Real signals only — no fabricated ratings/distance (GrabitCafe has no such fields).
+  // Real signals only — no fabricated ratings/distance (GrabbitCafe has no such fields).
   const hasHours = Boolean(cafe.opening_time && cafe.closing_time);
   const open = cafeOpenNow(cafe.opening_time, cafe.closing_time) && acceptingOrders;
   const hours = hasHours ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : 'Hours vary';
@@ -145,7 +145,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
     fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
   });
 
-  const addStep = (item: GrabitMenuItem) => {
+  const addStep = (item: GrabbitMenuItem) => {
     const qty = qtyOf(item.id);
     if (qty > 0) {
       return (

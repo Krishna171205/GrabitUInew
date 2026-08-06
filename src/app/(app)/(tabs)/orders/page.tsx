@@ -104,7 +104,7 @@ export default function OrdersPage() {
           </div>
         ) : (
           shown.map((o) => (
-            <OrderRow key={o.id} o={o} cafeName={cafeById.get(o.cafe_id)?.name ?? 'Grabit'} cafeSlug={cafeById.get(o.cafe_id)?.slug} />
+            <OrderRow key={o.id} o={o} cafeName={cafeById.get(o.cafe_id)?.name ?? 'Grabbit'} cafeSlug={cafeById.get(o.cafe_id)?.slug} />
           ))
         )}
       </div>

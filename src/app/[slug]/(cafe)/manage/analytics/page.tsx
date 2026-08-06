@@ -2,14 +2,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { StaffChrome, Icon } from '@/components/ui/kit';
-import type { GrabitOrderWithItems } from '@gradient365/gradient-commons';
+import type { GrabbitOrderWithItems } from '@gradient365/gradient-commons';
 
 export default function AnalyticsPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
 
   const [cafeId, setCafeId] = useState<number | null>(null);
-  const [orders, setOrders] = useState<GrabitOrderWithItems[]>([]);
+  const [orders, setOrders] = useState<GrabbitOrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

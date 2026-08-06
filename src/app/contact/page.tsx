@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Contact Us · Grabit',
-  description: 'Get in touch with the Grabit team at Unified Nexgrade Private Limited.',
+  title: 'Contact Us · Grabbit',
+  description: 'Get in touch with the Grabbit team at Unified Nexgrade Private Limited.',
 };
 
 const EMAIL = 'gradient365.team@gmail.com';
@@ -12,8 +12,8 @@ export default function ContactPage() {
   return (
     <LegalLayout title="Contact Us">
       <p>
-        Grabit is a cafe pre-ordering platform operated by <strong>Unified Nexgrade Private Limited</strong>.
-        We&apos;re here to help with orders, payments, refunds, or partnering your cafe with Grabit.
+        Grabbit is a cafe pre-ordering platform operated by <strong>Unified Nexgrade Private Limited</strong>.
+        We&apos;re here to help with orders, payments, refunds, or partnering your cafe with Grabbit.
       </p>
 
       <h2>Reach us</h2>
@@ -44,7 +44,7 @@ export default function ContactPage() {
 
       <h2>Business & partnerships</h2>
       <p>
-        Own a cafe and want to list on Grabit? Write to{' '}
+        Own a cafe and want to list on Grabbit? Write to{' '}
         <a href={`mailto:${EMAIL}?subject=Cafe%20partnership%20enquiry`}>{EMAIL}</a> with your cafe
         name and city and our team will get you onboarded.
       </p>

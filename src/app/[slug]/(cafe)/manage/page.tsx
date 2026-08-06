@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useCafeId } from '../CafeProvider';
 import { StaffChrome, Button, Icon } from '@/components/ui/kit';
-import type { GrabitOrderWithItems } from '@gradient365/gradient-commons';
+import type { GrabbitOrderWithItems } from '@gradient365/gradient-commons';
 
 /** Kanban columns mapped to real order statuses (completed/cancelled are filtered out). */
 const COLS: { status: string; title: string; accent: string }[] = [
@@ -26,7 +26,7 @@ function minsUntil(isoSlot: string): number {
 export default function ManagePage() {
   const { slug } = useParams<{ slug: string }>();
   const cafeId = useCafeId();
-  const [orders, setOrders] = useState<GrabitOrderWithItems[]>([]);
+  const [orders, setOrders] = useState<GrabbitOrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadOrders = useCallback(async (cid: number) => {
@@ -35,7 +35,7 @@ export default function ManagePage() {
       const r = await fetch(`/api/proxy/grabit/orders/cafe/${cid}?date=${today}`);
       const data = await r.json();
       setOrders(Array.isArray(data)
-        ? data.filter((o: GrabitOrderWithItems) => !['completed', 'cancelled'].includes(o.status))
+        ? data.filter((o: GrabbitOrderWithItems) => !['completed', 'cancelled'].includes(o.status))
         : []);
     } catch {
       // keep existing orders on error
@@ -156,7 +156,7 @@ export default function ManagePage() {
 function QueueCard({
   order, onReject, onAccept, onAdvance,
 }: {
-  order: GrabitOrderWithItems;
+  order: GrabbitOrderWithItems;
   onReject: () => void;
   onAccept: (prepMins: number) => void;
   onAdvance: () => void;

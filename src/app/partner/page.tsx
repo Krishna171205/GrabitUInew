@@ -17,7 +17,7 @@ export default function PartnerLandingPage() {
           <img src={ph('photo-1521017432531-fbd92d768814', 900, 700)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.35) 0%,rgba(20,12,6,.15) 40%,var(--gb-surface) 100%)' }} />
           <div style={{ position: 'absolute', bottom: 24, left: 26, right: 26, color: '#fff' }}>
-            <div className="gb-serif" style={{ fontSize: 34, fontWeight: 600, lineHeight: 1.1 }}>Partner with Grabit</div>
+            <div className="gb-serif" style={{ fontSize: 34, fontWeight: 600, lineHeight: 1.1 }}>Partner with Grabbit</div>
             <div style={{ fontSize: 15, fontWeight: 500, marginTop: 6, color: 'rgba(255,255,255,.9)' }}>Bring your café online for order-ahead pickup.</div>
           </div>
         </div>

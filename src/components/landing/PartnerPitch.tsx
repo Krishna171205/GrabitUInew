@@ -1,4 +1,4 @@
-// grabit/src/components/landing/PartnerPitch.tsx
+// grabbit/src/components/landing/PartnerPitch.tsx
 'use client';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ import { MS } from '@/components/gb/kit';
 const SPLIT_IMG = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1600&q=80';
 
 const BENEFITS = [
-  { icon: 'point_of_sale', title: 'Your own POS', body: 'Grabit orders land in your Omega POS at the counter, next to your walk-in orders.', tint: { bg: '#efe9df', fg: '#241612', sub: 'rgba(36,22,18,.62)', icon: '#241612' } },
+  { icon: 'point_of_sale', title: 'Your own POS', body: 'Grabbit orders land in your Omega POS at the counter, next to your walk-in orders.', tint: { bg: '#efe9df', fg: '#241612', sub: 'rgba(36,22,18,.62)', icon: '#241612' } },
   { icon: 'savings', title: 'Keep your margin', body: 'A direct pre-order channel, not a commission-heavy aggregator listing.', tint: { bg: 'linear-gradient(160deg,#FFC24B,#FFB100)', fg: '#241612', sub: 'rgba(36,22,18,.72)', icon: '#241612' } },
   { icon: 'notifications_active', title: 'Never miss an order', body: 'A tablet at the counter alerts you the moment a pickup order comes in.', tint: { bg: '#171310', fg: '#ffffff', sub: 'rgba(255,255,255,.66)', icon: 'var(--gb-primary)' } },
 ];

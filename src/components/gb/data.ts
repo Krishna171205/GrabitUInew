@@ -1,5 +1,5 @@
 /**
- * Grabit consumer app, sample data mirroring the design mockups.
+ * Grabbit consumer app, sample data mirroring the design mockups.
  * Marketplace-level fields (rating, distance, ETA, trending) aren't in the
  * backend yet, so these screens render faithfully off this until the discovery
  * API lands. Café `slug`s route to the real /[slug] storefront.
@@ -100,7 +100,7 @@ export const NOTIFICATIONS: GbNotif[] = [
   { group: 'Today', icon: 'restaurant', iconColor: 'var(--gb-primary)', iconBg: '#F3D9C8', title: 'Your order is being prepared', body: "The Roastery · pickup at 9:45 AM. We'll ping you when it's ready.", time: '2 min ago', unread: true },
   { group: 'Today', icon: 'local_offer', iconColor: 'var(--gb-gold)', iconBg: '#EDE4D6', title: '20% off your next cold brew', body: 'Valid at The Roastery till Sunday. Tap to view.', time: '3 hours ago' },
   { group: 'Earlier', icon: 'check_circle', iconColor: 'var(--gb-green)', iconBg: '#DFEAD9', title: 'Order picked up', body: 'Baked Shakshuka from Olive & Sage. Enjoy!', time: '28 Jun' },
-  { group: 'Earlier', icon: 'workspace_premium', iconColor: '#720DB5', iconBg: '#EAE0F2', title: 'Try Grabit Gold free for 7 days', body: 'Priority pickup & member-only prices.', time: '24 Jun' },
+  { group: 'Earlier', icon: 'workspace_premium', iconColor: '#720DB5', iconBg: '#EAE0F2', title: 'Try Grabbit Gold free for 7 days', body: 'Priority pickup & member-only prices.', time: '24 Jun' },
 ];
 
 export const USER = {

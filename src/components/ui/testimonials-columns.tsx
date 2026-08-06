@@ -12,7 +12,7 @@ const MARQUEE_CSS = `
 
 const testimonials = [
   {
-    text: "I have a 9 AM lecture in the ECE block every day. Grabit means my cappuccino is already waiting at Raydee when I walk past. Life. Changed.",
+    text: "I have a 9 AM lecture in the ECE block every day. Grabbit means my cappuccino is already waiting at Raydee when I walk past. Life. Changed.",
     image: "https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop",
     name: "Rohan Verma",
     role: "3rd Year, Electronics & Communication, DTU",
@@ -24,13 +24,13 @@ const testimonials = [
     role: "2nd Year, Computer Science, DTU",
   },
   {
-    text: "Between back-to-back lectures and tutorials, there's no time to stand in line. Grabit fits perfectly into the five-minute gap between classes.",
+    text: "Between back-to-back lectures and tutorials, there's no time to stand in line. Grabbit fits perfectly into the five-minute gap between classes.",
     image: "https://randomuser.me/api/portraits/men/38.jpg",
     name: "Aditya Rathore",
     role: "4th Year, Mechanical Engineering, DTU",
   },
   {
-    text: "As a faculty member I have a packed schedule. Grabit lets me order my masala chai before the department meeting without leaving my office early.",
+    text: "As a faculty member I have a packed schedule. Grabbit lets me order my masala chai before the department meeting without leaving my office early.",
     image: "https://randomuser.me/api/portraits/men/76.jpg",
     name: "Dr. Sunil Pandey",
     role: "Associate Professor, Civil Engineering, DTU",
@@ -42,7 +42,7 @@ const testimonials = [
     role: "M.Tech, Biotechnology, DTU",
   },
   {
-    text: "I manage the admin office and we used to do a painful tea round every afternoon. Now I place a single Grabit order for six people and it's done in two minutes.",
+    text: "I manage the admin office and we used to do a painful tea round every afternoon. Now I place a single Grabbit order for six people and it's done in two minutes.",
     image: "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop",
     name: "Sanjay Malik",
     role: "Administrative Officer, DTU",
@@ -54,7 +54,7 @@ const testimonials = [
     role: "Final Year, IT Engineering, DTU",
   },
   {
-    text: "Our research group meets at 8:30 AM. Grabit means the coffee is already on the table when everyone walks in. Sets the right tone for the whole session.",
+    text: "Our research group meets at 8:30 AM. Grabbit means the coffee is already on the table when everyone walks in. Sets the right tone for the whole session.",
     image: "https://randomuser.me/api/portraits/women/22.jpg",
     name: "Dr. Prerna Saxena",
     role: "Assistant Professor, Mathematics, DTU",

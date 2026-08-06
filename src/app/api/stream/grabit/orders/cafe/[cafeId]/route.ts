@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ cafeId: string }> },
 ) {
   const { cafeId } = await params;
-  const token = (await cookies()).get('grabit_staff_token')?.value;
+  const token = (await cookies()).get('grabbit_staff_token')?.value;
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const headers: Record<string, string> = {

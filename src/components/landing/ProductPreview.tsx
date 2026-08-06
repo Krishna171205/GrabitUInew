@@ -1,4 +1,4 @@
-// grabit/src/components/landing/ProductPreview.tsx
+// grabbit/src/components/landing/ProductPreview.tsx
 'use client';
 import Image from 'next/image';
 import { useRef } from 'react';

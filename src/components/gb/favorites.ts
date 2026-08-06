@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from 'react';
 
-const KEY = 'grabit_favorite_cafes';
+const KEY = 'grabbit_favorite_cafes';
 
 function readAll(): Set<string> {
   if (typeof window === 'undefined') return new Set();

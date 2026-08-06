@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions · Grabit',
-  description: 'The terms governing your use of the Grabit cafe pre-ordering platform.',
+  title: 'Terms & Conditions · Grabbit',
+  description: 'The terms governing your use of the Grabbit cafe pre-ordering platform.',
 };
 
 const EMAIL = 'gradient365.team@gmail.com';
@@ -12,17 +12,17 @@ export default function TermsPage() {
   return (
     <LegalLayout title="Terms & Conditions" updated="5 July 2026">
       <p>
-        These Terms &amp; Conditions (&quot;Terms&quot;) govern your access to and use of Grabit
+        These Terms &amp; Conditions (&quot;Terms&quot;) govern your access to and use of Grabbit
         (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;), operated by{' '}
         <strong>Unified Nexgrade Private Limited</strong>. By placing an order or otherwise using
         the Platform, you agree to these Terms.
       </p>
 
-      <h2>1. What Grabit does</h2>
+      <h2>1. What Grabbit does</h2>
       <p>
-        Grabit lets customers pre-order food and beverages from participating cafes for pickup at a
+        Grabbit lets customers pre-order food and beverages from participating cafes for pickup at a
         chosen time slot. The cafe (&quot;Merchant&quot;) is the seller and is solely responsible for
-        preparing and handing over your order. Grabit facilitates ordering and payment between you
+        preparing and handing over your order. Grabbit facilitates ordering and payment between you
         and the Merchant.
       </p>
 
@@ -57,7 +57,7 @@ export default function TermsPage() {
 
       <h2>6. Limitation of liability</h2>
       <p>
-        Grabit is a technology platform and is not the manufacturer or preparer of any food item. To
+        Grabbit is a technology platform and is not the manufacturer or preparer of any food item. To
         the maximum extent permitted by law, our liability for any order is limited to the amount you
         paid for that order. We are not liable for the quality, safety, or fitness of items prepared
         by a Merchant.

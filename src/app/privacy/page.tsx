@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy · Grabit',
-  description: 'How Grabit collects, uses, and protects your personal information.',
+  title: 'Privacy Policy · Grabbit',
+  description: 'How Grabbit collects, uses, and protects your personal information.',
 };
 
 const EMAIL = 'gradient365.team@gmail.com';
@@ -13,8 +13,8 @@ export default function PrivacyPage() {
     <LegalLayout title="Privacy Policy" updated="5 July 2026">
       <p>
         This Privacy Policy explains how <strong>Unified Nexgrade Private Limited</strong>
-        (&quot;Grabit&quot;, &quot;we&quot;) collects, uses, and protects your information when you use
-        the Grabit platform.
+        (&quot;Grabbit&quot;, &quot;we&quot;) collects, uses, and protects your information when you use
+        the Grabbit platform.
       </p>
 
       <h2>Information we collect</h2>

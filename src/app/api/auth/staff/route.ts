@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (!apiRes.ok) return NextResponse.json(data, { status: apiRes.status });
 
   const cookieStore = await cookies();
-  cookieStore.set('grabit_staff_token', data.token, {
+  cookieStore.set('grabbit_staff_token', data.token, {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',

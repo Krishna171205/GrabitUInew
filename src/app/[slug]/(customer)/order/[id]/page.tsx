@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { GrabitOrderWithItems, GrabitOrderStatus } from '@gradient365/gradient-commons';
+import type { GrabbitOrderWithItems, GrabbitOrderStatus } from '@gradient365/gradient-commons';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 
-function stepIndex(s: GrabitOrderStatus): number {
-  const map: Record<GrabitOrderStatus, number> = {
+function stepIndex(s: GrabbitOrderStatus): number {
+  const map: Record<GrabbitOrderStatus, number> = {
     pending: 0, new_order: 0, confirmed: 1, prepping: 1, ready: 2, completed: 3, cancelled: 0,
   };
   return map[s] ?? 0;
@@ -40,7 +40,7 @@ export default function OrderPage() {
     ? (new URLSearchParams(window.location.search).get('t') ?? '')
     : '';
   const router = useRouter();
-  const [order, setOrder] = useState<GrabitOrderWithItems | null>(null);
+  const [order, setOrder] = useState<GrabbitOrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 

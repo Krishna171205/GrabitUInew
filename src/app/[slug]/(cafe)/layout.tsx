@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { CafeProvider } from './CafeProvider';
-import type { GrabitStaffRole } from '@/types/grabit';
+import type { GrabbitStaffRole } from '@/types/grabbit';
 
 export default async function CafeLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
@@ -9,7 +9,7 @@ export default async function CafeLayout({ children }: { children: React.ReactNo
   const rawRole  = headersList.get('x-staff-role');
   const cafeId  = rawCafe  ? (parseInt(rawCafe,  10) || null) : null;
   const staffId = rawStaff ? (parseInt(rawStaff, 10) || null) : null;
-  const role    = (rawRole as GrabitStaffRole | null) ?? null;
+  const role    = (rawRole as GrabbitStaffRole | null) ?? null;
 
   return (
     <CafeProvider cafeId={cafeId} staffId={staffId} role={role}>

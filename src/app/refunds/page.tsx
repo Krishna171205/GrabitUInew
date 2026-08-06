@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
 
 export const metadata: Metadata = {
-  title: 'Refunds & Cancellations · Grabit',
-  description: 'When Grabit orders can be refunded, and why a paid pre-order cannot be cancelled.',
+  title: 'Refunds & Cancellations · Grabbit',
+  description: 'When Grabbit orders can be refunded, and why a paid pre-order cannot be cancelled.',
 };
 
 const EMAIL = 'gradient365.team@gmail.com';
@@ -12,7 +12,7 @@ export default function RefundsPage() {
   return (
     <LegalLayout title="Refunds & Cancellations" updated="2 August 2026">
       <p>
-        This policy explains when you can cancel a Grabit order and how refunds are processed. Grabit
+        This policy explains when you can cancel a Grabbit order and how refunds are processed. Grabbit
         is operated by <strong>Unified Nexgrade Private Limited</strong>. All amounts are in Indian
         Rupees (INR / ₹).
       </p>

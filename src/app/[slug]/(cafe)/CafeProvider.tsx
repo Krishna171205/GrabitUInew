@@ -1,11 +1,11 @@
 'use client';
 import { createContext, useContext } from 'react';
-import type { GrabitStaffRole } from '@/types/grabit';
+import type { GrabbitStaffRole } from '@/types/grabbit';
 
 interface CafeContextValue {
   cafeId: number | null;
   staffId: number | null;
-  role: GrabitStaffRole | null;
+  role: GrabbitStaffRole | null;
 }
 
 const CafeContext = createContext<CafeContextValue>({ cafeId: null, staffId: null, role: null });
@@ -18,7 +18,7 @@ export function CafeProvider({
 }: {
   cafeId: number | null;
   staffId: number | null;
-  role: GrabitStaffRole | null;
+  role: GrabbitStaffRole | null;
   children: React.ReactNode;
 }) {
   return (
@@ -36,6 +36,6 @@ export function useStaffId(): number | null {
   return useContext(CafeContext).staffId;
 }
 
-export function useCafeRole(): GrabitStaffRole | null {
+export function useCafeRole(): GrabbitStaffRole | null {
   return useContext(CafeContext).role;
 }

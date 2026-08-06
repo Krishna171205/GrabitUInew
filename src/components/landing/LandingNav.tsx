@@ -1,4 +1,4 @@
-// grabit/src/components/landing/LandingNav.tsx
+// grabbit/src/components/landing/LandingNav.tsx
 'use client';
 import Link from 'next/link';
 import { MS } from '@/components/gb/kit';
@@ -15,7 +15,7 @@ export default function LandingNav() {
       <nav style={{ maxWidth: 1120, margin: '0 auto', height: 68, padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MS name="storefront" size={24} color="var(--gb-primary)" />
-          <span className="gb-serif" style={{ fontSize: 22, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabit</span>
+          <span className="gb-serif" style={{ fontSize: 22, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabbit</span>
         </Link>
         <div className="gb-nav-center" style={{ display: 'none', alignItems: 'center', gap: 28 }}>
           <a href="#how-it-works" className="gb-hover-link" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>How it works</a>

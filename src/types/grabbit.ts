@@ -1,11 +1,11 @@
-export type GrabitOrderStatus = 'pending' | 'new_order' | 'confirmed' | 'prepping' | 'ready' | 'completed' | 'cancelled';
-export type GrabitPaymentMethod = 'online' | 'counter';
-export type GrabitPaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
-export type GrabitStaffRole = 'owner' | 'manager' | 'staff';
-export type GrabitMenuCategory = 'drinks' | 'food' | 'specials' | 'desserts';
-export type GrabitCafeStatus = 'open' | 'partial' | 'closed';
+export type GrabbitOrderStatus = 'pending' | 'new_order' | 'confirmed' | 'prepping' | 'ready' | 'completed' | 'cancelled';
+export type GrabbitPaymentMethod = 'online' | 'counter';
+export type GrabbitPaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+export type GrabbitStaffRole = 'owner' | 'manager' | 'staff';
+export type GrabbitMenuCategory = 'drinks' | 'food' | 'specials' | 'desserts';
+export type GrabbitCafeStatus = 'open' | 'partial' | 'closed';
 
-export interface GrabitCafe {
+export interface GrabbitCafe {
   id: number;
   slug: string;
   name: string;
@@ -18,13 +18,13 @@ export interface GrabitCafe {
   image_url: string | null;
 }
 
-export interface GrabitMenuItem {
+export interface GrabbitMenuItem {
   id: number;
   cafe_id: number;
   name: string;
   description: string | null;
   price: number;
-  category: GrabitMenuCategory;
+  category: GrabbitMenuCategory;
   image_url: string | null;
   is_available: boolean;
   sort_order: number;
@@ -32,31 +32,31 @@ export interface GrabitMenuItem {
   is_veg?: boolean | null; // null/undefined = unknown; render no veg mark
 }
 
-export interface GrabitSlotConfig {
+export interface GrabbitSlotConfig {
   slot_duration_minutes: number;
   max_orders_per_slot: number;
   min_advance_minutes: number;
   cutoff_before_close_minutes: number;
 }
 
-export interface GrabitCustomer {
+export interface GrabbitCustomer {
   id: number;
   phone: string;
   name: string | null;
 }
 
-export interface GrabitCafeStaff {
+export interface GrabbitCafeStaff {
   id: number;
   cafe_id: number;
   phone: string;
   name: string | null;
-  role: GrabitStaffRole;
+  role: GrabbitStaffRole;
   is_active: boolean;
   is_checked_in: boolean;
   checked_in_at: string | null;
 }
 
-export interface GrabitETABreakdown {
+export interface GrabbitETABreakdown {
   base_minutes: number;
   staff_factor: number;
   load_buffer: number;
@@ -65,14 +65,14 @@ export interface GrabitETABreakdown {
   active_orders: number;
 }
 
-export interface GrabitOrder {
+export interface GrabbitOrder {
   id: number;
   cafe_id: number;
   customer_id: number;
   pickup_slot: string;
-  status: GrabitOrderStatus;
-  payment_method: GrabitPaymentMethod;
-  payment_status: GrabitPaymentStatus;
+  status: GrabbitOrderStatus;
+  payment_method: GrabbitPaymentMethod;
+  payment_status: GrabbitPaymentStatus;
   cashfree_order_id: string | null;
   cashfree_payment_session_id: string | null;
   total_amount: number;
@@ -86,7 +86,7 @@ export interface GrabitOrder {
   updated_at: string;
 }
 
-export interface GrabitOrderItem {
+export interface GrabbitOrderItem {
   id: number;
   order_id: number;
   menu_item_id: number;
@@ -95,20 +95,20 @@ export interface GrabitOrderItem {
   unit_price: number;
 }
 
-export interface GrabitOrderWithItems extends GrabitOrder {
-  items: GrabitOrderItem[];
+export interface GrabbitOrderWithItems extends GrabbitOrder {
+  items: GrabbitOrderItem[];
   customer_phone: string;
   customer_name: string | null;
 }
 
-export interface GrabitAvailableSlot {
+export interface GrabbitAvailableSlot {
   slot_start: string;
   slot_end: string;
   available_count: number;
   max_count: number;
 }
 
-export interface GrabitCartItem {
+export interface GrabbitCartItem {
   menu_item_id: number;
   name: string;
   price: number;
@@ -117,24 +117,24 @@ export interface GrabitCartItem {
   is_veg?: boolean | null;
 }
 
-export interface GrabitAuthResponse {
+export interface GrabbitAuthResponse {
   token: string;
-  customer?: GrabitCustomer;
+  customer?: GrabbitCustomer;
   staff?: {
     id: number;
     phone: string;
-    role: GrabitStaffRole;
+    role: GrabbitStaffRole;
     cafe_id: number;
     name: string | null;
   };
 }
 
 // Wallet types
-export type GrabitWalletTransactionType = 'recharge' | 'order_debit' | 'bonus_credit' | 'referral_bonus' | 'streak_bonus' | 'bonus_expired';
-export type GrabitRechargeStatus = 'pending' | 'success' | 'failed';
-export type GrabitSettlementStatus = 'pending' | 'settled';
+export type GrabbitWalletTransactionType = 'recharge' | 'order_debit' | 'bonus_credit' | 'referral_bonus' | 'streak_bonus' | 'bonus_expired';
+export type GrabbitRechargeStatus = 'pending' | 'success' | 'failed';
+export type GrabbitSettlementStatus = 'pending' | 'settled';
 
-export interface GrabitWallet {
+export interface GrabbitWallet {
   id: number;
   customer_id: number;
   cafe_id: number;
@@ -150,11 +150,11 @@ export interface GrabitWallet {
   updated_at: string;
 }
 
-export interface GrabitWalletTransaction {
+export interface GrabbitWalletTransaction {
   id: number;
   wallet_id: number;
   cafe_id: number;
-  type: GrabitWalletTransactionType;
+  type: GrabbitWalletTransactionType;
   amount_paise: number;
   balance_type: 'base' | 'bonus';
   reference_id: string | null;
@@ -162,21 +162,21 @@ export interface GrabitWalletTransaction {
   created_at: string;
 }
 
-export interface GrabitWalletRecharge {
+export interface GrabbitWalletRecharge {
   id: number;
   wallet_id: number;
   cafe_id: number;
   slab_amount_paise: number;
   bonus_amount_paise: number;
   bonus_expires_at: string;
-  payment_status: GrabitRechargeStatus;
+  payment_status: GrabbitRechargeStatus;
   cashfree_order_id: string | null;
   cashfree_payment_id: string | null;
   created_at: string;
   settled_at: string | null;
 }
 
-export interface GrabitReferral {
+export interface GrabbitReferral {
   id: number;
   referrer_customer_id: number;
   referred_customer_id: number | null;
@@ -186,12 +186,12 @@ export interface GrabitReferral {
   created_at: string;
 }
 
-export interface GrabitCafeSettlement {
+export interface GrabbitCafeSettlement {
   id: number;
   cafe_id: number;
   order_id: number;
   amount_paise: number;
-  status: GrabitSettlementStatus;
+  status: GrabbitSettlementStatus;
   due_at: string;
   settled_at: string | null;
   created_at: string;
@@ -208,19 +208,19 @@ export const WALLET_STREAK_MILESTONE = 3;
 export const WALLET_STREAK_BONUS_PAISE = 10000; // Rs 100
 export const WALLET_REFERRAL_BONUS_PAISE = 5000; // Rs 50
 
-export interface GrabitPaymentsTrendDay {
+export interface GrabbitPaymentsTrendDay {
   date: string;       // YYYY-MM-DD
   revenue: number;    // rupees (decimal)
 }
 
-export interface GrabitPaymentsTransaction {
+export interface GrabbitPaymentsTransaction {
   id: number;
   created_at: string; // ISO timestamp
   total_amount: number;
-  payment_method: GrabitPaymentMethod;
+  payment_method: GrabbitPaymentMethod;
 }
 
-export interface GrabitPaymentsSummary {
+export interface GrabbitPaymentsSummary {
   total: number;           // rupees
   online: number;          // rupees
   counter: number;         // rupees
@@ -229,6 +229,6 @@ export interface GrabitPaymentsSummary {
   order_count: number;
   avg_order_value: number; // rupees
   settlement_date: string | null; // YYYY-MM-DD, null when online = 0
-  daily_trend: GrabitPaymentsTrendDay[];
-  transactions: GrabitPaymentsTransaction[];
+  daily_trend: GrabbitPaymentsTrendDay[];
+  transactions: GrabbitPaymentsTransaction[];
 }

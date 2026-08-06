@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GrabitLogo } from '@/components/ui/kit';
+import { GrabbitLogo } from '@/components/ui/kit';
 
 // Shared shell for public policy pages (Contact, Terms, Refunds, Privacy).
 // Server component, no client hooks, so these pages are fully crawlable.
@@ -17,8 +17,8 @@ export default function LegalLayout({
       {/* Top bar */}
       <header className="w-full border-b border-black/5 bg-surface/80 backdrop-blur-xl">
         <nav className="flex justify-between items-center px-6 h-20 w-full max-w-4xl mx-auto">
-          <Link href="/" aria-label="Grabit home">
-            <GrabitLogo height={40} />
+          <Link href="/" aria-label="Grabbit home">
+            <GrabbitLogo height={40} />
           </Link>
           <Link
             href="/"

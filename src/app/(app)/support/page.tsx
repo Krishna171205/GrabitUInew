@@ -15,7 +15,7 @@ const field = { border: '1px solid #E7DCCC', borderRadius: 11, padding: '12px 13
 export default function SupportPage() {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject || 'Grabit support')}&body=${encodeURIComponent(body)}`;
+  const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject || 'Grabbit support')}&body=${encodeURIComponent(body)}`;
 
   return (
     <div className="gb-shell">

@@ -6,7 +6,7 @@ import { BottomNav, DesktopTopNav } from '@/components/gb/kit';
  * Signed-in: BottomNav on mobile, DesktopTopNav on desktop (CSS-toggled, see .gb-bottomnav/.gb-topnav).
  */
 export default async function TabsLayout({ children }: { children: React.ReactNode }) {
-  const token = (await cookies()).get('grabit_customer_token')?.value;
+  const token = (await cookies()).get('grabbit_customer_token')?.value;
   return (
     <>
       {token && <DesktopTopNav />}

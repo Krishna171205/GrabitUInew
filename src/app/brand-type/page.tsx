@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Baloo_2, Poppins, Mukta } from 'next/font/google';
 import localFont from 'next/font/local';
 
-export const metadata: Metadata = { title: 'Grabit — Type Specimen' };
+export const metadata: Metadata = { title: 'Grabbit — Type Specimen' };
 
 /* ── Google (self-hosted at build) ── */
 const baloo = Baloo_2({ subsets: ['latin', 'devanagari'], weight: ['500', '700', '800'], variable: '--f-baloo', display: 'swap' });
@@ -101,7 +101,7 @@ export default function TypeSpecimen() {
     <div className={`${baloo.variable} ${poppins.variable} ${mukta.variable} ${satoshi.variable} ${clash.variable} ${general.variable}`}
       style={{ background: '#FFF3DC', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '48px 24px 80px' }}>
-        <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: '#8A7A6B' }}>Grabit · Marigold · Type comparison</div>
+        <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: '#8A7A6B' }}>Grabbit · Marigold · Type comparison</div>
         <h1 style={{ fontFamily: 'var(--f-baloo)', fontWeight: 800, fontSize: 40, color: '#241612', letterSpacing: '-.03em', margin: '10px 0 6px' }}>Three type systems, same brand</h1>
         <p style={{ fontFamily: 'var(--f-satoshi)', fontSize: 16, color: '#4A3B33', maxWidth: '60ch' }}>All rendered with the real self-hosted fonts on the Marigold palette. Compare the wordmark, small UI, tabular numerals (prices/timers), and Hindi. Then pick one.</p>
         {SYSTEMS.map((s) => <Specimen key={s.id} s={s} />)}

@@ -109,7 +109,7 @@ function LoginForm() {
         <img src={ph('photo-1495474472287-4d71bcdd2085', 900, 1000)} alt="Café" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(40,24,16,.45) 0%,rgba(40,24,16,0) 26%,rgba(40,24,16,.55) 74%,#FAF6F0 100%)' }} />
         <div style={{ position: 'absolute', bottom: 30, left: 26, right: 26, color: '#fff' }}>
-          <div className="gb-serif" style={{ fontSize: 40, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>Grabit</div>
+          <div className="gb-serif" style={{ fontSize: 40, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>Grabbit</div>
           <div className="gb-serif" style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.3, marginTop: 6, maxWidth: 280 }}>
             Order ahead from cafés near you. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
           </div>
@@ -177,7 +177,7 @@ function LoginForm() {
             </button>
 
             <div style={{ textAlign: 'center', fontSize: 11.5, color: '#A0917E', fontWeight: 500, lineHeight: 1.5, marginTop: 24 }}>
-              By continuing you agree to Grabit&apos;s<br />
+              By continuing you agree to Grabbit&apos;s<br />
               <span style={{ color: '#7A6E60', fontWeight: 700 }}>Terms of Service</span> and <span style={{ color: '#7A6E60', fontWeight: 700 }}>Privacy Policy</span>
             </div>
           </>
@@ -248,7 +248,7 @@ function LoginForm() {
             </div>
             <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 14 }}>No account found</div>
             <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
-              We couldn&apos;t find a Grabit account for +91 {phone}. Try signing up instead.
+              We couldn&apos;t find a Grabbit account for +91 {phone}. Try signing up instead.
             </div>
             <button
               onClick={() => { setMode('signup'); setShowNoAccount(false); }}

@@ -75,7 +75,7 @@ export default function PartnerSignupPage() {
     <div className="gb-app">
       <div style={{ maxWidth: 420, margin: '0 auto', minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 26px 32px' }}>
         <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, textAlign: 'center' }}>
-          {step === 'phone' ? 'Become a Grabit partner' : 'Enter the code'}
+          {step === 'phone' ? 'Become a Grabbit partner' : 'Enter the code'}
         </div>
 
         {step === 'phone' ? (
