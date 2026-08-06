@@ -42,11 +42,11 @@ export default function Hero() {
         <motion.span variants={item} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gb-primary)', color: '#fff', fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, marginBottom: 18 }}>
           Now in Delhi
         </motion.span>
-        <motion.h1 variants={item} className="gb-serif" style={{ color: '#fff', fontSize: 'clamp(40px, 8vw, 76px)', fontWeight: 600, lineHeight: 1.05, letterSpacing: '-.02em', maxWidth: 680, margin: 0 }}>
-          Order ahead.<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
+                <motion.h1 variants={item} className="gb-serif" style={{ color: '#fff', fontSize: 'clamp(40px, 8vw, 76px)', fontWeight: 600, lineHeight: 1.05, letterSpacing: '-.02em', maxWidth: 680, margin: 0 }}>
+          Order ahead with <span style={{ color: 'var(--gb-primary)' }}>Grabbit</span>.<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
         </motion.h1>
-        <motion.p variants={item} style={{ color: 'rgba(255,255,255,.85)', fontSize: 18, lineHeight: 1.5, maxWidth: 460, margin: '18px 0 0' }}>
-          Pre-order from cafés near you. It is ready when you arrive.
+                <motion.p variants={item} style={{ color: 'rgba(255,255,255,.85)', fontSize: 18, lineHeight: 1.5, maxWidth: 460, margin: '18px 0 0' }}>
+          LetsGrabbit — pre-order coffee &amp; snacks from cafes near you. It is ready when you arrive.
         </motion.p>
         <motion.div variants={item} style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 30 }}>
           <Link href="/home" className="gb-hover-btn" style={{ background: 'var(--gb-primary)', color: '#fff', fontSize: 16, fontWeight: 800, padding: '15px 26px', borderRadius: 999 }}>Browse cafés</Link>

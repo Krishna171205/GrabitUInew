@@ -1,9 +1,29 @@
 import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
+import { SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Refunds & Cancellations · Grabbit',
-  description: 'When Grabbit orders can be refunded, and why a paid pre-order cannot be cancelled.',
+  title: 'Refunds & Cancellations · Grabbit | LetsGrabbit',
+  description: 'When Grabbit (LetsGrabbit) orders can be refunded, and why a paid pre-order cannot be cancelled.',
+  keywords: ['grabbit refunds', 'lets grabbit refund', 'cafe pre-order refund', 'grabbit cancellation'],
+  openGraph: {
+    title: 'Refunds & Cancellations · Grabbit | LetsGrabbit',
+    description: 'When Grabbit orders can be refunded, and why a paid pre-order cannot be cancelled.',
+    url: `${SITE_URL}/refunds`,
+    siteName: 'Grabbit',
+    type: 'website',
+    locale: 'en_IN',
+    images: [{ url: `${SITE_URL}/og-image.svg`, width: 1200, height: 630, alt: 'Grabbit Refunds Policy' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@grabbit',
+    title: 'Refunds & Cancellations · Grabbit | LetsGrabbit',
+    description: 'When Grabbit orders can be refunded, and why a paid pre-order cannot be cancelled.',
+    images: [`${SITE_URL}/og-image.svg`],
+  },
+  alternates: { canonical: `${SITE_URL}/refunds` },
+  robots: { index: true, follow: true },
 };
 
 const EMAIL = 'gradient365.team@gmail.com';
