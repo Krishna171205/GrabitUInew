@@ -72,6 +72,16 @@ function Veg({ veg }: { veg?: boolean | null }) {
 export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null }: Props) {
   const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
 
+  // Omega's store-status toggle, on top of the scheduled hours below. Defaults true
+  // (fail-open) so a slow/failed fetch never falsely shows "Closed" for a cafe that's fine.
+  const [acceptingOrders, setAcceptingOrders] = useState(true);
+  useEffect(() => {
+    fetch(`/api/proxy/grabit/cafes/${slug}/status`)
+      .then(res => res.ok ? res.json() : null)
+      .then(d => { if (d) setAcceptingOrders(d.acceptingOrders !== false); })
+      .catch(() => {});
+  }, [slug]);
+
   async function toggleFavorite(menuItemId: number) {
     const wasFav = favIds.has(menuItemId);
     setFavIds(prev => {
@@ -125,7 +135,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
 
   // Real signals only — no fabricated ratings/distance (GrabitCafe has no such fields).
   const hasHours = Boolean(cafe.opening_time && cafe.closing_time);
-  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time);
+  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time) && acceptingOrders;
   const hours = hasHours ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : 'Hours vary';
 
   const chip = (active: boolean) => ({
