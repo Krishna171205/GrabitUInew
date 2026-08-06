@@ -1,9 +1,29 @@
 import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
+import { SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions · Grabbit',
-  description: 'The terms governing your use of the Grabbit cafe pre-ordering platform.',
+  title: 'Terms & Conditions · Grabbit | LetsGrabbit — Cafe Pre-order Platform',
+  description: 'The terms governing your use of the Grabbit (LetsGrabbit) cafe pre-ordering platform in Delhi.',
+  keywords: ['grabbit terms', 'lets grabbit terms', 'cafe app terms delhi', 'grabbit conditions'],
+  openGraph: {
+    title: 'Terms & Conditions · Grabbit | LetsGrabbit',
+    description: 'The terms governing your use of the Grabbit cafe pre-ordering platform.',
+    url: `${SITE_URL}/terms`,
+    siteName: 'Grabbit',
+    type: 'website',
+    locale: 'en_IN',
+    images: [{ url: `${SITE_URL}/og-image.svg`, width: 1200, height: 630, alt: 'Grabbit Terms' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@grabbit',
+    title: 'Terms & Conditions · Grabbit | LetsGrabbit',
+    description: 'The terms governing your use of the Grabbit cafe pre-ordering platform.',
+    images: [`${SITE_URL}/og-image.svg`],
+  },
+  alternates: { canonical: `${SITE_URL}/terms` },
+  robots: { index: true, follow: true },
 };
 
 const EMAIL = 'gradient365.team@gmail.com';

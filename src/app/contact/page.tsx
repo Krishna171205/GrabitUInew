@@ -1,9 +1,29 @@
 import type { Metadata } from 'next';
 import LegalLayout from '@/components/LegalLayout';
+import { SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Contact Us · Grabbit',
-  description: 'Get in touch with the Grabbit team at Unified Nexgrade Private Limited.',
+  title: 'Contact Us · Grabbit | LetsGrabbit — Cafe Pre-order Support',
+  description: 'Get in touch with the Grabbit (LetsGrabbit) team. Support for orders, payments, refunds, or partnering your cafe in Delhi.',
+  keywords: ['grabbit contact', 'lets grabbit contact', 'cafe support delhi', 'grabbit help'],
+  openGraph: {
+    title: 'Contact Us · Grabbit | LetsGrabbit',
+    description: 'Get in touch with the Grabbit team. Support for orders, payments, refunds, or partnering your cafe.',
+    url: `${SITE_URL}/contact`,
+    siteName: 'Grabbit',
+    type: 'website',
+    locale: 'en_IN',
+    images: [{ url: `${SITE_URL}/og-image.svg`, width: 1200, height: 630, alt: 'Contact Grabbit' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@grabbit',
+    title: 'Contact Us · Grabbit | LetsGrabbit',
+    description: 'Get in touch with the Grabbit team. Support for orders, payments, refunds, or partnering your cafe.',
+    images: [`${SITE_URL}/og-image.svg`],
+  },
+  alternates: { canonical: `${SITE_URL}/contact` },
+  robots: { index: true, follow: true },
 };
 
 const EMAIL = 'gradient365.team@gmail.com';

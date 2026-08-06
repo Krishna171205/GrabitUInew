@@ -1,12 +1,48 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MS } from '@/components/gb/kit';
 import { ph } from '@/components/gb/data';
+import { SITE_URL } from '@/lib/seo';
 
 const PERKS = [
   { icon: 'bolt', title: 'Live in a day', body: 'Business details, KYC and menu, done in one sitting, no paperwork back-and-forth.' },
   { icon: 'payments', title: 'Get paid directly', body: 'Payouts go straight to your bank account, split automatically per order.' },
   { icon: 'storefront', title: 'Skip the queue, not the sale', body: 'Customers order ahead and pick up at the counter, no delivery fleet to manage.' },
 ];
+
+export const metadata: Metadata = {
+  title: 'Partner with Grabbit | LetsGrabbit — Cafe Pre-order Platform',
+  description:
+    'Bring your cafe online with Grabbit. Get your own order-ahead POS, keep your margin, ' +
+    'and never miss an order. Partner with LetsGrabbit — order ahead made for cafes.',
+  keywords: [
+    'partner with grabbit',
+    'lets grabbit for cafes',
+    'cafe ordering platform',
+    'order ahead for cafes',
+    'grabbit partner',
+    'cafe pos system',
+    'india cafe platform',
+  ],
+  openGraph: {
+    title: 'Partner with Grabbit | LetsGrabbit — Cafe Pre-order Platform',
+    description: 'Bring your cafe online with Grabbit. Order-ahead POS, keep your margin, never miss an order.',
+    url: `${SITE_URL}/partner`,
+    siteName: 'Grabbit',
+    type: 'website',
+    locale: 'en_IN',
+    images: [{ url: `${SITE_URL}/og-image.svg`, width: 1200, height: 630, alt: 'Partner with Grabbit' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@grabbit',
+    title: 'Partner with Grabbit | LetsGrabbit — Cafe Pre-order Platform',
+    description: 'Bring your cafe online with Grabbit. Order-ahead POS, keep your margin, never miss an order.',
+    images: [`${SITE_URL}/og-image.svg`],
+  },
+  alternates: { canonical: `${SITE_URL}/partner` },
+  robots: { index: true, follow: true },
+};
 
 export default function PartnerLandingPage() {
   return (

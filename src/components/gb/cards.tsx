@@ -2,6 +2,7 @@
 /** Grabbit consumer app, presentational cards shared across Home & Explore. */
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { MS } from './kit';
 import { inr } from './format';
 import { ph, type GbCafe, type GbItem, type GbCategory } from './data';
@@ -78,7 +79,15 @@ export function CafeCard({
 /* ---------- Real café card (live data, honest signals only) ---------- */
 export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { cafe: RealCafe; cta?: string; coverHeight?: number }) {
   const { favorite, toggle } = useFavoriteCafe(cafe.slug);
-  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time);
+  // Omega's store-status toggle, on top of scheduled hours. Fail-open (see MenuClient.tsx).
+  const [acceptingOrders, setAcceptingOrders] = useState(true);
+  useEffect(() => {
+    fetch(`/api/proxy/grabit/cafes/${cafe.slug}/status`)
+      .then(res => res.ok ? res.json() : null)
+      .then(d => { if (d) setAcceptingOrders(d.acceptingOrders !== false); })
+      .catch(() => {});
+  }, [cafe.slug]);
+  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time) && acceptingOrders;
   const hours = cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
   const initial = cafe.name.trim().charAt(0).toUpperCase();
   const area = cafe.city || cafe.address || null;

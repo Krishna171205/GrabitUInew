@@ -59,6 +59,12 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      // Defense-in-depth: prevent Google from indexing auth gates and app routes
+      // even if a robots.txt entry is missed. Matches NOINDEX_ROUTES in src/lib/seo.ts
+      {
+        source: '/(login|complete-profile|brand-type|partner/signup|home|explore|orders|profile|settings|notifications|support|location)(/.*)?',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
     ];
   },
 };

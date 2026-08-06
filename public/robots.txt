@@ -1,0 +1,50 @@
+# https://letsgrabbit.com/robots.txt
+# Target keywords: "lets grabbit", "lets grabit", "grabbit"
+
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /complete-profile
+Disallow: /brand-type
+Disallow: /partner/signup
+Disallow: /home
+Disallow: /explore
+Disallow: /orders
+Disallow: /profile
+Disallow: /settings
+Disallow: /notifications
+Disallow: /support
+Disallow: /location
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Sitemap
+Sitemap: https://letsgrabbit.com/sitemap.xml
+
+# Crawl-delay for well-behaved bots
+Crawl-delay: 5
+
+# Google-specific
+User-agent: Googlebot
+Allow: /
+Disallow: /login
+Disallow: /complete-profile
+Disallow: /brand-type
+Disallow: /partner/signup
+Disallow: /home
+Disallow: /explore
+Disallow: /orders
+Disallow: /profile
+Disallow: /settings
+Disallow: /notifications
+Disallow: /support
+Disallow: /location
+Disallow: /api/
+Disallow: /_next/
+Crawl-delay: 5
+
+# Bing / others
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 10
