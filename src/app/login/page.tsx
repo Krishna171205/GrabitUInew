@@ -7,17 +7,6 @@ import { ph } from '@/components/gb/data';
 type Step = 'phone' | 'otp';
 type Mode = 'login' | 'signup';
 
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
-      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.9 6.1C12.2 13.7 17.6 9.5 24 9.5z" />
-      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7C43.8 37.9 46.5 31.8 46.5 24.5z" />
-      <path fill="#FBBC05" d="M10.4 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.5 10.7l7.9-6.1z" />
-      <path fill="#34A853" d="M24 48c6.2 0 11.5-2 15.3-5.6l-7.3-5.7c-2 1.4-4.7 2.3-8 2.3-6.4 0-11.8-4.2-13.6-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z" />
-    </svg>
-  );
-}
-
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
@@ -187,22 +176,7 @@ function LoginForm() {
               {!loading && <MS name="arrow_forward" size={20} />}
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '18px 0' }}>
-              <span style={{ flex: 1, height: 1, background: '#EAE0D2' }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#B0A392', letterSpacing: '.06em' }}>OR</span>
-              <span style={{ flex: 1, height: 1, background: '#EAE0D2' }} />
-            </div>
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, height: 52, background: '#fff', border: '1px solid #E7DCCC', borderRadius: 13, fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)', cursor: 'pointer' }}>
-                <GoogleIcon />Google
-              </button>
-              <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, background: '#1A1714', border: '1px solid #1A1714', borderRadius: 13, fontSize: 14.5, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
-                <MS name="phone_iphone" size={19} fill />Apple
-              </button>
-            </div>
-
-            <div style={{ textAlign: 'center', fontSize: 11.5, color: '#A0917E', fontWeight: 500, lineHeight: 1.5, marginTop: 18 }}>
+            <div style={{ textAlign: 'center', fontSize: 11.5, color: '#A0917E', fontWeight: 500, lineHeight: 1.5, marginTop: 24 }}>
               By continuing you agree to Grabit&apos;s<br />
               <span style={{ color: '#7A6E60', fontWeight: 700 }}>Terms of Service</span> and <span style={{ color: '#7A6E60', fontWeight: 700 }}>Privacy Policy</span>
             </div>
