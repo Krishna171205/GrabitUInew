@@ -179,9 +179,8 @@ export default function CartPage() {
           {slotsData?.slots.map((slot, idx) => {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
-            const minsFromNow = Math.round((new Date(slot.slot_start).getTime() - Date.now()) / 60000);
             const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const label = !slotsData?.label && idx === 0 ? `ASAP · ${Math.max(minsFromNow, 1)} min` : time;
+            const label = !slotsData?.label && idx === 0 ? 'ASAP' : time;
             return (
               <button
                 key={slot.slot_start}
