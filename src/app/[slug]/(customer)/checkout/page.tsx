@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [customerLoaded, setCustomerLoaded] = useState(false);
+  const [cafeOfflineModal, setCafeOfflineModal] = useState(false);
   const phoneValid = /^\d{10}$/.test(phone);
   const detailsValid = name.trim().length > 0 && phoneValid;
 
@@ -117,6 +118,13 @@ export default function CheckoutPage() {
           const who = staleNames.length ? staleNames.join(', ') : 'One or more items';
           const plural = staleNames.length !== 1;
           setError(`${who} ${plural ? 'are' : 'is'} no longer available and ${plural ? 'were' : 'was'} removed from your cart. Please review and try again.`);
+          return;
+        }
+        // Cafe toggled itself offline in Omega between browsing the menu and hitting
+        // "proceed" - a popup, not the inline banner, since the customer can't fix this
+        // by retrying.
+        if (data.code === 'CAFE_OFFLINE') {
+          setCafeOfflineModal(true);
           return;
         }
         throw new Error(data.error || 'Failed');
@@ -304,6 +312,30 @@ export default function CheckoutPage() {
           </p>
         </div>
       </div>
+
+      {cafeOfflineModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,12,6,.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 100 }}
+        >
+          <div style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '20px 20px 0 0', padding: '28px 22px calc(22px + env(safe-area-inset-bottom))', textAlign: 'center' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FDECEA', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}>
+              <MS name="storefront" size={28} color="var(--gb-danger)" />
+            </div>
+            <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 8 }}>Cafe is offline</div>
+            <p style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, lineHeight: 1.5, marginBottom: 22 }}>
+              This cafe isn&apos;t accepting orders right now. Please check back shortly.
+            </p>
+            <button
+              onClick={() => setCafeOfflineModal(false)}
+              style={{ width: '100%', border: 'none', borderRadius: 15, padding: 15, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 15, fontWeight: 800, cursor: 'pointer' }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
