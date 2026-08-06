@@ -69,9 +69,6 @@ export const CATEGORIES: GbCategory[] = [
   { label: 'Maggi', photo: 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu/cheese-maggi.png', query: 'maggi' },
 ];
 
-/** Explore's category tiles (same set as Home, see note above). */
-export const EXPLORE_CATEGORIES: GbCategory[] = CATEGORIES;
-
 export interface GbRecentOrder { title: string; price: number; when: string; photo: string; }
 export const RECENT_ORDERS: GbRecentOrder[] = [
   { title: 'Oat Flat White · The Roastery', price: 280, when: '2 days ago', photo: 'photo-1541167760496-1628856ab772' },

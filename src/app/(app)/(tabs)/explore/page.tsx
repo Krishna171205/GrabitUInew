@@ -1,6 +1,5 @@
 import { NavSpacer } from '@/components/gb/kit';
 import { type RealCafe } from '@/components/gb/cards';
-import { EXPLORE_CATEGORIES } from '@/components/gb/data';
 import { ExploreSearch } from '@/components/gb/ExploreSearch';
 
 async function getCafes(): Promise<RealCafe[]> {
@@ -18,7 +17,7 @@ export default async function ExplorePage() {
       {/* header + search */}
       <div style={{ paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 8, background: 'var(--gb-surface)' }}>
         <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, letterSpacing: '-.01em' }}>Explore</div>
-        <ExploreSearch cafes={cafes} categories={EXPLORE_CATEGORIES} />
+        <ExploreSearch cafes={cafes} />
       </div>
       <NavSpacer />
     </div>

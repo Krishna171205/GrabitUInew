@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
-import type { GbCategory } from '@/components/gb/data';
 
 interface DishResult {
   id: number; name: string; price: number; category: string; image_url: string | null;
@@ -28,7 +26,7 @@ function DishResultCard({ dish }: { dish: DishResult }) {
   );
 }
 
-export function ExploreSearch({ cafes, categories }: { cafes: RealCafe[]; categories: GbCategory[] }) {
+export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
   const [q, setQ] = useState('');
   const [cafeResults, setCafeResults] = useState(cafes);
   const [dishResults, setDishResults] = useState<DishResult[]>([]);
@@ -62,22 +60,6 @@ export function ExploreSearch({ cafes, categories }: { cafes: RealCafe[]; catego
         />
         <MS name="mic" size={20} color="#C1502E" />
       </div>
-
-      {!query && (
-        <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {categories.map((c) => (
-            <button
-              key={c.label}
-              onClick={() => setQ(c.query)}
-              style={{ position: 'relative', height: 96, borderRadius: 16, overflow: 'hidden', border: 'none', padding: 0, cursor: 'pointer' }}
-            >
-              <Image src={c.photo} alt={c.label} fill sizes="(max-width: 768px) 50vw, 320px" style={{ objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(20,10,5,.62) 100%)' }} />
-              <div style={{ position: 'absolute', bottom: 10, left: 12, color: '#fff', fontSize: 15, fontWeight: 800 }}>{c.label}</div>
-            </button>
-          ))}
-        </div>
-      )}
 
       {query && dishResults.length > 0 && (
         <div style={{ padding: '24px 0 0' }}>
