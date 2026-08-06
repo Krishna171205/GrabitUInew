@@ -15,6 +15,21 @@ function dateStr(offsetDays: number) {
   return d.toISOString().split('T')[0];
 }
 
+function toHHMM(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// Reuses the calendar date from a real slot (today/tomorrow, already resolved
+// server-side) so a custom pick can't land on the wrong day.
+function buildCustomIso(hhmm: string, referenceSlotIso: string) {
+  const [h, m] = hhmm.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  const d = new Date(referenceSlotIso);
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+
 function Veg({ size = 14, veg }: { size?: number; veg?: boolean | null }) {
   if (veg == null) return null;
   const c = veg ? '#3E8E4E' : '#9E2A2B';
@@ -48,6 +63,8 @@ export default function CartPage() {
   const [checkingAuth, setCheckingAuth] = useState(false);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+  const [showCustomTime, setShowCustomTime] = useState(false);
+  const [customTime, setCustomTime] = useState('');
   const slotRef = useRef<HTMLDivElement>(null);
   const [shakeSlot, setShakeSlot] = useState(false);
   useEffect(() => {
@@ -197,7 +214,36 @@ export default function CartPage() {
               </button>
             );
           })}
+          {slotsData && slotsData.slots.length > 0 && (
+            <button
+              onClick={() => setShowCustomTime((v) => !v)}
+              style={{
+                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
+                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
+                fontSize: 13, fontWeight: 700, padding: '11px 16px', borderRadius: 13, cursor: 'pointer',
+              }}
+            >
+              Custom
+            </button>
+          )}
         </div>
+        {showCustomTime && slotsData && slotsData.slots.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
+            <input
+              type="time"
+              value={customTime}
+              min={toHHMM(slotsData.slots[0].slot_start)}
+              max={toHHMM(slotsData.slots[slotsData.slots.length - 1].slot_start)}
+              onChange={(e) => {
+                setCustomTime(e.target.value);
+                const iso = buildCustomIso(e.target.value, slotsData.slots[0].slot_start);
+                if (iso) setSelectedSlot(iso);
+              }}
+              style={{ border: '1.5px solid #EEE4D6', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontWeight: 600, color: 'var(--gb-text)' }}
+            />
+            <span style={{ fontSize: 12, color: 'var(--gb-muted)' }}>Pick any time within pickup hours</span>
+          </div>
+        )}
       </div>
       )}
 
