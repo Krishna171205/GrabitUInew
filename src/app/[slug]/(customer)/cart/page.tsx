@@ -44,6 +44,7 @@ export default function CartPage() {
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
@@ -68,10 +69,17 @@ export default function CartPage() {
 
   async function placeOrder() {
     if (!canProceed) { nudgeSlot(); return; }
+    setCheckingAuth(true);
+    // Fresh check right before proceeding, not the badge's fetch-on-mount value - the cafe
+    // could have gone offline any time between opening the menu and tapping this button.
+    const accepting = await fetch(`/api/proxy/grabit/cafes/${slug}/status`)
+      .then((r) => (r.ok ? r.json() : { acceptingOrders: true }))
+      .then((d) => d.acceptingOrders !== false)
+      .catch(() => true); // fail open, same as the server-side check
+    if (!accepting) { setCheckingAuth(false); setShowOfflineModal(true); return; }
     if (dineInTable) sessionStorage.removeItem('grabit_slot');
     else sessionStorage.setItem('grabit_slot', selectedSlot!);
     sessionStorage.setItem('grabit_notes', notes.trim());
-    setCheckingAuth(true);
     const loggedIn = await fetch('/api/proxy/grabit/auth/me').then((r) => r.ok).catch(() => false);
     setCheckingAuth(false);
     if (!loggedIn) { setShowLoginPrompt(true); return; }
@@ -263,6 +271,32 @@ export default function CartPage() {
               style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', padding: 8 }}
             >
               Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showOfflineModal && (
+        <div
+          onClick={() => setShowOfflineModal(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(20,10,5,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 340, width: '100%', textAlign: 'center', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}
+          >
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FDECEA', display: 'grid', placeItems: 'center', margin: '0 auto' }}>
+              <MS name="storefront" size={26} color="var(--gb-danger)" />
+            </div>
+            <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 14 }}>Cafe is offline</div>
+            <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
+              This cafe isn&apos;t accepting orders right now. Please check back shortly.
+            </div>
+            <button
+              onClick={() => setShowOfflineModal(false)}
+              style={{ display: 'block', width: '100%', marginTop: 18, background: 'var(--gb-primary)', color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontSize: 15, fontWeight: 800, cursor: 'pointer' }}
+            >
+              OK
             </button>
           </div>
         </div>
