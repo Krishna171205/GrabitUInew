@@ -56,7 +56,8 @@ export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search cafés, dishes, cuisines…"
-          style={{ flex: 1, fontSize: 14.5, color: 'var(--gb-text)', fontWeight: 500, border: 'none', outline: 'none', background: 'transparent' }}
+          // 16px minimum - iOS Safari auto-zooms on focus for inputs below that.
+          style={{ flex: 1, fontSize: 16, color: 'var(--gb-text)', fontWeight: 500, border: 'none', outline: 'none', background: 'transparent' }}
         />
         <MS name="mic" size={20} color="#C1502E" />
       </div>

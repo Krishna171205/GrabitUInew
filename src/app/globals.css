@@ -193,6 +193,15 @@ input::placeholder {
   font-weight: 400;
 }
 
+/* iOS Safari auto-zooms on focus for any input/textarea under 16px - several
+   screens set smaller inline font sizes for the design. Force 16px on mobile
+   viewports only; inline sizes still apply on desktop. */
+@media (max-width: 860px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
 button {
   font-family: var(--font);
 }
