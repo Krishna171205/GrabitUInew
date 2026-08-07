@@ -185,7 +185,19 @@ export default function CartPage() {
       <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '22px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MS name="schedule" size={20} fill color="var(--gb-primary)" />
-          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Pickup time</div>
+          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, flex: 1 }}>Pickup time</div>
+          {slotsData && slotsData.slots.length > 0 && (
+            <button
+              onClick={() => setShowCustomTime((v) => !v)}
+              style={{
+                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
+                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
+                fontSize: 12.5, fontWeight: 700, padding: '7px 13px', borderRadius: 11, cursor: 'pointer',
+              }}
+            >
+              Custom +
+            </button>
+          )}
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 28 }}>
           It&apos;ll be fresh &amp; waiting, no waiting in line{slotsData?.label ? ` · ${slotsData.label}` : ''}
@@ -193,25 +205,13 @@ export default function CartPage() {
         {slotsLoading && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>Loading slots…</p>}
         {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>No slots available. Try again tomorrow.</p>}
         <div className="gb-scroll" style={{ display: 'flex', gap: 9, overflowX: 'auto', marginTop: 14 }}>
-          {/* Right after ASAP, not after the list - cafes open near 24h generate
-              hundreds of 5-min slots, burying Custom at the far end of the scroll. */}
-          {slotsData && slotsData.slots.length > 0 && (
-            <button
-              onClick={() => setShowCustomTime((v) => !v)}
-              style={{
-                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
-                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
-                fontSize: 13, fontWeight: 700, padding: '11px 16px', borderRadius: 13, cursor: 'pointer',
-              }}
-            >
-              Custom
-            </button>
-          )}
           {slotsData?.slots.map((slot, idx) => {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
             const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const label = !slotsData?.label && idx === 0 ? 'ASAP' : time;
+            // ASAP shows its real time too - otherwise the next slot's jump
+            // (minAdvance prep buffer) looks like a bug instead of a lead time.
+            const label = !slotsData?.label && idx === 0 ? `ASAP · ${time}` : time;
             return (
               <button
                 key={slot.slot_start}
