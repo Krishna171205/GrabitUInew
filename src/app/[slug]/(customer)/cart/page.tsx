@@ -193,6 +193,20 @@ export default function CartPage() {
         {slotsLoading && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>Loading slots…</p>}
         {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>No slots available. Try again tomorrow.</p>}
         <div className="gb-scroll" style={{ display: 'flex', gap: 9, overflowX: 'auto', marginTop: 14 }}>
+          {/* Right after ASAP, not after the list - cafes open near 24h generate
+              hundreds of 5-min slots, burying Custom at the far end of the scroll. */}
+          {slotsData && slotsData.slots.length > 0 && (
+            <button
+              onClick={() => setShowCustomTime((v) => !v)}
+              style={{
+                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
+                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
+                fontSize: 13, fontWeight: 700, padding: '11px 16px', borderRadius: 13, cursor: 'pointer',
+              }}
+            >
+              Custom
+            </button>
+          )}
           {slotsData?.slots.map((slot, idx) => {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
@@ -214,18 +228,6 @@ export default function CartPage() {
               </button>
             );
           })}
-          {slotsData && slotsData.slots.length > 0 && (
-            <button
-              onClick={() => setShowCustomTime((v) => !v)}
-              style={{
-                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
-                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
-                fontSize: 13, fontWeight: 700, padding: '11px 16px', borderRadius: 13, cursor: 'pointer',
-              }}
-            >
-              Custom
-            </button>
-          )}
         </div>
         {showCustomTime && slotsData && slotsData.slots.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
