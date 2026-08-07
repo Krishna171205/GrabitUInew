@@ -214,9 +214,7 @@ export default function CartPage() {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
             const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            // ASAP shows its real time too - otherwise the next slot's jump
-            // (minAdvance prep buffer) looks like a bug instead of a lead time.
-            const label = !slotsData?.label && idx === 0 ? `ASAP · ${time}` : time;
+            const label = !slotsData?.label && idx === 0 ? 'ASAP' : time;
             return (
               <button
                 key={slot.slot_start}
