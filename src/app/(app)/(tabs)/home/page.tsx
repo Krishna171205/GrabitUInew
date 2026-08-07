@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MS, NavSpacer } from '@/components/gb/kit';
+import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
 import { inr, greeting } from '@/components/gb/format';
 import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
 import { LocationPill } from '@/components/gb/LocationPill';
@@ -127,7 +128,7 @@ function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[];
           <div style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff' }}>
             {me?.avatar_url
               ? <Image src={me.avatar_url} alt="You" width={44} height={44} sizes="44px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              : initial}
+              : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={44} />}
           </div>
         </div>
         <LocationPill />

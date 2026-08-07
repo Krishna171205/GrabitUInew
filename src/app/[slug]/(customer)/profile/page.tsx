@@ -7,6 +7,7 @@ import { useCart } from '@/store/cart';
 import { formatPaise } from '@/lib/utils';
 import type { GrabbitWallet } from '@gradient365/gradient-commons';
 import { TopBar, Card, Button, Icon } from '@/components/ui/kit';
+import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
 
 interface TopItem {
   menu_item_id: number;
@@ -111,7 +112,7 @@ export default function ProfilePage() {
 
       {/* Identity */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 20px 18px' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 24, fontWeight: 800, flex: 'none' }}>{initials}</div>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', flex: 'none' }}><GeneratedAvatar seed={name?.trim() || phone || initials} size={64} /></div>
         <div>
           <div className="t-title" style={{ fontSize: 20 }}>{name || 'Set your name'}</div>
           <div className="t-caption tabular" style={{ marginTop: 2 }}>+91 {phone}</div>
