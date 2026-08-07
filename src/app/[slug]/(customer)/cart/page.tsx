@@ -15,19 +15,24 @@ function dateStr(offsetDays: number) {
   return d.toISOString().split('T')[0];
 }
 
-function toHHMM(iso: string) {
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-// Reuses the calendar date from a real slot (today/tomorrow, already resolved
-// server-side) so a custom pick can't land on the wrong day.
-function buildCustomIso(hhmm: string, referenceSlotIso: string) {
-  const [h, m] = hhmm.split(':').map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  const d = new Date(referenceSlotIso);
-  d.setHours(h, m, 0, 0);
-  return d.toISOString();
+// Custom time is a stepper over the same server-computed slots, not a raw
+// date picker - so it can never land on a full slot or outside pickup hours,
+// and matches the app's own controls instead of the OS's native time UI.
+function TimeStepper({ slots, index, onChange }: { slots: GrabbitAvailableSlot[]; index: number; onChange: (i: number) => void }) {
+  const step = (dir: 1 | -1) => {
+    let next = index + dir;
+    while (next >= 0 && next < slots.length && slots[next].available_count === 0) next += dir;
+    if (next >= 0 && next < slots.length) onChange(next);
+  };
+  const time = new Date(slots[index].slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const cell = { width: 40, height: 40, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', flex: 'none' } as const;
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', background: '#fff', border: '1.5px solid #EEE4D6', borderRadius: 14, overflow: 'hidden' }}>
+      <button style={cell} disabled={index === 0} onClick={() => step(-1)}><MS name="remove" size={20} /></button>
+      <span className="gb-serif" style={{ minWidth: 92, textAlign: 'center', fontSize: 17, fontWeight: 600, color: 'var(--gb-text)' }}>{time}</span>
+      <button style={cell} disabled={index === slots.length - 1} onClick={() => step(1)}><MS name="add" size={20} /></button>
+    </div>
+  );
 }
 
 function Veg({ size = 14, veg }: { size?: number; veg?: boolean | null }) {
@@ -64,7 +69,7 @@ export default function CartPage() {
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [showCustomTime, setShowCustomTime] = useState(false);
-  const [customTime, setCustomTime] = useState('');
+  const [customIndex, setCustomIndex] = useState(0);
   const slotRef = useRef<HTMLDivElement>(null);
   const [shakeSlot, setShakeSlot] = useState(false);
   useEffect(() => {
@@ -230,20 +235,13 @@ export default function CartPage() {
           })}
         </div>
         {showCustomTime && slotsData && slotsData.slots.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
-            <input
-              type="time"
-              value={customTime}
-              min={toHHMM(slotsData.slots[0].slot_start)}
-              max={toHHMM(slotsData.slots[slotsData.slots.length - 1].slot_start)}
-              onChange={(e) => {
-                setCustomTime(e.target.value);
-                const iso = buildCustomIso(e.target.value, slotsData.slots[0].slot_start);
-                if (iso) setSelectedSlot(iso);
-              }}
-              style={{ border: '1.5px solid #EEE4D6', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontWeight: 600, color: 'var(--gb-text)' }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
+            <TimeStepper
+              slots={slotsData.slots}
+              index={customIndex}
+              onChange={(i) => { setCustomIndex(i); setSelectedSlot(slotsData.slots[i].slot_start); }}
             />
-            <span style={{ fontSize: 12, color: 'var(--gb-muted)' }}>Pick any time within pickup hours</span>
+            <span style={{ fontSize: 12, color: 'var(--gb-muted)' }}>Step through 5-min pickup times</span>
           </div>
         )}
       </div>
