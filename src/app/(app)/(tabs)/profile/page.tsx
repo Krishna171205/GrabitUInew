@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { MS, NavSpacer } from '@/components/gb/kit';
+import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
 import { formatPaise } from '@/lib/utils';
 import type { RealCafe } from '@/components/gb/cards';
 
@@ -191,7 +192,7 @@ export default function ProfilePage() {
               {me?.avatar_url
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={me.avatar_url} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                : initial}
+                : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={66} />}
             </div>
             <button
               onClick={() => fileInput.current?.click()}
