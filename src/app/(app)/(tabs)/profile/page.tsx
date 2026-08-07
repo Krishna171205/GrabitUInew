@@ -5,11 +5,21 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
-import { formatPaise } from '@/lib/utils';
 import type { RealCafe } from '@/components/gb/cards';
 
 interface Me { customerId: number; name: string | null; email: string | null; phone: string; avatar_url: string | null; }
-interface OrderView { status: string; payment_status: string; total_amount: number; }
+interface OrderView { status: string; payment_status: string; total_amount: number; created_at: string; }
+
+function computeWeeklyStreak(dates: string[]): number {
+  const weeks = new Set(dates.map((d) => {
+    const t = new Date(d).getTime();
+    return Math.floor(t / (7 * 24 * 60 * 60 * 1000));
+  }));
+  const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  let streak = 0;
+  for (let w = currentWeek; weeks.has(w); w--) streak++;
+  return streak;
+}
 
 function Stat({ value, label, color }: { value: string; label: string; color: string }) {
   return (
@@ -41,7 +51,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
-  const [totalSpentPaise, setTotalSpentPaise] = useState<number | null>(null);
+  const [orderStreak, setOrderStreak] = useState<number | null>(null);
   const [favouritesCount, setFavouritesCount] = useState<number | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
@@ -67,9 +77,9 @@ export default function ProfilePage() {
           .then((orders: OrderView[]) => {
             const real = orders.filter((o) => o.status !== 'cancelled');
             setOrdersCount(real.length);
-            setTotalSpentPaise(real.filter((o) => o.payment_status === 'paid').reduce((sum, o) => sum + Math.round(Number(o.total_amount) * 100), 0));
+            setOrderStreak(computeWeeklyStreak(real.map((o) => o.created_at)));
           })
-          .catch(() => { setOrdersCount(0); setTotalSpentPaise(0); });
+          .catch(() => { setOrdersCount(0); setOrderStreak(0); });
       }
     });
   }, []);
@@ -241,7 +251,7 @@ export default function ProfilePage() {
       {/* stats */}
       <div style={{ margin: '-30px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-shadow-pop)', display: 'flex', padding: '16px 4px' }}>
         <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" /></div>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={totalSpentPaise === null ? '—' : formatPaise(totalSpentPaise)} label="Total spent" color="var(--gb-green)" /></div>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={orderStreak === null ? '—' : `${orderStreak}🔥`} label="Order streak" color="var(--gb-green)" /></div>
         <div style={{ flex: 1, textAlign: 'center' }}><Stat value={favouritesCount === null ? '—' : String(favouritesCount)} label="Favourites" color="#C1502E" /></div>
       </div>
 
@@ -277,7 +287,7 @@ export default function ProfilePage() {
       <div style={{ margin: '20px 16px 16px', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden' }}>
         <MenuRow icon="receipt_long" label="Your orders" href="/orders" />
         <MenuRow icon="favorite" label="Favourites" />
-        <MenuRow icon="local_offer" label="Offers & rewards" badge="3 new" />
+        <MenuRow icon="local_offer" label="Offers & rewards" badge="Coming soon" />
         <MenuRow icon="help" label="Help & support" href="/support" last />
       </div>
 

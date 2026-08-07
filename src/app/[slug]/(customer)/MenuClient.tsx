@@ -112,6 +112,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
     else sessionStorage.removeItem('grabbit_table');
   }, [table]);
   const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
@@ -363,9 +364,22 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
             <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>Next<MS name="arrow_forward" size={19} /></span>
           </Link>
-          <button onClick={() => clearCart()} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+          <button onClick={() => setShowClearConfirm(true)} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
             <MS name="close" size={16} />
           </button>
+        </div>
+      )}
+
+      {showClearConfirm && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowClearConfirm(false)}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 22, width: '100%', maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>Clear cart?</div>
+            <div style={{ fontSize: 14, color: 'var(--gb-muted)', marginTop: 6, lineHeight: 1.4 }}>Your {cartCount} item{cartCount > 1 ? 's' : ''} will be removed.</div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+              <button onClick={() => setShowClearConfirm(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: '1px solid var(--gb-line-2)', background: '#fff', color: 'var(--gb-text)', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>No</button>
+              <button onClick={() => { clearCart(); setShowClearConfirm(false); }} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>Yes</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
