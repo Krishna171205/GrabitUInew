@@ -5,9 +5,9 @@
  * API lands. Café `slug`s route to the real /[slug] storefront.
  */
 
-/** Unsplash image URL from a photo id. */
+/** Unsplash image URL from a photo id, or pass through an already-absolute URL (real menu CDN photos). */
 export const ph = (id: string, w = 700, h = 700) =>
-  `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=70`;
+  id.startsWith('http') ? id : `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=70`;
 
 export interface GbItem {
   id: number;
@@ -36,15 +36,19 @@ export interface GbCafe {
 // (grabit_menu_items) 2026-08-07 so add-to-cart actually works end to end —
 // previous list had a disabled dupe id (Classic Cold Coffee) and 4 items
 // (Croissant/Avocado Toast/Cold Brew/Blueberry Muffin) that don't exist on the menu.
+// photo = real raydee menu/POS image from gradient-cafe-assets-676591241313, same
+// CDN bucket as CATEGORIES below (verified against the live bucket listing 2026-08-08).
+// Caramel Cold Coffee dropped for Tiramisu Cold Coffee - no dedicated photo exists for it.
+const RAYDEE_CDN = 'https://d1k5bio7n5wlqi.cloudfront.net/raydee/menu';
 export const POPULAR: GbItem[] = [
-  { id: 100, slug: 'raydee', name: 'Classic Cold Coffee', cafe: 'The Raydee Cafe', price: 90, photo: 'photo-1541167760496-1628856ab772' },
-  { id: 109, slug: 'raydee', name: 'Hazelnut Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },
-  { id: 117, slug: 'raydee', name: 'Caramel Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },
-  { id: 141, slug: 'raydee', name: 'Vanilla Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },
-  { id: 132, slug: 'raydee', name: 'Cappucino (Hot)', cafe: 'The Raydee Cafe', price: 80, photo: 'photo-1572442388796-11668a67e53d' },
-  { id: 110, slug: 'raydee', name: 'Hot Chocolate', cafe: 'The Raydee Cafe', price: 80, photo: 'photo-1541167760496-1628856ab772' },
-  { id: 142, slug: 'raydee', name: 'Chocolate Cookie Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: 'photo-1461023058943-07fcbe16d735' },
-  { id: 103, slug: 'raydee', name: 'Oreo Shake', cafe: 'The Raydee Cafe', price: 90, photo: 'photo-1607958996333-41aef7caefaa' },
+  { id: 100, slug: 'raydee', name: 'Classic Cold Coffee', cafe: 'The Raydee Cafe', price: 90, photo: `${RAYDEE_CDN}/cold-coffee.png` },
+  { id: 109, slug: 'raydee', name: 'Hazelnut Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: `${RAYDEE_CDN}/hazelnutcold-coffee.png` },
+  { id: 145, slug: 'raydee', name: 'Tiramisu Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: `${RAYDEE_CDN}/tiramisu-cold-coffee.png` },
+  { id: 141, slug: 'raydee', name: 'Vanilla Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: `${RAYDEE_CDN}/vanila-cold-coffee.png` },
+  { id: 132, slug: 'raydee', name: 'Cappucino (Hot)', cafe: 'The Raydee Cafe', price: 80, photo: `${RAYDEE_CDN}/cuppuccino.png` },
+  { id: 110, slug: 'raydee', name: 'Hot Chocolate', cafe: 'The Raydee Cafe', price: 80, photo: `${RAYDEE_CDN}/hot-chocolate.png` },
+  { id: 142, slug: 'raydee', name: 'Chocolate Cookie Cold Coffee', cafe: 'The Raydee Cafe', price: 110, photo: `${RAYDEE_CDN}/chocolate-cookie-cold-coffee.png` },
+  { id: 103, slug: 'raydee', name: 'Oreo Shake', cafe: 'The Raydee Cafe', price: 90, photo: `${RAYDEE_CDN}/oreo-shake.png` },
 ];
 
 // photo = real raydee menu image (one representative variant per craving),
