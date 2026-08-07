@@ -117,11 +117,19 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
 
+  // topItems/favorites are stale snapshots (order history, favorite toggles) that can
+  // outlive the item being pulled off the menu or repriced — cross-check against the
+  // live menu (`items`) before letting either carousel add to cart.
+  const itemById = new Map(items.map(i => [i.id, i]));
+  const liveTopItems = topItems.filter(t => itemById.get(t.menu_item_id)?.is_available);
+
   function addTop(item: TopItem) {
-    addItem({ menu_item_id: item.menu_item_id, name: item.menu_item_name, price: item.price, quantity: 1, image_url: item.image_url }, slug);
+    const live = itemById.get(item.menu_item_id);
+    if (!live?.is_available) return;
+    addItem({ menu_item_id: item.menu_item_id, name: live.name, price: live.price, quantity: 1, image_url: item.image_url }, slug);
   }
 
-  const favoriteItems = items.filter(i => favIds.has(i.id));
+  const favoriteItems = items.filter(i => favIds.has(i.id) && i.is_available);
 
   useEffect(() => {
     if (cafe?.id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cafe.id));
@@ -225,14 +233,14 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
           <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 2 }}>Hey {customerName}, the usual?</div>
         </div>
       )}
-      {isLoggedIn && topItems.length > 0 && (
+      {isLoggedIn && liveTopItems.length > 0 && (
         <div style={{ padding: '14px 0 4px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
             <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Your usuals</span>
             <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--gb-primary)' }}>Tap to re-add</span>
           </div>
           <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
-            {topItems.map(item => (
+            {liveTopItems.map(item => (
               <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
                   <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
@@ -250,7 +258,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                 </div>
                 <div style={{ padding: '8px 10px 10px' }}>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.menu_item_name}</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(item.price)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(itemById.get(item.menu_item_id)!.price)}</div>
                   <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', marginTop: 2 }}>Ordered {item.total_ordered}×</div>
                 </div>
               </div>
