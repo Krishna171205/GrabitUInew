@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useCafeId } from '../../CafeProvider';
-import type { GrabbitMenuItem } from '@gradient365/gradient-commons';
+import type { GrabbitMenuItem, GrabbitMenuSubcategory } from '@gradient365/gradient-commons';
 import { StaffChrome, Button, Toggle, Icon } from '@/components/ui/kit';
 
 const CATEGORIES = ['drinks', 'food', 'specials', 'desserts'] as const;
@@ -14,7 +14,10 @@ export default function MenuManagePage() {
   const [items, setItems] = useState<GrabbitMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: 'drinks', sort_order: '0', prep_time_minutes: '5' });
+  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: 'drinks', subcategory_id: '', prep_time_minutes: '5' });
+  const [subcategories, setSubcategories] = useState<GrabbitMenuSubcategory[]>([]);
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
+  const [creatingSubcategory, setCreatingSubcategory] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,10 +27,21 @@ export default function MenuManagePage() {
       .then(data => { setItems(Array.isArray(data) ? data : []); setLoading(false); });
   }
 
+  function loadSubcategories(cid: number, category: string) {
+    fetch(`/api/proxy/grabit/menu/${cid}/subcategories?category=${category}`)
+      .then(r => r.json())
+      .then(data => setSubcategories(Array.isArray(data) ? data : []));
+  }
+
   useEffect(() => {
     if (!cafeId) return;
     loadItems(cafeId);
   }, [cafeId]);
+
+  useEffect(() => {
+    if (!cafeId) return;
+    loadSubcategories(cafeId, newItem.category);
+  }, [cafeId, newItem.category]);
 
   async function toggleAvailability(itemId: number, currentValue: boolean) {
     await fetch(`/api/proxy/grabit/menu/item/${itemId}`, {
@@ -44,6 +58,27 @@ export default function MenuManagePage() {
     if (cafeId) loadItems(cafeId);
   }
 
+  async function createSubcategory() {
+    if (!cafeId || !newSubcategoryName.trim()) return;
+    setCreatingSubcategory(true); setError('');
+    try {
+      const res = await fetch(`/api/proxy/grabit/menu/${cafeId}/subcategories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: newItem.category, name: newSubcategoryName.trim() }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed to create subcategory'); }
+      const created: GrabbitMenuSubcategory = await res.json();
+      setSubcategories(prev => [...prev, created]);
+      setNewItem(p => ({ ...p, subcategory_id: String(created.id) }));
+      setNewSubcategoryName('');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to create subcategory');
+    } finally {
+      setCreatingSubcategory(false);
+    }
+  }
+
   async function addItem(e: React.FormEvent) {
     e.preventDefault();
     if (!cafeId) return;
@@ -57,13 +92,13 @@ export default function MenuManagePage() {
           description: newItem.description || null,
           price: parseFloat(newItem.price),
           category: newItem.category,
-          sort_order: parseInt(newItem.sort_order) || 0,
+          subcategory_id: newItem.subcategory_id ? parseInt(newItem.subcategory_id) : null,
           prep_time_minutes: parseInt(newItem.prep_time_minutes) || 5,
         }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
       setShowAddForm(false);
-      setNewItem({ name: '', description: '', price: '', category: 'drinks', sort_order: '0', prep_time_minutes: '5' });
+      setNewItem({ name: '', description: '', price: '', category: 'drinks', subcategory_id: '', prep_time_minutes: '5' });
       loadItems(cafeId);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to add item');
@@ -124,7 +159,7 @@ export default function MenuManagePage() {
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <label style={labelStyle}>Category</label>
                 <select value={newItem.category}
-                  onChange={e => setNewItem(p => ({ ...p, category: e.target.value }))}
+                  onChange={e => setNewItem(p => ({ ...p, category: e.target.value, subcategory_id: '' }))}
                   style={inputStyle}>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                 </select>
@@ -138,19 +173,31 @@ export default function MenuManagePage() {
                 style={inputStyle} placeholder="Short description" />
             </div>
 
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label style={labelStyle}>Sort order</label>
-                <input type="number" value={newItem.sort_order}
-                  onChange={e => setNewItem(p => ({ ...p, sort_order: e.target.value }))}
-                  style={inputStyle} placeholder="0" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={labelStyle}>Subcategory</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <select value={newItem.subcategory_id}
+                  onChange={e => setNewItem(p => ({ ...p, subcategory_id: e.target.value }))}
+                  style={{ ...inputStyle, flex: 1 }}>
+                  <option value="">No subcategory</option>
+                  {subcategories.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label style={labelStyle}>Prep time (min)</label>
-                <input type="number" min="1" max="120" value={newItem.prep_time_minutes}
-                  onChange={e => setNewItem(p => ({ ...p, prep_time_minutes: e.target.value }))}
-                  style={inputStyle} placeholder="5" />
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <input type="text" value={newSubcategoryName}
+                  onChange={e => setNewSubcategoryName(e.target.value)}
+                  style={{ ...inputStyle, flex: 1 }} placeholder="+ New subcategory name" />
+                <Button type="button" size="sm" disabled={creatingSubcategory || !newSubcategoryName.trim()} onClick={createSubcategory}>
+                  {creatingSubcategory ? 'Adding…' : 'Add'}
+                </Button>
               </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={labelStyle}>Prep time (min)</label>
+              <input type="number" min="1" max="120" value={newItem.prep_time_minutes}
+                onChange={e => setNewItem(p => ({ ...p, prep_time_minutes: e.target.value }))}
+                style={inputStyle} placeholder="5" />
             </div>
 
             {error && <p style={{ fontSize: 13, color: 'var(--error)', margin: 0 }}>{error}</p>}

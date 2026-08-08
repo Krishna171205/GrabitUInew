@@ -27,9 +27,18 @@ export interface GrabbitMenuItem {
   category: GrabbitMenuCategory;
   image_url: string | null;
   is_available: boolean;
+  subcategory_id: number | null;
   sort_order: number;
   prep_time_minutes?: number;
   is_veg?: boolean | null; // null/undefined = unknown; render no veg mark
+}
+
+export interface GrabbitMenuSubcategory {
+  id: number;
+  cafe_id: number;
+  category: GrabbitMenuCategory;
+  name: string;
+  sort_order: number;
 }
 
 export interface GrabbitSlotConfig {
