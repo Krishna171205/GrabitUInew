@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import * as Sentry from '@sentry/nextjs';
 import { useCart } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
@@ -161,28 +162,36 @@ export default function CheckoutPage() {
         // sandbox-created session opened in production mode, or vice versa, is exactly
         // what Cashfree's "payment_session_id is not present or invalid" error means).
         // @ts-ignore
+        // redirectTarget: '_self' (not '_modal') - the UPI app-intent (PayTM/PhonePe)
+        // has to launch from a top-level page. Cashfree's Drop-in modal runs inside its
+        // own iframe, and Android Chrome silently drops app-intent navigations fired
+        // from inside an iframe more often than not - customers reported tapping
+        // PayTM/PhonePe with no app switch and no notification, 2-3 times before one
+        // attempt went through. A full-page redirect to Cashfree's hosted checkout
+        // doesn't have that problem: it's a real top-level navigation.
         const result = await Cashfree({ mode: data.cashfree.env === 'production' ? 'production' : 'sandbox' })
           .checkout({
             paymentSessionId: data.cashfree.payment_session_id,
             returnUrl: `${window.location.origin}${orderUrl}`,
-            redirectTarget: '_modal',
+            redirectTarget: '_self',
           });
-        // Three terminal states (Cashfree Checkout JS v3 contract) - result.error covers
-        // both real SDK/network failures AND the customer just closing the modal, so it
-        // is never "payment failed", only "not completed". Actual success/failure is
-        // decided server-side (webhook + the order page's own status polling), never here.
+        // result.error here is a pre-navigation SDK/network failure (the browser never
+        // left this page). Actual payment success/failure is decided server-side (the
+        // order page's own status polling + webhook), never from a client-side result.
         if (result?.error) {
+          // Pre-navigation SDK/network failure - includes the UPI-intent-inside-iframe
+          // flakiness above. Captured so it's countable instead of only a UI message
+          // the customer sees and we never do.
+          Sentry.captureMessage('cashfree_checkout_error', {
+            level: 'warning',
+            tags: { feature: 'checkout', order_id: String(data.order_id), cashfree_order_id: data.cashfree.cashfree_order_id },
+            extra: { error: result.error },
+          });
           setError('Payment was not completed. You can try again or pay at the counter.');
           return;
         }
-        if (result?.redirect) {
-          return; // navigating to Cashfree's hosted page (in-app browser fallback); return_url picks it up
-        }
-        clearCart();
-        sessionStorage.removeItem('grabbit_slot');
-        sessionStorage.removeItem('grabbit_table');
-        sessionStorage.removeItem('grabbit_notes');
-        router.push(orderUrl); // order page polls its own status; a payment attempt was made either way
+        // result.redirect: true - the browser is navigating to Cashfree's hosted page.
+        // The order page (return_url) picks up from here and clears the cart itself.
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');

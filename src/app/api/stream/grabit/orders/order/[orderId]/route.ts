@@ -29,13 +29,21 @@ export async function GET(
   const lastEventId = req.headers.get('last-event-id');
   if (lastEventId) headers['Last-Event-ID'] = lastEventId;
 
-  const upstream = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/grabit/orders/stream/order/${orderId}`,
-    {
-      headers,
-      cache: 'no-store',
-    },
-  );
+  // Backend can be mid-restart (deploy) when a live SSE connection is open;
+  // fetch() throws TypeError in that case rather than resolving, so this needs
+  // its own catch - the client's EventSource reconnects on its own regardless.
+  let upstream: Response;
+  try {
+    upstream = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/grabit/orders/stream/order/${orderId}`,
+      {
+        headers,
+        cache: 'no-store',
+      },
+    );
+  } catch {
+    return NextResponse.json({ error: 'Stream unavailable' }, { status: 503 });
+  }
 
   if (!upstream.ok || !upstream.body) {
     return NextResponse.json({ error: 'Stream unavailable' }, { status: upstream.status });

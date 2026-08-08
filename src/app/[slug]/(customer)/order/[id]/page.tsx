@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { GrabbitOrderWithItems, GrabbitOrderStatus } from '@gradient365/gradient-commons';
+import { useCart } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 
@@ -40,9 +41,22 @@ export default function OrderPage() {
     ? (new URLSearchParams(window.location.search).get('t') ?? '')
     : '';
   const router = useRouter();
+  const { clearCart } = useCart();
   const [order, setOrder] = useState<GrabbitOrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+
+  // Arrival here means an order was placed - true whether checkout redirected via
+  // Cashfree's hosted page (redirectTarget: '_self', where checkout/page.tsx never
+  // gets a chance to run its own cleanup because the browser navigates away) or paid
+  // at the counter. Clear once so a stale cart doesn't linger into the next order.
+  useEffect(() => {
+    clearCart();
+    sessionStorage.removeItem('grabbit_slot');
+    sessionStorage.removeItem('grabbit_table');
+    sessionStorage.removeItem('grabbit_notes');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const refresh = (isPoll: boolean) =>
