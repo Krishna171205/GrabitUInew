@@ -278,6 +278,9 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                 <div style={{ position: 'relative', height: 96 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
+                  <button onClick={() => toggleFavorite(item.id)} aria-label="Remove favourite" style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
+                    <MS name="favorite" size={15} fill color="#C0392B" />
+                  </button>
                   {qtyOf(item.id) > 0 ? (
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(item.id, qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
@@ -344,7 +347,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                     </div>
                     {isLoggedIn && (
                       <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
-                        <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
+                        <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
                       </button>
                     )}
                     {addStep(item)}
