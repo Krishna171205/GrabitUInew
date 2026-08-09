@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs'
+import path from 'path';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -44,6 +45,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname),
   // Next 15 defaults the client router cache to 0s for dynamic routes, so tapping
   // back (or re-tapping a tab) refetches the whole RSC payload every time. 30s of
   // reuse makes back/forward and tab re-visits instant.

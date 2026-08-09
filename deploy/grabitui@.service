@@ -1,0 +1,21 @@
+# deploy/grabitui@.service
+# Templated: `systemctl start grabitui@blue` / `grabitui@green`.
+# Port comes from /opt/grabitui/env/<slot>.env (PORT=3004 or PORT=3005),
+# secrets from the shared file refreshed by deploy.sh on every deploy.
+[Unit]
+Description=grabitui (%i slot)
+After=network.target
+
+[Service]
+Type=simple
+User=appuser
+Group=appuser
+WorkingDirectory=/opt/grabitui/%i
+EnvironmentFile=/opt/grabitui/env/%i.env
+EnvironmentFile=/opt/grabitui/shared/.env.production
+ExecStart=/usr/bin/node /opt/grabitui/%i/server.js
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
