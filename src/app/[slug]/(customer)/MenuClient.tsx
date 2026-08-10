@@ -176,7 +176,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   };
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24 }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24, filter: open ? 'none' : 'grayscale(1)', transition: 'filter .3s ease' }}>
       {/* cover */}
       <div style={{ position: 'relative', height: 250 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
