@@ -124,6 +124,45 @@ export default function OrderPage() {
   const idx = stepIndex(order.status);
   const nodeState = (threshold: number): NodeState => idx > threshold ? 'done' : idx === threshold ? 'current' : 'upcoming';
 
+  // Cashfree's returnUrl points straight at this page for EVERY checkout outcome -
+  // paid, failed, or the customer backing out - so arrival here is not proof of
+  // payment. Counter orders have no online payment step and start confirmed, so
+  // only online orders need this gate; pending/failed here is the real order state
+  // (see OrderService.create + PaymentReconciliationService), not a client guess.
+  if (order.payment_method === 'online' && order.payment_status === 'failed') {
+    return (
+      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
+        <div style={{ background: 'var(--gb-danger)', paddingTop: 'calc(40px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 30, color: '#fff', textAlign: 'center' }}>
+          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+            <MS name="cancel" size={36} fill color="#fff" />
+          </div>
+          <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, marginTop: 14 }}>Payment failed</div>
+          <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>No charge was made - your order was not placed</div>
+        </div>
+        <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
+          Back to home
+        </button>
+      </div>
+    );
+  }
+
+  if (order.payment_method === 'online' && order.payment_status === 'pending') {
+    return (
+      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
+        <div style={{ background: 'linear-gradient(158deg,#8A6D2A 0%,#B08A2F 100%)', paddingTop: 'calc(40px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 30, color: '#fff', textAlign: 'center' }}>
+          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+            <MS name="schedule" size={36} fill color="#fff" />
+          </div>
+          <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, marginTop: 14 }}>Confirming payment…</div>
+          <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>This page updates automatically once we hear back</div>
+        </div>
+        <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
+          Back to home
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
       {/* success header */}
