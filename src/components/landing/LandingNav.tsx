@@ -20,6 +20,7 @@ export default function LandingNav() {
         <div className="gb-nav-center" style={{ display: 'none', alignItems: 'center', gap: 28 }}>
           <a href="#how-it-works" className="gb-hover-link" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>How it works</a>
           <Link href="/partner" className="gb-hover-link" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>For cafés</Link>
+          <Link href="/faq" className="gb-hover-link" style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>FAQ</Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Link href="/partner" style={{ display: 'none', fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)', padding: '9px 12px' }} className="gb-nav-partner gb-hover-link">

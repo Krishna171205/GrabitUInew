@@ -9,6 +9,9 @@ import { LocationPill } from '@/components/gb/LocationPill';
 import { CafesNearYou } from '@/components/gb/CafesNearYou';
 import { POPULAR, CATEGORIES } from '@/components/gb/data';
 
+// ponytail: feature flag, re-enable when ready
+const POPULAR_NEAR_YOU_ENABLED = false;
+
 interface Me { name: string | null; phone: string | null; avatar_url: string | null; }
 interface TopItem { menu_item_id: number; menu_item_name: string; price: number; image_url: string | null; total_ordered: number; }
 
@@ -98,15 +101,17 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
       </div>
 
       {/* popular near you */}
-      <div style={{ padding: '24px 0 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 20px 14px' }}>
-          <MS name="local_fire_department" size={20} fill color="#C1502E" />
-          <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500 }}>Popular near you</div>
+      {POPULAR_NEAR_YOU_ENABLED && (
+        <div style={{ padding: '24px 0 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 20px 14px' }}>
+            <MS name="local_fire_department" size={20} fill color="#C1502E" />
+            <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500 }}>Popular near you</div>
+          </div>
+          <div className="gb-scroll" style={{ display: 'flex', gap: 14, overflowX: 'auto', padding: '0 20px 4px' }}>
+            {POPULAR.map((it) => <ItemCard key={it.name} item={it} />)}
+          </div>
         </div>
-        <div className="gb-scroll" style={{ display: 'flex', gap: 14, overflowX: 'auto', padding: '0 20px 4px' }}>
-          {POPULAR.map((it) => <ItemCard key={it.name} item={it} />)}
-        </div>
-      </div>
+      )}
 
       <Categories />
       <CafesNearYou cafes={cafes} cta="View menu" gate />

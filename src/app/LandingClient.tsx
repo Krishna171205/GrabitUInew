@@ -8,7 +8,6 @@ import WhyGrabbit from '@/components/landing/WhyGrabbit';
 import ProductPreview from '@/components/landing/ProductPreview';
 import PartnerPitch from '@/components/landing/PartnerPitch';
 import FinalCTA from '@/components/landing/FinalCTA';
-import FAQSection from '@/components/landing/FAQSection';
 import { TestimonialsSection } from '@/components/ui/testimonials-columns';
 import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
 
@@ -23,7 +22,6 @@ export default function LandingClient() {
         <WhyGrabbit />
         <ProductPreview />
         <TestimonialsSection />
-        <FAQSection />
         <PartnerPitch />
         <FinalCTA />
       </main>
