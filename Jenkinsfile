@@ -129,5 +129,20 @@ pipeline {
                 '''
             }
         }
+
+        stage('Tag Release') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'grabitui-github-pat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    sh '''
+                        set -euo pipefail
+                        PKG_VERSION=$(node -p "require('./package.json').version")
+                        TAG="v${PKG_VERSION}-${BUILD_NUMBER}"
+                        git tag "$TAG"
+                        git push "https://${GIT_USER}:${GIT_TOKEN}@github.com/KineticTechno/grabitui.git" "$TAG"
+                        echo "tagged: $TAG"
+                    '''
+                }
+            }
+        }
     }
 }
