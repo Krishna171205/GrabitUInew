@@ -110,20 +110,38 @@ export default function CartPage() {
 
   useEffect(() => {
     if (items.length === 0 || dineInTable) return; // dine-in: no pickup slot
-    setSlotsLoading(true);
-    (async () => {
+
+    let cancelled = false;
+    async function loadSlots(showLoading: boolean) {
+      if (showLoading) setSlotsLoading(true);
       try {
         const todayRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(0)}`);
         if (!todayRes.ok) throw new Error('slots fetch failed');
         const todayData = await todayRes.json() as { slots: GrabbitAvailableSlot[] };
-        if (todayData.slots.length > 0) { setSlotsData({ slots: todayData.slots, label: null }); return; }
-        const tomorrowRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(1)}`);
-        const tomorrowData = tomorrowRes.ok ? await tomorrowRes.json() as { slots: GrabbitAvailableSlot[] } : { slots: [] };
-        setSlotsData({ slots: tomorrowData.slots, label: 'Tomorrow' });
+        const fresh = todayData.slots.length > 0
+          ? { slots: todayData.slots, label: null as string | null }
+          : await (async () => {
+              const tomorrowRes = await fetch(`/api/proxy/grabit/slots/${slug}?date=${dateStr(1)}`);
+              const tomorrowData = tomorrowRes.ok ? await tomorrowRes.json() as { slots: GrabbitAvailableSlot[] } : { slots: [] };
+              return { slots: tomorrowData.slots, label: 'Tomorrow' as string | null };
+            })();
+        if (cancelled) return;
+        setSlotsData(fresh);
+        // The previously picked slot may have aged out of the refreshed list
+        // (its start time passed) - drop it so a stale time can't reach checkout.
+        setSelectedSlot((prev) => prev != null && fresh.slots.some((s) => s.slot_start === prev) ? prev : null);
       } catch {
-        setSlotsData({ slots: [], label: null });
-      } finally { setSlotsLoading(false); }
-    })();
+        if (!cancelled) setSlotsData({ slots: [], label: null });
+      } finally {
+        if (!cancelled && showLoading) setSlotsLoading(false);
+      }
+    }
+
+    loadSlots(true);
+    // Slot grid is 5-minute aligned, so a 1-minute poll is enough to keep
+    // "ASAP" and the visible chips current without the user reloading.
+    const interval = setInterval(() => loadSlots(false), 60_000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, [slug, items.length, dineInTable]);
 
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
