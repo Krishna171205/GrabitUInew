@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Baloo_2, Mukta } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
@@ -105,8 +105,18 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: '/grabbit-logo.svg', sizes: '180x180' }],
   },
-  themeColor: '#FFFDF8',
   category: 'Food & Dining',
+};
+
+// No viewport meta at all left tap-zoom up to the browser default - most mobile browsers
+// auto-zoom to fit a tapped element, which read as "the page zoomed in" on every filter tap.
+// App-shell UI (bottom sheets, floating cart bar, sticky chip rows) assumes no page zoom.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#FFFDF8',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
