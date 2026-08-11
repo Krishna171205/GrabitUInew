@@ -115,6 +115,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
     else sessionStorage.removeItem('grabbit_table');
   }, [table]);
   const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
+  const [activeSub, setActiveSub] = useState<string>('all');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
@@ -157,6 +158,13 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q)));
   const categoriesPresent = CATEGORIES.filter(c => available.some(i => i.category === c));
   const shownCats = activeCat === 'all' ? categoriesPresent : categoriesPresent.filter(c => c === activeCat);
+  // Subcategories are scoped to the selected category (or all categories, when none picked yet).
+  const subsPresent = Array.from(new Set(
+    available
+      .filter(i => activeCat === 'all' || i.category === activeCat)
+      .map(i => i.subcategory_name)
+      .filter((s): s is string => !!s)
+  ));
   const cover = cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
 
   // Real signals only — no fabricated ratings/distance (GrabbitCafe has no such fields).
@@ -348,19 +356,29 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
       {/* filter chips — sticky so switching category is always one tap away */}
       <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', gap: 9, overflowX: 'auto', padding: '14px 16px 10px' }}>
         <div style={chip(false)}><MS name="tune" size={17} color="var(--gb-primary)" />Filters</div>
-        <button style={chip(activeCat === 'all')} onClick={() => setActiveCat('all')}>All</button>
+        <button style={chip(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>All</button>
         {categoriesPresent.map(c => (
-          <button key={c} style={chip(activeCat === c)} onClick={() => setActiveCat(c)}>{CATEGORY_LABELS[c]}</button>
+          <button key={c} style={chip(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>{CATEGORY_LABELS[c]}</button>
         ))}
       </div>
 
+      {/* subcategory chips — only when the current category (or the whole menu) has any */}
+      {subsPresent.length > 0 && (
+        <div className="gb-scroll" style={{ position: 'sticky', top: 51, zIndex: 19, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 10px' }}>
+          <button style={chip(activeSub === 'all')} onClick={() => setActiveSub('all')}>All</button>
+          {subsPresent.map(s => (
+            <button key={s} style={chip(activeSub === s)} onClick={() => setActiveSub(s)}>{s}</button>
+          ))}
+        </div>
+      )}
+
       {/* menu */}
       <div style={{ padding: '6px 16px 0' }}>
-        {shownCats.length === 0 && (
+        {shownCats.every(cat => !available.some(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub))) && (
           <p style={{ textAlign: 'center', color: 'var(--gb-muted)', fontSize: 14, padding: '48px 0', fontWeight: 500 }}>No items match your search</p>
         )}
         {shownCats.map(cat => {
-          const catItems = available.filter(i => i.category === cat);
+          const catItems = available.filter(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub));
           if (!catItems.length) return null;
           return (
             <div key={cat}>
