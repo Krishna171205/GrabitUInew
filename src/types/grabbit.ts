@@ -28,6 +28,7 @@ export interface GrabbitMenuItem {
   image_url: string | null;
   is_available: boolean;
   subcategory_id: number | null;
+  subcategory_name: string | null;
   sort_order: number;
   prep_time_minutes?: number;
   is_veg?: boolean | null; // null/undefined = unknown; render no veg mark
