@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory } from '@gradient365/gradient-commons';
-import { useCart } from '@/store/cart';
+import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddon } from '@gradient365/gradient-commons';
+import { useCart, cartLineKey } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr, cafeOpenNow, fmtTime12 } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
@@ -50,6 +50,7 @@ interface Props {
   slug: string;
   cafe: GrabbitCafe;
   items: GrabbitMenuItem[];
+  addons: GrabbitMenuAddon[];
   customerName?: string | null;
   topItems?: TopItem[];
   favorites?: FavItem[];
@@ -70,7 +71,7 @@ function Veg({ veg }: { veg?: boolean | null }) {
   );
 }
 
-export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
+export default function MenuClient({ slug, cafe, items, addons, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
   const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
 
   // Omega's store-status toggle, on top of the scheduled hours below. Seeded server-side
@@ -120,9 +121,17 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const VISIBLE_SUBS = 3;
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
+  const [addonSheetItem, setAddonSheetItem] = useState<GrabbitMenuItem | null>(null);
+  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<number>>(new Set());
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
-  const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
+  // Inline steppers (menu grid + carousels) have no addon context, so they only ever
+  // adjust the plain (no-addon) line. Addon-variant quantities are adjusted on the cart page.
+  const plainLineKey = (id: number) => cartLineKey({ menu_item_id: id, addons: undefined });
+  // Scoped to that same plain line: counting addon variants here showed a stepper whose
+  // -/+ couldn't move it (cart holds only "burger + cheese"), and whose "-" deleted the
+  // whole untouched plain line when both existed.
+  const qtyOf = (id: number) => cartItems.find(i => cartLineKey(i) === plainLineKey(id))?.quantity ?? 0;
 
   // Closed cafe: block adding, shake the tapped button, show a self-dismissing toast.
   const [shakeId, setShakeId] = useState<number | null>(null);
@@ -143,6 +152,17 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   // live menu (`items`) before letting either carousel add to cart.
   const itemById = new Map(items.map(i => [i.id, i]));
   const liveTopItems = topItems.filter(t => itemById.get(t.menu_item_id)?.is_available);
+
+  const addonsBySubcategory = new Map<number, GrabbitMenuAddon[]>();
+  for (const a of addons) {
+    if (!a.is_available) continue;
+    const list = addonsBySubcategory.get(a.subcategory_id) ?? [];
+    list.push(a);
+    addonsBySubcategory.set(a.subcategory_id, list);
+  }
+  function addonsFor(item: GrabbitMenuItem): GrabbitMenuAddon[] {
+    return item.subcategory_id ? (addonsBySubcategory.get(item.subcategory_id) ?? []) : [];
+  }
 
   function addTop(item: TopItem) {
     const live = itemById.get(item.menu_item_id);
@@ -181,20 +201,45 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
     fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
   });
 
+  function handleAddClick(item: GrabbitMenuItem) {
+    const available = addonsFor(item);
+    if (available.length === 0) {
+      addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug);
+      return;
+    }
+    setSelectedAddonIds(new Set());
+    setAddonSheetItem(item);
+  }
+
+  function confirmAddonSheet() {
+    if (!addonSheetItem) return;
+    const chosen = addonsFor(addonSheetItem).filter(a => selectedAddonIds.has(a.id));
+    addItem({
+      menu_item_id: addonSheetItem.id,
+      name: addonSheetItem.name,
+      price: addonSheetItem.price,
+      quantity: 1,
+      image_url: addonSheetItem.image_url,
+      is_veg: addonSheetItem.is_veg,
+      addons: chosen.map(a => ({ id: a.id, name: a.name, price: a.price })),
+    }, slug);
+    setAddonSheetItem(null);
+  }
+
   const addStep = (item: GrabbitMenuItem) => {
     const qty = qtyOf(item.id);
     if (qty > 0) {
       return (
         <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.5)', overflow: 'hidden' }}>
-          <button onClick={() => updateQty(item.id, qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
+          <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
           <span style={{ minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
-          <button onClick={() => guardedAdd(item.id, () => updateQty(item.id, qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
+          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
         </div>
       );
     }
     return (
       <button
-        onClick={() => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug))}
+        onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
         className={shakeId === item.id ? 'gb-shake' : undefined}
         style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
       >
@@ -288,9 +333,9 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                   <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   {qtyOf(item.menu_item_id) > 0 ? (
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
-                      <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+                      <button onClick={() => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.menu_item_id)}</span>
-                      <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                      <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
                   ) : (
                     <button onClick={() => guardedAdd(item.menu_item_id, () => addTop(item))} aria-label="Add" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
@@ -324,12 +369,13 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                   </button>
                   {qtyOf(item.id) > 0 ? (
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
-                      <button onClick={() => updateQty(item.id, qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+                      <button onClick={() => updateQty(plainLineKey(item.id), qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.id)}</span>
-                      <button onClick={() => guardedAdd(item.id, () => updateQty(item.id, qtyOf(item.id) + 1))} aria-label="Add one" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                      <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qtyOf(item.id) + 1))} aria-label="Add one" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
                   ) : (
-                    <button onClick={() => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug))} aria-label="Add" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                    <button onClick={() => guardedAdd(item.id, () => handleAddClick(item))} aria-label="Add" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+
                       <MS name="add" size={17} />
                     </button>
                   )}
@@ -462,6 +508,38 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
               <button onClick={() => setShowClearConfirm(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: '1px solid var(--gb-line-2)', background: '#fff', color: 'var(--gb-text)', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>No</button>
               <button onClick={() => { clearCart(); setShowClearConfirm(false); }} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>Yes</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {addonSheetItem && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setAddonSheetItem(null)}>
+          <div style={{ background: '#fff', borderRadius: '18px 18px 0 0', padding: 22, width: '100%', maxWidth: 448 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>{addonSheetItem.name}</div>
+            <div style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 4 }}>Add extras</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+              {addonsFor(addonSheetItem).map(a => (
+                <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedAddonIds.has(a.id)}
+                    onChange={() => setSelectedAddonIds(prev => {
+                      const next = new Set(prev);
+                      next.has(a.id) ? next.delete(a.id) : next.add(a.id);
+                      return next;
+                    })}
+                  />
+                  <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>{a.name}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>{inr(a.price)}</span>
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={confirmAddonSheet}
+              style={{ width: '100%', marginTop: 20, padding: '13px 0', borderRadius: 12, border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+            >
+              Add to cart
+            </button>
           </div>
         </div>
       )}

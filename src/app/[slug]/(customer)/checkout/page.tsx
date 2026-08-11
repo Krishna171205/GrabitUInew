@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
-import { useCart } from '@/store/cart';
+import { useCart, cartLineKey } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 
@@ -103,7 +103,11 @@ export default function CheckoutPage() {
             : { pickup_slot: pickupSlot }),
           ...(notes ? { notes } : {}),
           payment_method: paymentMethod,
-          items: items.map(i => ({ menu_item_id: i.menu_item_id, quantity: i.quantity })),
+          items: items.map(i => ({
+            menu_item_id: i.menu_item_id,
+            quantity: i.quantity,
+            addon_ids: (i.addons ?? []).map(a => a.id),
+          })),
         }),
       });
       const data = await res.json();
@@ -112,10 +116,14 @@ export default function CheckoutPage() {
         // added. Drop it and let the customer retry instead of a dead-end error - the
         // old flow left them stuck on the same items forever.
         if (data.code === 'ITEMS_UNAVAILABLE' && Array.isArray(data.invalid_item_ids)) {
-          const staleNames = items
+          // Deduped: one menu item can now hold several cart lines (plain + addon
+          // variants), and the message should name it once, not once per line.
+          const staleNames = [...new Set(items
             .filter(i => data.invalid_item_ids.includes(i.menu_item_id))
-            .map(i => i.name);
-          data.invalid_item_ids.forEach((id: number) => removeItem(id));
+            .map(i => i.name))];
+          items
+            .filter(i => data.invalid_item_ids.includes(i.menu_item_id))
+            .forEach(i => removeItem(cartLineKey(i)));
           const who = staleNames.length ? staleNames.join(', ') : 'One or more items';
           const plural = staleNames.length !== 1;
           setError(`${who} ${plural ? 'are' : 'is'} no longer available and ${plural ? 'were' : 'was'} removed from your cart. Please review and try again.`);
@@ -262,12 +270,24 @@ export default function CheckoutPage() {
         <div>
           <div style={eyebrow}>Order summary</div>
           <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
-            {items.map((item, i) => (
-              <div key={item.menu_item_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: i === 0 ? '0 0 10px' : '10px 0 0' }}>
-                <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>{item.name} × {item.quantity}</span>
-                <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price * item.quantity)}</span>
-              </div>
-            ))}
+            {items.map((item, i) => {
+              // Add-ons are part of what total() charges, so the line has to show them
+              // too - a ₹200 line above a ₹220 total is a payment screen that doesn't add up.
+              const addonsSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0);
+              return (
+                <div key={cartLineKey(item)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: i === 0 ? '0 0 10px' : '10px 0 0' }}>
+                  <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>
+                    {item.name} × {item.quantity}
+                    {item.addons && item.addons.length > 0 && (
+                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 500, marginTop: 3 }}>
+                        + {item.addons.map(a => a.name).join(', ')}
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr((item.price + addonsSum) * item.quantity)}</span>
+                </div>
+              );
+            })}
             {notes && (
               <div style={{ display: 'flex', gap: 8, marginTop: 12, padding: '10px 12px', background: 'var(--gb-surface)', borderRadius: 12 }}>
                 <MS name="edit_note" size={18} color="var(--gb-primary)" />

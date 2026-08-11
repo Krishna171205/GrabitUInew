@@ -5,7 +5,10 @@ import { MS, NavSpacer } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import type { RealCafe } from '@/components/gb/cards';
 
-interface OrderItem { id: number; menu_item_id: number; menu_item_name: string; quantity: number; unit_price: number; }
+interface OrderItem {
+  id: number; menu_item_id: number; menu_item_name: string; quantity: number; unit_price: number;
+  addons?: { id: number; name: string; price: number }[];
+}
 interface Order {
   id: number; cafe_id: number; status: string; payment_method: string; payment_status: string;
   total_amount: number; created_at: string; items: OrderItem[];
@@ -38,7 +41,11 @@ function fmtWhen(iso: string) {
 
 function OrderRow({ o, cafeName, cafeSlug }: { o: Order; cafeName: string; cafeSlug?: string }) {
   const s = statusLabel(o);
-  const itemsLabel = o.items.map((i) => (i.quantity > 1 ? `${i.menu_item_name} ×${i.quantity}` : i.menu_item_name)).join(', ');
+  const itemsLabel = o.items.map((i) => {
+    const base = i.quantity > 1 ? `${i.menu_item_name} ×${i.quantity}` : i.menu_item_name;
+    const addonNames = i.addons?.length ? ` (+${i.addons.map((a) => a.name).join(', ')})` : '';
+    return base + addonNames;
+  }).join(', ');
   const inner = (
     <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: '15px 16px', display: 'flex', alignItems: 'center', gap: 13, marginBottom: 12 }}>
       <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>

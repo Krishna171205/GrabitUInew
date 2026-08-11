@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useCart } from '@/store/cart';
+import { useCart, cartLineKey } from '@/store/cart';
 import type { GrabbitAvailableSlot } from '@gradient365/gradient-commons';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
@@ -178,17 +178,26 @@ export default function CartPage() {
 
       {/* items */}
       <div style={{ padding: '8px 18px 4px' }}>
-        {items.map(item => (
-          <div key={item.menu_item_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--gb-line)' }}>
-            <Veg veg={item.is_veg} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>
+        {items.map(item => {
+          const addonsSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0);
+          const lineKey = cartLineKey(item);
+          return (
+            <div key={lineKey} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--gb-line)' }}>
+              <Veg veg={item.is_veg} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>
+                {item.addons && item.addons.length > 0 && (
+                  <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', marginTop: 3 }}>
+                    + {item.addons.map(a => a.name).join(', ')}
+                  </div>
+                )}
+              </div>
+              <Stepper qty={item.quantity} onChange={(v) => updateQty(lineKey, v)} />
+              <div style={{ minWidth: 56, textAlign: 'right', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr((item.price + addonsSum) * item.quantity)}</div>
             </div>
-            <Stepper qty={item.quantity} onChange={(v) => updateQty(item.menu_item_id, v)} />
-            <div style={{ minWidth: 56, textAlign: 'right', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price * item.quantity)}</div>
-          </div>
-        ))}
+          );
+        })}
         <Link href={`/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 14, color: 'var(--gb-primary)', fontSize: 13.5, fontWeight: 700 }}>
           <MS name="add" size={18} />Add more items
         </Link>

@@ -21,6 +21,23 @@ export default function MenuManagePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const [addons, setAddons] = useState<{ id: number; subcategory_id: number; name: string; price: number; is_available: boolean }[]>([]);
+  const [newAddonName, setNewAddonName] = useState('');
+  const [newAddonPrice, setNewAddonPrice] = useState('');
+  const [addonSubcategoryId, setAddonSubcategoryId] = useState('');
+  const [savingAddon, setSavingAddon] = useState(false);
+  // The add-ons panel browses the whole menu, so it owns its category + subcategory list.
+  // Sharing `subcategories` with the Add-item form meant add-ons could only ever be edited
+  // for whatever category that unrelated form happened to have selected.
+  const [addonCategory, setAddonCategory] = useState<typeof CATEGORIES[number]>('drinks');
+  const [addonSubcategories, setAddonSubcategories] = useState<GrabbitMenuSubcategory[]>([]);
+
+  function loadAddons(subcategoryId: number) {
+    fetch(`/api/proxy/grabit/menu/subcategory/${subcategoryId}/addons`)
+      .then(r => r.json())
+      .then(data => setAddons(Array.isArray(data) ? data : []));
+  }
+
   function loadItems(cid: number) {
     fetch(`/api/proxy/grabit/menu/cafe/${cid}`)
       .then(r => r.json())
@@ -33,6 +50,12 @@ export default function MenuManagePage() {
       .then(data => setSubcategories(Array.isArray(data) ? data : []));
   }
 
+  function loadSubcategoriesForAddons(cid: number, category: string) {
+    fetch(`/api/proxy/grabit/menu/${cid}/subcategories?category=${category}`)
+      .then(r => r.json())
+      .then(data => setAddonSubcategories(Array.isArray(data) ? data : []));
+  }
+
   useEffect(() => {
     if (!cafeId) return;
     loadItems(cafeId);
@@ -42,6 +65,16 @@ export default function MenuManagePage() {
     if (!cafeId) return;
     loadSubcategories(cafeId, newItem.category);
   }, [cafeId, newItem.category]);
+
+  useEffect(() => {
+    if (!cafeId) return;
+    loadSubcategoriesForAddons(cafeId, addonCategory);
+  }, [cafeId, addonCategory]);
+
+  useEffect(() => {
+    if (!addonSubcategoryId) { setAddons([]); return; }
+    loadAddons(parseInt(addonSubcategoryId));
+  }, [addonSubcategoryId]);
 
   async function toggleAvailability(itemId: number, currentValue: boolean) {
     await fetch(`/api/proxy/grabit/menu/item/${itemId}`, {
@@ -105,6 +138,44 @@ export default function MenuManagePage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function createAddon() {
+    if (!cafeId || !addonSubcategoryId || !newAddonName.trim() || !newAddonPrice) return;
+    setSavingAddon(true);
+    try {
+      const res = await fetch(`/api/proxy/grabit/menu/${cafeId}/addons`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subcategory_id: parseInt(addonSubcategoryId),
+          name: newAddonName.trim(),
+          price: parseFloat(newAddonPrice),
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed to add add-on'); }
+      setNewAddonName(''); setNewAddonPrice('');
+      loadAddons(parseInt(addonSubcategoryId));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to add add-on');
+    } finally {
+      setSavingAddon(false);
+    }
+  }
+
+  async function toggleAddonAvailability(addonId: number, currentValue: boolean) {
+    await fetch(`/api/proxy/grabit/menu/addon/${addonId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_available: !currentValue }),
+    });
+    if (addonSubcategoryId) loadAddons(parseInt(addonSubcategoryId));
+  }
+
+  async function deleteAddon(addonId: number) {
+    if (!confirm('Delete this add-on?')) return;
+    await fetch(`/api/proxy/grabit/menu/addon/${addonId}`, { method: 'DELETE' });
+    if (addonSubcategoryId) loadAddons(parseInt(addonSubcategoryId));
   }
 
   const grouped = useMemo(
@@ -260,6 +331,57 @@ export default function MenuManagePage() {
             )}
           </div>
         )}
+
+        {/* Add-ons editor — per subcategory */}
+        <div style={{ marginTop: 32, background: 'var(--surface-card)', border: '1px solid var(--hairline)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-card)', padding: 20 }}>
+          <p className="t-headline-card" style={{ fontSize: 16, marginBottom: 12 }}>Add-ons</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+            <label style={labelStyle}>Category</label>
+            <select value={addonCategory}
+              onChange={e => { setAddonCategory(e.target.value as typeof CATEGORIES[number]); setAddonSubcategoryId(''); }}
+              style={inputStyle}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+            <label style={labelStyle}>Subcategory</label>
+            <select value={addonSubcategoryId} onChange={e => setAddonSubcategoryId(e.target.value)} style={inputStyle}>
+              <option value="">Select a subcategory</option>
+              {addonSubcategories.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+
+          {addonSubcategoryId && (
+            <>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <input type="text" value={newAddonName} onChange={e => setNewAddonName(e.target.value)}
+                  style={{ ...inputStyle, flex: 2 }} placeholder="e.g. Cheese Slice" />
+                <input type="number" min="0" step="0.01" value={newAddonPrice} onChange={e => setNewAddonPrice(e.target.value)}
+                  style={{ ...inputStyle, flex: 1 }} placeholder="₹" />
+                <Button type="button" size="sm" disabled={savingAddon || !newAddonName.trim() || !newAddonPrice} onClick={createAddon}>
+                  {savingAddon ? 'Adding…' : 'Add'}
+                </Button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {addons.map(a => (
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderTop: '1px solid var(--hairline)' }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600 }}>{a.name}</p>
+                      <p className="t-caption">₹{Number(a.price).toFixed(2)}</p>
+                    </div>
+                    <Toggle on={a.is_available} onChange={() => toggleAddonAvailability(a.id, a.is_available)} />
+                    <button onClick={() => deleteAddon(a.id)} aria-label="Delete add-on"
+                      style={{ width: 30, height: 30, borderRadius: 'var(--r-sm)', border: '1px solid var(--hairline-strong)', background: 'var(--surface-card)', color: 'var(--error)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                      {Icon.trash({ size: 15 })}
+                    </button>
+                  </div>
+                ))}
+                {addons.length === 0 && <p style={{ color: 'var(--muted)', fontSize: 13 }}>No add-ons for this subcategory yet.</p>}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </StaffChrome>
   );

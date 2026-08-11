@@ -207,9 +207,16 @@ function QueueCard({
       {/* Items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 11, padding: '9px 10px', background: 'var(--surface-low)', borderRadius: 'var(--r-sm)' }}>
         {order.items.map((item, idx) => (
-          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span className="tabular" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--muted)', minWidth: 20 }}>{item.quantity}×</span>
-            <span style={{ fontSize: 13, fontWeight: 500, flex: 1 }}>{item.menu_item_name}</span>
+          <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span className="tabular" style={{ fontWeight: 700, fontSize: 12.5, color: 'var(--muted)', minWidth: 20 }}>{item.quantity}×</span>
+              <span style={{ fontSize: 13, fontWeight: 500, flex: 1 }}>{item.menu_item_name}</span>
+            </div>
+            {item.addons && item.addons.length > 0 && (
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 27 }}>
+                + {item.addons.map((a) => a.name).join(', ')}
+              </div>
+            )}
           </div>
         ))}
       </div>

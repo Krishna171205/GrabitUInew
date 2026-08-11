@@ -42,6 +42,16 @@ export interface GrabbitMenuSubcategory {
   sort_order: number;
 }
 
+export interface GrabbitMenuAddon {
+  id: number;
+  subcategory_id: number;
+  cafe_id: number;
+  name: string;
+  price: number;
+  is_available: boolean;
+  sort_order: number;
+}
+
 export interface GrabbitSlotConfig {
   slot_duration_minutes: number;
   max_orders_per_slot: number;
@@ -103,6 +113,8 @@ export interface GrabbitOrderItem {
   menu_item_name: string;
   quantity: number;
   unit_price: number;
+  addons?: { id: number; name: string; price: number }[];
+  addons_total?: number;
 }
 
 export interface GrabbitOrderWithItems extends GrabbitOrder {
@@ -125,6 +137,7 @@ export interface GrabbitCartItem {
   quantity: number;
   image_url: string | null;
   is_veg?: boolean | null;
+  addons?: { id: number; name: string; price: number }[];
 }
 
 export interface GrabbitAuthResponse {
