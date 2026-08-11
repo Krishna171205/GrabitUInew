@@ -15,12 +15,25 @@ const POPULAR_NEAR_YOU_ENABLED = false;
 interface Me { name: string | null; phone: string | null; avatar_url: string | null; }
 interface TopItem { menu_item_id: number; menu_item_name: string; price: number; image_url: string | null; total_ordered: number; }
 
+async function getCafeStatus(slug: string): Promise<boolean | undefined> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, { cache: 'no-store' });
+    if (!res.ok) return undefined;
+    const d = await res.json();
+    return d.acceptingOrders !== false;
+  } catch { return undefined; }
+}
+
 // Real, live cafés — honest data, no fabricated marketplace stats.
 async function getCafes(): Promise<RealCafe[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
-    return res.json();
+    const cafes: RealCafe[] = await res.json();
+    // Status is fetched fresh per cafe (not cached with the list) so the "Open now"/"Closed"
+    // badge and colour render correct on first paint, no client-side flash after mount.
+    const statuses = await Promise.all(cafes.map((c) => getCafeStatus(c.slug)));
+    return cafes.map((c, i) => ({ ...c, acceptingOrders: statuses[i] }));
   } catch { return []; }
 }
 

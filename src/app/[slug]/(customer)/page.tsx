@@ -9,6 +9,17 @@ async function getCafeMenu(slug: string) {
   return res.json();
 }
 
+// Fetched fresh (not cached with the menu) so the page renders open/closed correct on
+// first paint — no client-side flip after mount.
+async function getCafeStatus(slug: string): Promise<boolean | undefined> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, { cache: 'no-store' });
+    if (!res.ok) return undefined;
+    const d = await res.json();
+    return d.acceptingOrders !== false;
+  } catch { return undefined; }
+}
+
 async function getTopItems(cafeId: number, token: string) {
   try {
     const res = await fetch(
@@ -59,9 +70,9 @@ export default async function HomePage(
     );
   }
 
-  const [profile, topItems, favorites] = token
-    ? await Promise.all([getCustomerProfile(token), getTopItems(cafe.id, token), getFavorites(cafe.id, token)])
-    : [{ name: null, isProfileComplete: false }, [], []];
+  const [profile, topItems, favorites, acceptingOrders] = token
+    ? await Promise.all([getCustomerProfile(token), getTopItems(cafe.id, token), getFavorites(cafe.id, token), getCafeStatus(slug)])
+    : [{ name: null, isProfileComplete: false }, [], [], await getCafeStatus(slug)];
 
   return (
     <MenuClient
@@ -74,6 +85,7 @@ export default async function HomePage(
       isLoggedIn={!!token}
       table={table ?? null}
       initialQuery={craving ?? null}
+      initialAcceptingOrders={acceptingOrders}
     />
   );
 }

@@ -56,6 +56,7 @@ interface Props {
   isLoggedIn?: boolean;
   table?: string | null;
   initialQuery?: string | null;
+  initialAcceptingOrders?: boolean;
 }
 
 /* veg mark (square outline + dot) — only rendered when veg status is known */
@@ -69,18 +70,20 @@ function Veg({ veg }: { veg?: boolean | null }) {
   );
 }
 
-export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null }: Props) {
+export default function MenuClient({ slug, cafe, items, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
   const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
 
-  // Omega's store-status toggle, on top of the scheduled hours below. Defaults true
-  // (fail-open) so a slow/failed fetch never falsely shows "Closed" for a cafe that's fine.
-  const [acceptingOrders, setAcceptingOrders] = useState(true);
+  // Omega's store-status toggle, on top of the scheduled hours below. Seeded server-side
+  // (initialAcceptingOrders) so the page renders open/closed correct on first paint; only
+  // re-fetch client-side if the server didn't know. Defaults true (fail-open) otherwise.
+  const [acceptingOrders, setAcceptingOrders] = useState(initialAcceptingOrders !== false);
   useEffect(() => {
+    if (initialAcceptingOrders !== undefined) return;
     fetch(`/api/proxy/grabit/cafes/${slug}/status`)
       .then(res => res.ok ? res.json() : null)
       .then(d => { if (d) setAcceptingOrders(d.acceptingOrders !== false); })
       .catch(() => {});
-  }, [slug]);
+  }, [slug, initialAcceptingOrders]);
 
   async function toggleFavorite(menuItemId: number) {
     const wasFav = favIds.has(menuItemId);
@@ -117,6 +120,20 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const qtyOf = (id: number) => cartItems.find(i => i.menu_item_id === id)?.quantity ?? 0;
+
+  // Closed cafe: block adding, shake the tapped button, show a self-dismissing toast.
+  const [shakeId, setShakeId] = useState<number | null>(null);
+  const [closedToast, setClosedToast] = useState(false);
+  function guardedAdd(id: number, fn: () => void) {
+    if (!open) {
+      setShakeId(id);
+      setTimeout(() => setShakeId(null), 500);
+      setClosedToast(true);
+      setTimeout(() => setClosedToast(false), 3000);
+      return;
+    }
+    fn();
+  }
 
   // topItems/favorites are stale snapshots (order history, favorite toggles) that can
   // outlive the item being pulled off the menu or repriced — cross-check against the
@@ -161,13 +178,14 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.5)', overflow: 'hidden' }}>
           <button onClick={() => updateQty(item.id, qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
           <span style={{ minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
-          <button onClick={() => updateQty(item.id, qty + 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
+          <button onClick={() => guardedAdd(item.id, () => updateQty(item.id, qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
         </div>
       );
     }
     return (
       <button
-        onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug)}
+        onClick={() => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug))}
+        className={shakeId === item.id ? 'gb-shake' : undefined}
         style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
       >
         Add<MS name="add" size={16} />
@@ -176,7 +194,13 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   };
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24, filter: open ? 'none' : 'grayscale(1)', transition: 'filter .3s ease' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24, filter: open ? 'none' : 'grayscale(1)' }}>
+      {closedToast && (
+        <div style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, background: 'var(--gb-ink)', color: '#fff', borderRadius: 14, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
+          <MS name="storefront" size={18} color="#fff" />
+          This cafe is closed now, please try again later
+        </div>
+      )}
       {/* cover */}
       <div style={{ position: 'relative', height: 250 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -249,10 +273,10 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.menu_item_id)}</span>
-                      <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) + 1)} aria-label="Add one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                      <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
                   ) : (
-                    <button onClick={() => addTop(item)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                    <button onClick={() => guardedAdd(item.menu_item_id, () => addTop(item))} aria-label="Add" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
                       <MS name="add" size={17} />
                     </button>
                   )}
@@ -285,10 +309,10 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(item.id, qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.id)}</span>
-                      <button onClick={() => updateQty(item.id, qtyOf(item.id) + 1)} aria-label="Add one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                      <button onClick={() => guardedAdd(item.id, () => updateQty(item.id, qtyOf(item.id) + 1))} aria-label="Add one" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
                   ) : (
-                    <button onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug)} aria-label="Add" style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                    <button onClick={() => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url }, slug))} aria-label="Add" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
                       <MS name="add" size={17} />
                     </button>
                   )}
