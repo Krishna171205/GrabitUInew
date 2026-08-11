@@ -116,6 +116,8 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   }, [table]);
   const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
   const [activeSub, setActiveSub] = useState<string>('all');
+  const [showSubSheet, setShowSubSheet] = useState(false);
+  const VISIBLE_SUBS = 3;
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
@@ -353,22 +355,44 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         </div>
       </div>
 
-      {/* filter chips — sticky so switching category is always one tap away */}
-      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', gap: 9, overflowX: 'auto', padding: '14px 16px 10px' }}>
+      {/* filter chips — sticky so switching category/subcategory is always one tap away.
+          Subcategories share the same row as categories (Zomato-style), with a "+More"
+          chip opening a sheet once there are more than fit on one line. */}
+      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', padding: '14px 16px' }}>
         <div style={chip(false)}><MS name="tune" size={17} color="var(--gb-primary)" />Filters</div>
         <button style={chip(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>All</button>
         {categoriesPresent.map(c => (
           <button key={c} style={chip(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>{CATEGORY_LABELS[c]}</button>
         ))}
+        {subsPresent.length > 0 && (
+          <>
+            <span style={{ width: 1, height: 22, background: 'var(--gb-line-3)', flex: 'none' }} />
+            {activeSub !== 'all' && (
+              <button style={chip(true)} onClick={() => setActiveSub('all')}>{activeSub}<MS name="close" size={15} /></button>
+            )}
+            {subsPresent.filter(s => s !== activeSub).slice(0, VISIBLE_SUBS).map(s => (
+              <button key={s} style={chip(false)} onClick={() => setActiveSub(s)}>{s}</button>
+            ))}
+            {subsPresent.filter(s => s !== activeSub).length > VISIBLE_SUBS && (
+              <button style={chip(false)} onClick={() => setShowSubSheet(true)}>
+                +{subsPresent.filter(s => s !== activeSub).length - VISIBLE_SUBS} more<MS name="expand_more" size={16} />
+              </button>
+            )}
+          </>
+        )}
       </div>
 
-      {/* subcategory chips — only when the current category (or the whole menu) has any */}
-      {subsPresent.length > 0 && (
-        <div className="gb-scroll" style={{ position: 'sticky', top: 51, zIndex: 19, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 10px' }}>
-          <button style={chip(activeSub === 'all')} onClick={() => setActiveSub('all')}>All</button>
-          {subsPresent.map(s => (
-            <button key={s} style={chip(activeSub === s)} onClick={() => setActiveSub(s)}>{s}</button>
-          ))}
+      {showSubSheet && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
+          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Filter by</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+              <button style={chip(activeSub === 'all')} onClick={() => { setActiveSub('all'); setShowSubSheet(false); }}>All</button>
+              {subsPresent.map(s => (
+                <button key={s} style={chip(activeSub === s)} onClick={() => { setActiveSub(s); setShowSubSheet(false); }}>{s}</button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
