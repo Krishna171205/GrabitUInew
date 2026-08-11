@@ -15,6 +15,8 @@ export interface RealCafe {
   id: number; name: string; slug: string;
   address?: string | null; city?: string | null;
   opening_time?: string | null; closing_time?: string | null;
+  /** Server-fetched Omega store-status, so the card renders correct on first paint (no flash). */
+  acceptingOrders?: boolean;
 }
 
 /* ---------- Café card (cover + info footer) ---------- */
@@ -79,14 +81,16 @@ export function CafeCard({
 /* ---------- Real café card (live data, honest signals only) ---------- */
 export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { cafe: RealCafe; cta?: string; coverHeight?: number }) {
   const { favorite, toggle } = useFavoriteCafe(cafe.slug);
-  // Omega's store-status toggle, on top of scheduled hours. Fail-open (see MenuClient.tsx).
-  const [acceptingOrders, setAcceptingOrders] = useState(true);
+  // Omega's store-status toggle, on top of scheduled hours. Seeded server-side (cafe.acceptingOrders)
+  // so the card is correct on first paint; only re-fetch client-side if the server didn't know.
+  const [acceptingOrders, setAcceptingOrders] = useState(cafe.acceptingOrders !== false);
   useEffect(() => {
+    if (cafe.acceptingOrders !== undefined) return;
     fetch(`/api/proxy/grabit/cafes/${cafe.slug}/status`)
       .then(res => res.ok ? res.json() : null)
       .then(d => { if (d) setAcceptingOrders(d.acceptingOrders !== false); })
       .catch(() => {});
-  }, [cafe.slug]);
+  }, [cafe.slug, cafe.acceptingOrders]);
   const open = cafeOpenNow(cafe.opening_time, cafe.closing_time) && acceptingOrders;
   const hours = cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
   const initial = cafe.name.trim().charAt(0).toUpperCase();
@@ -94,7 +98,7 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
   return (
     <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 22, overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-shadow-card)' }}>
       {/* branded placeholder cover — we don't show a stock food photo we can't stand behind */}
-      <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden', filter: open ? 'none' : 'grayscale(1)' }}>
         <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
         <div style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.94)', padding: '5px 10px', borderRadius: 999 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }} />
