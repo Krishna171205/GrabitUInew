@@ -194,13 +194,17 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
   };
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24, filter: open ? 'none' : 'grayscale(1)' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24 }}>
       {closedToast && (
         <div style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, background: 'var(--gb-ink)', color: '#fff', borderRadius: 14, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
           <MS name="storefront" size={18} color="#fff" />
           This cafe is closed now, please try again later
         </div>
       )}
+      {/* CSS filter greys a subtree, not individual children, so ordering is split into two
+          filtered blocks around the login nudge below — that stays full colour even when
+          closed, since logging in to see past orders/profile doesn't need the cafe to be open. */}
+      <div style={{ filter: open ? 'none' : 'grayscale(1)' }}>
       {/* cover */}
       <div style={{ position: 'relative', height: 250 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -234,8 +238,10 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
           </div>
         )}
       </div>
+      </div>
 
-      {/* login nudge (guest) */}
+      {/* login nudge (guest) — full colour even when closed: logging in to see past
+          orders/profile doesn't need the cafe to be open. */}
       {!isLoggedIn && (
         <div style={{ padding: '16px 16px 0' }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'var(--gb-primary-soft)', border: '1px solid #EAD6C4', borderRadius: 16, padding: 14 }}>
@@ -251,6 +257,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         </div>
       )}
 
+      <div style={{ filter: open ? 'none' : 'grayscale(1)' }}>
       {/* greeting + your usuals (returning users) */}
       {isLoggedIn && customerName && (
         <div style={{ padding: '18px 16px 0' }}>
@@ -409,6 +416,7 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
