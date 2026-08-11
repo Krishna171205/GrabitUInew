@@ -53,7 +53,8 @@ function OrderRow({ o, cafeName, cafeSlug }: { o: Order; cafeName: string; cafeS
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>{cafeName}</div>
-        <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{itemsLabel} · {inr(o.total_amount)}</div>
+        <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{itemsLabel}</div>
+        <div style={{ fontSize: 12, color: 'var(--gb-text)', fontWeight: 700, marginTop: 2 }}>{inr(o.total_amount)}</div>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, fontSize: 11.5, fontWeight: 700, color: s.color }}>
           <MS name={s.icon} size={14} fill />{s.text} · {fmtWhen(o.created_at)}
         </div>

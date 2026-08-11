@@ -203,6 +203,26 @@ export default function OrderPage() {
         </div>
       </div>
 
+      {/* order summary */}
+      <div style={{ margin: '4px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: 15 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--gb-muted-2)', marginBottom: 10 }}>Order summary</div>
+        {order.items.map((item) => (
+          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gb-text)' }}>{item.quantity}× {item.menu_item_name}</div>
+              {item.addons && item.addons.length > 0 && (
+                <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', marginTop: 1 }}>+ {item.addons.map((a) => a.name).join(', ')}</div>
+              )}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gb-text)', flex: 'none' }}>{inr(item.unit_price * item.quantity + (item.addons_total ?? 0))}</div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--gb-line-2)' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>Total paid</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{inr(order.total_amount)}</div>
+        </div>
+      </div>
+
       {/* back to home */}
       <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
         Back to home

@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   // is synchronous and closes that window completely.
   const submitting = useRef(false);
   const [pickupSlot, setPickupSlot] = useState<string | null>(null);
+  const [isAsap, setIsAsap] = useState(false);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [cafeId, setCafeId] = useState<number | null>(null);
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
     }
     setDineInTable(table);
     setPickupSlot(slot);
+    setIsAsap(sessionStorage.getItem('grabbit_slot_asap') === '1');
     setNotes(sessionStorage.getItem('grabbit_notes') ?? '');
   }, [slug, router]);
 
@@ -257,8 +259,8 @@ export default function CheckoutPage() {
             <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)' }}><MS name="schedule" size={22} fill /></div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>{formattedTime}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>Order ahead, walk past the queue</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{isAsap ? 'ASAP' : formattedTime}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{isAsap ? "We'll start it now, skip the queue" : 'Order ahead, walk past the queue'}</div>
               </div>
               <button onClick={() => router.push(`/${slug}/cart`)} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 800, fontSize: 13.5, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                 <MS name="edit" size={16} />Edit

@@ -99,8 +99,15 @@ export default function CartPage() {
       .then((d) => d.acceptingOrders !== false)
       .catch(() => true); // fail open, same as the server-side check
     if (!accepting) { setCheckingAuth(false); setShowOfflineModal(true); return; }
-    if (dineInTable) sessionStorage.removeItem('grabbit_slot');
-    else sessionStorage.setItem('grabbit_slot', selectedSlot!);
+    if (dineInTable) {
+      sessionStorage.removeItem('grabbit_slot');
+      sessionStorage.removeItem('grabbit_slot_asap');
+    } else {
+      sessionStorage.setItem('grabbit_slot', selectedSlot!);
+      const isAsap = !slotsData?.label && slotsData?.slots[0]?.slot_start === selectedSlot;
+      if (isAsap) sessionStorage.setItem('grabbit_slot_asap', '1');
+      else sessionStorage.removeItem('grabbit_slot_asap');
+    }
     sessionStorage.setItem('grabbit_notes', notes.trim());
     const loggedIn = await fetch('/api/proxy/grabit/auth/me').then((r) => r.ok).catch(() => false);
     setCheckingAuth(false);
