@@ -382,20 +382,6 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         )}
       </div>
 
-      {showSubSheet && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
-          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Filter by</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
-              <button style={chip(activeSub === 'all')} onClick={() => { setActiveSub('all'); setShowSubSheet(false); }}>All</button>
-              {subsPresent.map(s => (
-                <button key={s} style={chip(activeSub === s)} onClick={() => { setActiveSub(s); setShowSubSheet(false); }}>{s}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* menu */}
       <div style={{ padding: '6px 16px 0' }}>
         {shownCats.every(cat => !available.some(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub))) && (
@@ -446,6 +432,27 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
         </div>
       )}
 
+      </div>
+
+      {/* Rendered outside the grayscale-filtered block above: CSS `filter` on an ancestor
+          becomes the containing block for descendant `position: fixed` elements (same as
+          `transform`), so a sheet/dialog nested inside it pins to that div's box instead of
+          the real viewport - it'd render off past the bottom of the screen once the cafe
+          closes and the filter kicks in. */}
+      {showSubSheet && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
+          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Filter by</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+              <button style={chip(activeSub === 'all')} onClick={() => { setActiveSub('all'); setShowSubSheet(false); }}>All</button>
+              {subsPresent.map(s => (
+                <button key={s} style={chip(activeSub === s)} onClick={() => { setActiveSub(s); setShowSubSheet(false); }}>{s}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showClearConfirm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowClearConfirm(false)}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 22, width: '100%', maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
@@ -458,7 +465,6 @@ export default function MenuClient({ slug, cafe, items, customerName, topItems =
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 }
