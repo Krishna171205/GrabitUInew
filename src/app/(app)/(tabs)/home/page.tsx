@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
-import { inr, greeting } from '@/components/gb/format';
+import { greeting } from '@/components/gb/format';
 import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
 import { LocationPill } from '@/components/gb/LocationPill';
 import { CafesNearYou } from '@/components/gb/CafesNearYou';
@@ -13,7 +13,6 @@ import { POPULAR, CATEGORIES } from '@/components/gb/data';
 const POPULAR_NEAR_YOU_ENABLED = false;
 
 interface Me { name: string | null; phone: string | null; avatar_url: string | null; }
-interface TopItem { menu_item_id: number; menu_item_name: string; price: number; image_url: string | null; total_ordered: number; }
 
 async function getCafeStatus(slug: string): Promise<boolean | undefined> {
   try {
@@ -43,16 +42,6 @@ async function getMe(token: string): Promise<Me | null> {
     if (!res.ok) return null;
     return res.json();
   } catch { return null; }
-}
-
-// "Order again" = this customer's most-ordered items at their cafe. Cafe-scoped
-// (ponytail: uses the first live cafe — there's only one, Raydee, today).
-async function getTopItems(token: string, cafeId: number): Promise<TopItem[]> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/orders/top-items?cafeId=${cafeId}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
-  } catch { return []; }
 }
 
 // Hero: design uses 60px top to clear the status bar; we clear the real notch instead.
@@ -132,7 +121,7 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
   );
 }
 
-function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[]; me: Me | null; topItems: TopItem[]; reorderSlug?: string }) {
+function SignedInHome({ cafes, me }: { cafes: RealCafe[]; me: Me | null }) {
   const firstName = me?.name?.trim()?.split(' ')[0] || 'there';
   const initial = (me?.name?.trim()?.[0] || me?.phone?.slice(-1) || '?').toUpperCase();
   return (
@@ -156,30 +145,6 @@ function SignedInHome({ cafes, me, topItems, reorderSlug }: { cafes: RealCafe[];
         <SearchBar />
       </div>
 
-      {/* order again — this customer's most-ordered items, real order history */}
-      {topItems.length > 0 && (
-        <div style={{ margin: '-34px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, padding: '16px 16px 4px', boxShadow: 'var(--gb-shadow-pop)', border: '1px solid var(--gb-line-2)' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Order again</div>
-            <Link href="/orders" style={{ fontSize: 12, fontWeight: 700, color: 'var(--gb-muted-2)' }}>All orders</Link>
-          </div>
-          {topItems.map((it, i) => (
-            <Link key={it.menu_item_id} href={reorderSlug ? `/${reorderSlug}` : '/explore'} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '12px 0', borderBottom: i < topItems.length - 1 ? '1px solid var(--gb-line)' : 'none' }}>
-              <div style={{ width: 50, height: 50, borderRadius: 13, overflow: 'hidden', flex: 'none', background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {it.image_url
-                  ? <Image src={it.image_url} alt="" width={50} height={50} sizes="50px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  : <MS name="restaurant" size={22} color="var(--gb-primary)" />}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.menu_item_name}</div>
-                <div style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 2, fontWeight: 600 }}>{inr(it.price)} · ordered {it.total_ordered}×</div>
-              </div>
-              <div style={{ border: '1.5px solid #E7DCCC', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, padding: '9px 15px', borderRadius: 11, flex: 'none' }}>Reorder</div>
-            </Link>
-          ))}
-        </div>
-      )}
-
       <Categories />
       <CafesNearYou cafes={cafes} cta="Pre-order" gate={false} />
       <NavSpacer />
@@ -193,10 +158,6 @@ export default async function HomePage() {
     getCafes(),
   ]);
   if (!token) return <GuestHome cafes={cafes} />;
-  const primaryCafe = cafes[0];
-  const [me, topItems] = await Promise.all([
-    getMe(token),
-    primaryCafe ? getTopItems(token, primaryCafe.id) : Promise.resolve([]),
-  ]);
-  return <SignedInHome cafes={cafes} me={me} topItems={topItems} reorderSlug={primaryCafe?.slug} />;
+  const me = await getMe(token);
+  return <SignedInHome cafes={cafes} me={me} />;
 }
