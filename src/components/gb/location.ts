@@ -4,18 +4,13 @@ import { useEffect, useState } from 'react';
 
 const KEY = 'grabbit_location';
 const CITY_KEY = 'grabbit_location_city';
-export const DEFAULT_LOCATION = 'Rohini, Delhi';
+export const DEFAULT_LOCATION = 'DTU, Delhi';
 const DEFAULT_CITY = 'Delhi';
 
-// Static suggestions shown when the search box is empty (no saved-address backend yet).
-// Delhi-first — Grabbit's launch market (see landing SEO: "Now live in Delhi").
+// Only Raydee @ DTU is live - suggesting unrelated Delhi localities was noise
+// with nothing behind them. One real suggestion beats six fake ones.
 export const SUGGESTED_LOCATIONS: LocationResult[] = [
-  { label: 'Rohini, Delhi', city: 'Delhi' },
-  { label: 'Dwarka, Delhi', city: 'Delhi' },
-  { label: 'Lajpat Nagar, Delhi', city: 'Delhi' },
-  { label: 'Connaught Place, New Delhi', city: 'New Delhi' },
-  { label: 'Saket, New Delhi', city: 'New Delhi' },
-  { label: 'Rajouri Garden, Delhi', city: 'Delhi' },
+  { label: 'DTU, Delhi', city: 'Delhi' },
 ];
 
 export function getSavedLocation(): string {
