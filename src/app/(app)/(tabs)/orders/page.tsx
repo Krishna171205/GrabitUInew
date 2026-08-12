@@ -82,8 +82,14 @@ export default function OrdersPage() {
   }, []);
 
   const cafeById = new Map(cafes.map((c) => [c.id, c]));
-  const active = orders.filter(isActive);
-  const past = orders.filter((o) => !isActive(o));
+  // An online order whose payment hasn't resolved yet (still 'pending') isn't a
+  // real order to the customer - they never completed checkout. The row exists
+  // server-side because Cashfree needs an order to attach a payment session to,
+  // but showing it as "Awaiting confirmation" here reads as a phantom order.
+  // Once it resolves to paid (active) or failed (past), it shows normally.
+  const resolvedOrders = orders.filter((o) => !(o.payment_method === 'online' && o.payment_status === 'pending'));
+  const active = resolvedOrders.filter(isActive);
+  const past = resolvedOrders.filter((o) => !isActive(o));
   const shown = tab === 'active' ? active : past;
 
   const pill = (isOn: boolean) => ({

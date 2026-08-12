@@ -104,6 +104,14 @@ export default function CartPage() {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [showCancelledBanner, setShowCancelledBanner] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('cancelled') !== '1') return;
+    setShowCancelledBanner(true);
+    window.history.replaceState(null, '', window.location.pathname);
+    const t = setTimeout(() => setShowCancelledBanner(false), 4000);
+    return () => clearTimeout(t);
+  }, []);
   // Complete-your-meal recommendations
   const [recs, setRecs] = useState<GrabbitMenuItem[]>([]);
   const [recCat, setRecCat] = useState<GrabbitMenuCategory | 'all'>('all');
@@ -372,6 +380,12 @@ export default function CartPage() {
           <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : 'Pickup'}</div>
         </div>
       </div>
+
+      {showCancelledBanner && (
+        <div style={{ margin: '10px 16px 0', background: '#FDECEA', color: 'var(--gb-danger)', fontSize: 13, fontWeight: 700, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MS name="cancel" size={17} color="var(--gb-danger)" />Transaction cancelled
+        </div>
+      )}
 
       {/* items */}
       <div style={{ padding: '4px 16px 2px' }}>

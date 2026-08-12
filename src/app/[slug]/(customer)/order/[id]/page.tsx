@@ -45,6 +45,7 @@ export default function OrderPage() {
   const [order, setOrder] = useState<GrabbitOrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Cashfree's returnUrl points here for EVERY checkout outcome - paid, failed, or
   // the customer cancelling/backing out - so arrival alone isn't proof of payment.
@@ -154,26 +155,51 @@ export default function OrderPage() {
 
   if (order.payment_method === 'online' && order.payment_status === 'pending') {
     return (
-      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 32 }}>
-        <div style={{ background: 'linear-gradient(158deg,#8A6D2A 0%,#B08A2F 100%)', paddingTop: 'calc(32px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 26, color: '#fff', textAlign: 'center' }}>
-          <div style={{ position: 'relative', width: 50, height: 50, margin: '0 auto' }}>
-            <span className="gb-pulse-ring" style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(255,255,255,.55)' }} />
-            <div style={{ position: 'relative', width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <MS name="schedule" size={26} color="#fff" />
+      <div style={{ minHeight: '100dvh', background: '#fff', paddingBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 'calc(14px + env(safe-area-inset-top)) 16px 12px', borderBottom: '1px solid var(--gb-line)' }}>
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            aria-label="Cancel and go back"
+            style={{ width: 32, height: 32, border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--gb-ink)' }}
+          >
+            <MS name="expand_more" size={24} />
+          </button>
+          <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--gb-ink)' }}>Processing payment</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', padding: '0 32px', textAlign: 'center' }}>
+          <p style={{ fontSize: 15, color: 'var(--gb-muted)', fontWeight: 500, lineHeight: 1.5 }}>
+            Please wait while your payment is being verified. You&apos;ll be redirected automatically.
+          </p>
+          <span className="gb-pulse-ring" style={{ display: 'inline-block', width: 34, height: 34, marginTop: 18, borderRadius: '50%', border: '3px solid var(--gb-line-3)', borderTopColor: 'var(--gb-primary)' }} />
+        </div>
+
+        {showCancelConfirm && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div style={{ background: '#fff', borderRadius: 16, padding: 22, width: '100%', maxWidth: 340 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>Confirmation</div>
+              <div style={{ fontSize: 14, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 8, lineHeight: 1.5 }}>
+                Are you sure you want to cancel the transaction?
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  style={{ flex: 1, border: '1.5px solid #EEE4D6', background: '#fff', color: 'var(--gb-ink)', fontSize: 14, fontWeight: 700, padding: 11, borderRadius: 11, cursor: 'pointer' }}
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => router.push(`/${slug}/cart?cancelled=1`)}
+                  style={{ flex: 1, border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14, fontWeight: 700, padding: 11, borderRadius: 11, cursor: 'pointer' }}
+                >
+                  Yes
+                </button>
+              </div>
             </div>
           </div>
-          <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500, marginTop: 12 }}>Confirming payment…</div>
-          <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 3 }}>Updates automatically once we hear back - don&apos;t close this page</div>
-        </div>
-        <button
-          onClick={() => router.push(`/${slug}/cart`)}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: 'calc(100% - 32px)', margin: '16px 16px 0', border: '1.5px solid #EEE4D6', background: '#fff', color: 'var(--gb-ink)', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 13, cursor: 'pointer' }}
-        >
-          Retry payment
-        </button>
+        )}
         <style>{`
-          @keyframes gb-pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.7); opacity: 0; } }
-          .gb-pulse-ring { animation: gb-pulse 1.6s ease-out infinite; }
+          @keyframes gb-spin { to { transform: rotate(360deg); } }
+          .gb-pulse-ring { animation: gb-spin .8s linear infinite; }
         `}</style>
       </div>
     );
