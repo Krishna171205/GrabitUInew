@@ -25,6 +25,20 @@ function dateStr(offsetDays: number) {
   return d.toISOString().split('T')[0];
 }
 
+function interleaveByCategory(items: GrabbitMenuItem[]): GrabbitMenuItem[] {
+  const byCat = new Map<string, GrabbitMenuItem[]>();
+  for (const item of items) {
+    const list = byCat.get(item.category);
+    if (list) list.push(item); else byCat.set(item.category, [item]);
+  }
+  const buckets = Array.from(byCat.values());
+  const result: GrabbitMenuItem[] = [];
+  for (let i = 0; result.length < items.length; i++) {
+    for (const bucket of buckets) if (bucket[i]) result.push(bucket[i]);
+  }
+  return result;
+}
+
 // Custom time is a stepper over the same server-computed slots, not a raw
 // date picker - so it can never land on a full slot or outside pickup hours,
 // and matches the app's own controls instead of the OS's native time UI.
@@ -66,19 +80,6 @@ function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void
   );
 }
 
-// Payment methods (Zomato-style PAY USING sheet). UPI apps / card / netbanking
-// all map to the backend's 'online' rail (Cashfree renders the actual gateway
-// options). Pay-at-counter was removed from the consumer flow.
-const PAY_METHODS = [
-  { id: 'phonepe', label: 'PhonePe UPI', icon: 'smartphone', color: '#7C3AED', kind: 'online' as const },
-  { id: 'gpay', label: 'Google Pay', icon: 'smartphone', color: '#4285F4', kind: 'online' as const },
-  { id: 'paytm', label: 'Paytm UPI', icon: 'smartphone', color: '#00A9E0', kind: 'online' as const },
-  { id: 'bhim', label: 'BHIM UPI', icon: 'smartphone', color: '#FF7E1D', kind: 'online' as const },
-  { id: 'card', label: 'Credit / Debit Card', icon: 'credit_card', color: '#6B5D50', kind: 'online' as const },
-  { id: 'netbanking', label: 'Net Banking', icon: 'account_balance', color: '#6B5D50', kind: 'online' as const },
-] as const;
-type PayMethodId = typeof PAY_METHODS[number]['id'];
-
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -93,6 +94,7 @@ export default function CartPage() {
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [showCustomTime, setShowCustomTime] = useState(false);
+  const [showNoteInput, setShowNoteInput] = useState(false);
   const [customIndex, setCustomIndex] = useState(0);
   const slotRef = useRef<HTMLDivElement>(null);
   const [shakeSlot, setShakeSlot] = useState(false);
@@ -102,15 +104,14 @@ export default function CartPage() {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  // Payment method selection
-  const [payMethod, setPayMethod] = useState<PayMethodId>('phonepe');
-  const [showPaySheet, setShowPaySheet] = useState(false);
   // Complete-your-meal recommendations
   const [recs, setRecs] = useState<GrabbitMenuItem[]>([]);
   const [recCat, setRecCat] = useState<GrabbitMenuCategory | 'all'>('all');
   useEffect(() => {
     setDineInTable(sessionStorage.getItem('grabbit_table'));
-    setNotes(sessionStorage.getItem('grabbit_notes') ?? '');
+    const savedNotes = sessionStorage.getItem('grabbit_notes') ?? '';
+    setNotes(savedNotes);
+    if (savedNotes) setShowNoteInput(true);
   }, []);
   const canProceed = dineInTable ? true : !!selectedSlot;
 
@@ -197,13 +198,18 @@ export default function CartPage() {
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
   const subtotal = total();
   const toPay = subtotal;
-  const payLabel = PAY_METHODS.find(m => m.id === payMethod)!.label;
 
   // Recommendations filtered by pill + already-in-cart (in case one was just added)
   const recCats = Array.from(new Set(recs.map(r => r.category)));
   const activeRecCat = recCat !== 'all' && recCats.includes(recCat) ? recCat : 'all';
   const inCartIds = new Set(items.map(i => i.menu_item_id));
-  const shownRecs = recs.filter(r => !inCartIds.has(r.id) && (activeRecCat === 'all' || r.category === activeRecCat));
+  const availableRecs = recs.filter(r => !inCartIds.has(r.id));
+  // "Popular" (activeRecCat==='all') interleaves categories round-robin so it
+  // reads distinct from single-category pills instead of just showing the
+  // same leading items as whichever category the API returns first.
+  const shownRecs = activeRecCat === 'all'
+    ? interleaveByCategory(availableRecs)
+    : availableRecs.filter(r => r.category === activeRecCat);
 
   async function placeOrder() {
     if (!canProceed) { nudgeSlot(); return; }
@@ -359,75 +365,93 @@ export default function CartPage() {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 170 }}>
       {/* header */}
-      <div style={{ background: '#fff', padding: 'calc(14px + env(safe-area-inset-top)) 18px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--gb-line)' }}>
-        <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={22} color="var(--gb-ink)" /></button>
+      <div style={{ background: '#fff', padding: 'calc(11px + env(safe-area-inset-top)) 16px 12px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--gb-line)' }}>
+        <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={19} color="var(--gb-ink)" /></button>
         <div>
-          <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500, lineHeight: 1 }}>{cafeName}</div>
-          <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : 'Pickup'}</div>
+          <div className="gb-serif" style={{ fontSize: 17.5, fontWeight: 500, lineHeight: 1 }}>{cafeName}</div>
+          <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : 'Pickup'}</div>
         </div>
       </div>
 
       {/* items */}
-      <div style={{ padding: '8px 18px 4px' }}>
+      <div style={{ padding: '4px 16px 2px' }}>
         {items.map(item => {
           const addonsSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0);
           const lineKey = cartLineKey(item);
           return (
-            <div key={lineKey} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: '1px solid var(--gb-line)' }}>
+            <div key={lineKey} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--gb-line)' }}>
               <Veg veg={item.is_veg} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>
                 {item.addons && item.addons.length > 0 && (
-                  <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', marginTop: 3 }}>
+                  <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', marginTop: 3 }}>
                     + {item.addons.map(a => a.name).join(', ')}
                   </div>
                 )}
               </div>
               <Stepper qty={item.quantity} onChange={(v) => updateQty(lineKey, v)} />
-              <div style={{ minWidth: 56, textAlign: 'right', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr((item.price + addonsSum) * item.quantity)}</div>
+              <div style={{ minWidth: 52, textAlign: 'right', fontSize: 13.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr((item.price + addonsSum) * item.quantity)}</div>
             </div>
           );
         })}
-        <Link href={`/${slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 14, color: 'var(--gb-primary)', fontSize: 13.5, fontWeight: 700 }}>
-          <MS name="add" size={18} />Add more items
-        </Link>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <Link href={`/${slug}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, border: '1px solid var(--gb-line-3)', borderRadius: 11, padding: '9px 10px', color: 'var(--gb-primary)', fontSize: 12.5, fontWeight: 700 }}>
+            <MS name="add" size={16} />Add more items
+          </Link>
+          <button
+            onClick={() => setShowNoteInput((v) => !v)}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, border: '1px solid var(--gb-line-3)', borderRadius: 11, padding: '9px 10px', background: '#fff', color: 'var(--gb-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+          >
+            <MS name="edit_note" size={16} />{notes ? 'Edit note' : 'Add a note'}
+          </button>
+        </div>
+        {showNoteInput && (
+          <textarea
+            autoFocus
+            value={notes}
+            onChange={(e) => setNotes(e.target.value.slice(0, 200))}
+            rows={2}
+            placeholder="Less sugar, no ice, extra spicy…"
+            style={{ width: '100%', marginTop: 8, border: '1px solid #EEE4D6', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontFamily: 'var(--gb-sans)', fontWeight: 500, color: 'var(--gb-text)', background: 'var(--gb-surface)', outline: 'none', resize: 'none' }}
+          />
+        )}
       </div>
 
       {dineInTable ? (
         /* dine-in: table service, no pickup slot */
-        <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <MS name="restaurant" size={20} fill color="var(--gb-primary)" />
-            <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Dine-in · Table {dineInTable}</div>
+        <div style={{ margin: '14px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <MS name="restaurant" size={18} fill color="var(--gb-primary)" />
+            <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500 }}>Dine-in · Table {dineInTable}</div>
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 28 }}>We&apos;ll bring your order to the table.</div>
+          <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>We&apos;ll bring your order to the table.</div>
         </div>
       ) : (
       /* pickup slot */
-      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '22px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MS name="schedule" size={20} fill color="var(--gb-primary)" />
-          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, flex: 1 }}>Pickup time</div>
+      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '14px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <MS name="schedule" size={18} fill color="var(--gb-primary)" />
+          <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500, flex: 1 }}>Pickup time</div>
           {slotsData && slotsData.slots.length > 0 && (
             <button
               onClick={() => setShowCustomTime((v) => !v)}
               style={{
                 flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
                 background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
-                fontSize: 12.5, fontWeight: 700, padding: '7px 13px', borderRadius: 11, cursor: 'pointer',
+                fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer',
               }}
             >
               Custom +
             </button>
           )}
         </div>
-        <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 28 }}>
+        <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>
           It&apos;ll be fresh &amp; waiting, no waiting in line{slotsData?.label ? ` · ${slotsData.label}` : ''}
         </div>
-        {slotsLoading && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>Loading slots…</p>}
-        {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 12 }}>No slots available. Try again tomorrow.</p>}
-        <div className="gb-scroll" style={{ display: 'flex', gap: 9, overflowX: 'auto', marginTop: 14 }}>
+        {slotsLoading && <p style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 10 }}>Loading slots…</p>}
+        {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 10 }}>No slots available. Try again tomorrow.</p>}
+        <div className="gb-scroll" style={{ display: 'flex', gap: 7, overflowX: 'auto', marginTop: 11 }}>
           {slotsData?.slots.map((slot, idx) => {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
@@ -441,7 +465,7 @@ export default function CartPage() {
                 style={{
                   flex: 'none', border: `1.5px solid ${sel ? 'var(--gb-primary)' : full ? 'var(--gb-line-4)' : '#EEE4D6'}`,
                   background: sel ? 'var(--gb-primary-pale)' : '#fff', color: sel ? 'var(--gb-primary)' : full ? 'var(--gb-muted-2)' : '#5A4E42',
-                  fontSize: 13, fontWeight: 700, padding: '11px 16px', borderRadius: 13, textAlign: 'center', lineHeight: 1.1,
+                  fontSize: 12, fontWeight: 700, padding: '9px 13px', borderRadius: 11, textAlign: 'center', lineHeight: 1.1,
                   cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.6 : 1,
                 }}
               >
@@ -463,55 +487,39 @@ export default function CartPage() {
       </div>
       )}
 
-      {/* add a note for the restaurant (Zomato-style) */}
-      <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MS name="edit_note" size={20} fill color="var(--gb-primary)" />
-          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Add a note for the cafe</div>
-          <span style={{ marginLeft: 'auto', fontSize: 11.5, fontWeight: 700, color: 'var(--gb-muted-2)' }}>Optional</span>
-        </div>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value.slice(0, 200))}
-          rows={2}
-          placeholder="Less sugar, no ice, extra spicy…"
-          style={{ width: '100%', marginTop: 12, border: '1px solid #EEE4D6', borderRadius: 13, padding: '11px 13px', fontSize: 14, fontFamily: 'var(--gb-sans)', fontWeight: 500, color: 'var(--gb-text)', background: 'var(--gb-surface)', outline: 'none', resize: 'none' }}
-        />
-        <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 4 }}>
-          The cafe will try its best. {notes.length}/200
-        </div>
-      </div>
-
       {/* complete your meal — recommendations */}
       {recs.length > 0 && (
-        <div style={{ padding: '18px 0 4px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
-            <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Complete your meal with</span>
+        <div style={{ margin: '12px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: '14px 0 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 14px', marginBottom: 10 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--gb-primary-pale)', display: 'grid', placeItems: 'center', flex: 'none' }}>
+              <MS name="grid_view" size={15} color="var(--gb-primary)" />
+            </div>
+            <span className="gb-serif" style={{ fontSize: 14.5, fontWeight: 500 }}>Complete your meal with</span>
           </div>
           {recCats.length > 1 && (
-            <div className="gb-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 10px' }}>
-              <button onClick={() => setRecCat('all')} style={{ flex: 'none', padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 700, border: `1.5px solid ${activeRecCat === 'all' ? 'var(--gb-ink)' : 'var(--gb-line-3)'}`, background: activeRecCat === 'all' ? 'var(--gb-ink)' : '#fff', color: activeRecCat === 'all' ? '#fff' : '#5A4E42', cursor: 'pointer' }}>Popular</button>
+            <div style={{ margin: '0 14px 10px', display: 'flex', gap: 2, background: 'var(--gb-surface)', borderRadius: 11, padding: 3, overflowX: 'auto' }} className="gb-scroll">
+              <button onClick={() => setRecCat('all')} style={{ flex: 'none', padding: '6px 12px', borderRadius: 9, fontSize: 11.5, fontWeight: 700, border: 'none', background: activeRecCat === 'all' ? '#fff' : 'transparent', color: activeRecCat === 'all' ? 'var(--gb-text)' : '#8A7C6C', boxShadow: activeRecCat === 'all' ? '0 1px 4px rgba(60,40,25,.15)' : 'none', cursor: 'pointer' }}>Popular</button>
               {recCats.map(c => (
-                <button key={c} onClick={() => setRecCat(c)} style={{ flex: 'none', padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 700, border: `1.5px solid ${activeRecCat === c ? 'var(--gb-ink)' : 'var(--gb-line-3)'}`, background: activeRecCat === c ? 'var(--gb-ink)' : '#fff', color: activeRecCat === c ? '#fff' : '#5A4E42', cursor: 'pointer', textTransform: 'capitalize' }}>{c}</button>
+                <button key={c} onClick={() => setRecCat(c)} style={{ flex: 'none', padding: '6px 12px', borderRadius: 9, fontSize: 11.5, fontWeight: 700, border: 'none', background: activeRecCat === c ? '#fff' : 'transparent', color: activeRecCat === c ? 'var(--gb-text)' : '#8A7C6C', boxShadow: activeRecCat === c ? '0 1px 4px rgba(60,40,25,.15)' : 'none', cursor: 'pointer', textTransform: 'capitalize' }}>{c}</button>
               ))}
             </div>
           )}
-          <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
+          <div className="gb-scroll" style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '0 14px 2px' }}>
             {shownRecs.map(r => (
-              <div key={r.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
-                <div style={{ position: 'relative', height: 96 }}>
-                  <Image src={r.image_url || ph('photo-1541167760496-1628856ab772')} alt={r.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
+              <div key={r.id} style={{ flex: 'none', width: 116, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 15, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
+                <div style={{ position: 'relative', height: 84 }}>
+                  <Image src={r.image_url || ph('photo-1541167760496-1628856ab772')} alt={r.name} fill sizes="116px" style={{ objectFit: 'cover' }} />
                   <button
                     onClick={() => addItem({ menu_item_id: r.id, name: r.name, price: r.price, quantity: 1, image_url: r.image_url, is_veg: r.is_veg }, slug)}
                     aria-label={`Add ${r.name}`}
-                    style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}
+                    style={{ position: 'absolute', right: 6, bottom: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}
                   >
-                    <MS name="add" size={17} />
+                    <MS name="add" size={15} />
                   </button>
                 </div>
-                <div style={{ padding: '8px 10px 10px' }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(r.price)}</div>
+                <div style={{ padding: '7px 9px 9px' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--gb-text)', marginTop: 3 }}>{inr(r.price)}</div>
                 </div>
               </div>
             ))}
@@ -520,11 +528,11 @@ export default function CartPage() {
       )}
 
       {/* bill */}
-      <div style={{ margin: '16px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
-        {!dineInTable && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: '#6E6155', fontWeight: 600, padding: '5px 0' }}><span>Pickup fee</span><span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span></div>}
-        <div style={{ height: 1, background: 'var(--gb-line)', margin: '9px 0' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: 'var(--gb-text)' }}><span>To pay</span><span>{inr(toPay)}</span></div>
+      <div style={{ margin: '12px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
+        {!dineInTable && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Pickup fee</span><span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span></div>}
+        <div style={{ height: 1, background: 'var(--gb-line)', margin: '8px 0' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}><span>To pay</span><span>{inr(toPay)}</span></div>
       </div>
 
       {error && (
@@ -537,19 +545,15 @@ export default function CartPage() {
         slot first. <a href="/refunds" style={{ color: 'var(--gb-muted)', textDecoration: 'underline' }}>Refund policy</a>
       </p>
 
-      {/* Zomato-style payment footer: PAY USING ▾ + Place Order */}
+      {/* Zomato-style payment footer: static PAY USING label + Place Order.
+          Method selection isn't ours to make - Cashfree's own checkout() page
+          shows the real picker (UPI/card/wallet/netbanking) after this. */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '12px 14px calc(18px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 10 }}>
-          <button
-            onClick={() => setShowPaySheet(true)}
-            style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 2, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', padding: '2px 2px 2px 4px' }}
-            aria-label="Choose payment method"
-          >
-            <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', color: 'var(--gb-muted-2)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              PAY USING<MS name="arrow_drop_down" size={16} color="var(--gb-muted-2)" />
-            </span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{payLabel}</span>
-          </button>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 2, padding: '2px 2px 2px 4px' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', color: 'var(--gb-muted-2)' }}>PAY USING</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--gb-text)' }}>UPI</span>
+          </div>
           <button
             disabled={placing || checkingAuth}
             onClick={placeOrder}
@@ -566,36 +570,6 @@ export default function CartPage() {
           </button>
         </div>
       </div>
-
-      {/* PAY USING sheet */}
-      {showPaySheet && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowPaySheet(false)}>
-          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 480, margin: '0 auto' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 4 }}>Payment options</div>
-            <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginBottom: 12 }}>Choose how you&apos;d like to pay for this order</div>
-
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-faint)', margin: '10px 2px 4px' }}>Pay online</div>
-            {PAY_METHODS.map(m => {
-              const active = payMethod === m.id;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => { setPayMethod(m.id); setShowPaySheet(false); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '12px 6px', border: 'none', background: 'transparent', cursor: 'pointer', borderBottom: '1px solid var(--gb-line)' }}
-                >
-                  <span style={{ width: 34, height: 34, borderRadius: 10, background: `${m.color}18`, color: m.color, display: 'grid', placeItems: 'center', flex: 'none' }}>
-                    <MS name={m.icon} size={19} fill color={m.color} />
-                  </span>
-                  <span style={{ flex: 1, textAlign: 'left', fontSize: 14.5, fontWeight: active ? 800 : 600, color: 'var(--gb-text)' }}>{m.label}</span>
-                  {active && <MS name="check_circle" size={20} fill color="var(--gb-primary)" />}
-                </button>
-              );
-            })}
-
-
-          </div>
-        </div>
-      )}
 
       {showLoginPrompt && (
         <div
