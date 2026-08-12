@@ -83,5 +83,5 @@ export const USER = {
   first: 'Aditi',
   phone: '+91 98765 43210',
   avatar: 'photo-1494790108377-be9c29b29330',
-  location: 'MG Road, Bengaluru',
+  location: 'Rohini, Delhi',
 };

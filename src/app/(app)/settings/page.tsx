@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { MS, TopBar, Eyebrow } from '@/components/gb/kit';
+import { useSavedLocation } from '@/components/gb/location';
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -46,6 +47,7 @@ export default function SettingsPage() {
   const [promos, setPromos] = useState(true);
   const [newsletter, setNewsletter] = useState(false);
   const [dark, setDark] = useState(false);
+  const { location } = useSavedLocation();
 
   return (
     <div className="gb-shell">
@@ -62,7 +64,7 @@ export default function SettingsPage() {
         <div style={card}>
           <NavRow icon="translate" label="Language" value="English" />
           <ToggleRow icon="dark_mode" title="Dark mode" value={dark} onChange={setDark} />
-          <NavRow icon="location_on" label="Location" value="MG Road" last />
+          <NavRow icon="location_on" label="Location" value={location.split(',')[0]} last />
         </div>
 
         <Eyebrow style={{ padding: '20px 4px 8px' }}>Account</Eyebrow>

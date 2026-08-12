@@ -4,6 +4,7 @@
  * (expands on desktop), see globals.css.
  */
 import { ReviewGate } from '@/components/gb/ReviewSheet';
+import { LocationGate } from '@/components/gb/LocationGate';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div style={{ minHeight: '100dvh', position: 'relative' }}>
         {children}
         <ReviewGate />
+        {/* Swiggy/Zomato-style: a location must be chosen before browsing the app. */}
+        <LocationGate />
       </div>
     </div>
   );

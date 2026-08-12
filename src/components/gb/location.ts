@@ -4,8 +4,19 @@ import { useEffect, useState } from 'react';
 
 const KEY = 'grabbit_location';
 const CITY_KEY = 'grabbit_location_city';
-export const DEFAULT_LOCATION = 'MG Road, Bengaluru';
-const DEFAULT_CITY = 'Bengaluru';
+export const DEFAULT_LOCATION = 'Rohini, Delhi';
+const DEFAULT_CITY = 'Delhi';
+
+// Static suggestions shown when the search box is empty (no saved-address backend yet).
+// Delhi-first — Grabbit's launch market (see landing SEO: "Now live in Delhi").
+export const SUGGESTED_LOCATIONS: LocationResult[] = [
+  { label: 'Rohini, Delhi', city: 'Delhi' },
+  { label: 'Dwarka, Delhi', city: 'Delhi' },
+  { label: 'Lajpat Nagar, Delhi', city: 'Delhi' },
+  { label: 'Connaught Place, New Delhi', city: 'New Delhi' },
+  { label: 'Saket, New Delhi', city: 'New Delhi' },
+  { label: 'Rajouri Garden, Delhi', city: 'Delhi' },
+];
 
 export function getSavedLocation(): string {
   if (typeof window === 'undefined') return DEFAULT_LOCATION;
@@ -53,34 +64,18 @@ export async function searchLocations(query: string): Promise<LocationResult[]> 
   return out;
 }
 
+/**
+ * Reads the saved location (or the Delhi default). Acquisition is owned by the
+ * LocationGate — by the time this hook runs, a location is always already saved,
+ * so it never triggers a browser permission prompt on its own.
+ */
 export function useSavedLocation() {
   const [location, setLocation] = useState(DEFAULT_LOCATION);
   const [city, setCity] = useState(DEFAULT_CITY);
 
   useEffect(() => {
-    const savedLabel = window.localStorage.getItem(KEY);
-    if (savedLabel) {
-      setLocation(savedLabel);
-      setCity(getSavedCity());
-      return;
-    }
-    // First visit, no saved location yet: silently try to auto-detect (Zomato/Blinkit-style),
-    // same permission prompt the browser shows once. Falls back to the Bengaluru default on
-    // denial/error, no dialog or blocking UI shown.
-    if (!('geolocation' in navigator)) return;
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { label, city } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-          setSavedLocation(label, city);
-          setLocation(label);
-          setCity(city);
-        } catch {
-          // keep default silently, user can still pick manually
-        }
-      },
-      () => {},
-    );
+    setLocation(getSavedLocation());
+    setCity(getSavedCity());
   }, []);
 
   return { location, city };

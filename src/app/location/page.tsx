@@ -2,27 +2,19 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MS } from '@/components/gb/kit';
-import { reverseGeocode, searchLocations, setSavedLocation, type LocationResult } from '@/components/gb/location';
-
-// Static suggestions shown when the search box is empty (no saved-address backend yet).
-const SUGGESTED: LocationResult[] = [
-  { label: 'MG Road, Bengaluru', city: 'Bengaluru' },
-  { label: 'Indiranagar, Bengaluru', city: 'Bengaluru' },
-  { label: 'Koramangala, Bengaluru', city: 'Bengaluru' },
-  { label: 'HSR Layout, Bengaluru', city: 'Bengaluru' },
-];
+import { reverseGeocode, searchLocations, setSavedLocation, SUGGESTED_LOCATIONS, type LocationResult } from '@/components/gb/location';
 
 export default function LocationPickerPage() {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<LocationResult[]>(SUGGESTED);
+  const [results, setResults] = useState<LocationResult[]>(SUGGESTED_LOCATIONS);
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const q = query.trim();
-    if (!q) { setResults(SUGGESTED); return; }
+    if (!q) { setResults(SUGGESTED_LOCATIONS); return; }
     setSearching(true);
     const timer = setTimeout(async () => {
       try {
