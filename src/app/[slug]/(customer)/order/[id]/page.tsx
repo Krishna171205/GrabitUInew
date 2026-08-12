@@ -46,10 +46,10 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
-  // Arrival here means an order was placed - true whether checkout redirected via
-  // Cashfree's hosted page (redirectTarget: '_self', where checkout/page.tsx never
-  // gets a chance to run its own cleanup because the browser navigates away) or paid
-  // at the counter. Clear once so a stale cart doesn't linger into the next order.
+  // Arrival here means an order was placed - true whether the cart redirected via
+  // Cashfree's hosted page (redirectTarget: '_self', where the cart page never gets
+  // a chance to run its own cleanup because the browser navigates away) or paid at
+  // the counter. Clear once so a stale cart doesn't linger into the next order.
   useEffect(() => {
     clearCart();
     sessionStorage.removeItem('grabbit_slot');

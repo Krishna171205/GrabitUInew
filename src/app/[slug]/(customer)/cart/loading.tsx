@@ -16,7 +16,7 @@ export default function Loading() {
           <div key={i} className="h-12 bg-zinc-100 rounded-xl" />
         ))}
       </div>
-      {/* checkout button */}
+      {/* place order footer */}
       <div className="mx-4 mt-8 h-14 bg-zinc-100 rounded-full" />
     </div>
   )
