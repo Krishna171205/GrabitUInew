@@ -5,15 +5,15 @@ import { motion } from 'framer-motion';
 const faqs: Array<{ q: string; a: string }> = [
   {
     q: 'How does Grabbit work?',
-    a: 'Browse menus from cafes near you, customize your order, choose a pickup time, and pay online or at the counter. Your order is ready when you arrive — no queue.',
+    a: 'Browse menus from cafes near you, customize your order, choose a pickup time, and pay online with UPI, card, or netbanking. Your order is ready when you arrive — no queue.',
   },
   {
     q: 'Where is Grabbit available?',
     a: 'Grabbit (also known as LetsGrabbit) is now live in Delhi NCR. Order ahead from your favourite cafes in and around Delhi.',
   },
   {
-    q: 'Can I pay at the counter instead of online?',
-    a: 'Yes. Grabbit supports UPI, card, and netbanking at checkout, or you can choose "pay at counter" when you arrive at the cafe.',
+    q: 'How do I pay for my order?',
+    a: 'Checkout is prepaid: pay online with UPI, card, or netbanking and your order goes straight to the cafe.',
   },
   {
     q: 'How do I get updates on my order?',

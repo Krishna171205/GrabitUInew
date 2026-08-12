@@ -89,7 +89,7 @@ function SlotDemo() {
 function FeatureMock({ kind }: { kind: 'slot' | 'pay' | 'chat' }) {
   if (kind === 'slot') return <SlotDemo />;
   if (kind === 'pay') {
-    const methods = [{ n: 'UPI', on: true }, { n: 'Card ••4291', on: false }, { n: 'Pay at counter', on: false }];
+    const methods = [{ n: 'UPI', on: true }, { n: 'Card ••4291', on: false }, { n: 'Net Banking', on: false }];
     return (
       <div style={{ ...shell, background: 'var(--gb-surface)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>

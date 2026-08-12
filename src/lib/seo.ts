@@ -10,7 +10,7 @@ export const ALTERNATE_NAMES = ['LetsGrabbit', 'Lets Grabbit', 'Grabit', 'Order 
 export const DESCRIPTION =
   'Grabbit — order coffee and snacks ahead from cafes near you in Delhi. ' +
   'Pre-order, skip the queue, pick up in minutes. ' +
-  'Pay online or at the counter. WhatsApp updates. Now live in Delhi.';
+  'Pay online with UPI, card, or netbanking. WhatsApp updates. Now live in Delhi.';
 
 export const BRAND_KEYWORDS = [
   'lets grabbit',
@@ -111,7 +111,7 @@ export const faqSchema: SeoSchema = {
     {
       '@type': 'Question',
       name: 'How does Grabbit work?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Browse menus from cafes near you, customize your order, choose a pickup time, and pay online or at the counter. Your order is ready when you arrive — no queue.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Browse menus from cafes near you, customize your order, choose a pickup time, and pay online with UPI, card, or netbanking. Your order is ready when you arrive — no queue.' },
     },
     {
       '@type': 'Question',
@@ -120,8 +120,8 @@ export const faqSchema: SeoSchema = {
     },
     {
       '@type': 'Question',
-      name: 'Can I pay at the counter instead of online?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Yes. Grabbit supports UPI, card, and netbanking at checkout, or you can choose "pay at counter" when you arrive at the cafe.' },
+      name: 'How do I pay for my order?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Checkout is prepaid: pay online with UPI, card, or netbanking and your order goes straight to the cafe.' },
     },
     {
       '@type': 'Question',

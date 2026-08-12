@@ -3,8 +3,8 @@
  * Cart = checkout, Zomato-style: one screen from items to payment. Pick your
  * pickup slot (or dine-in table), review items, add more / add a note, grab a
  * recommendation or two, pick a payment method, and Place Order — which either
- * launches Cashfree (online) or sends the order to the counter. No separate
- * review page; the order page after payment is the tracking screen.
+ * launches Cashfree (online) straight from this screen. No separate review
+ * page; the order page after payment is the tracking screen.
  */
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -68,7 +68,7 @@ function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void
 
 // Payment methods (Zomato-style PAY USING sheet). UPI apps / card / netbanking
 // all map to the backend's 'online' rail (Cashfree renders the actual gateway
-// options); "Pay at counter" is the 'counter' rail.
+// options). Pay-at-counter was removed from the consumer flow.
 const PAY_METHODS = [
   { id: 'phonepe', label: 'PhonePe UPI', icon: 'smartphone', color: '#7C3AED', kind: 'online' as const },
   { id: 'gpay', label: 'Google Pay', icon: 'smartphone', color: '#4285F4', kind: 'online' as const },
@@ -77,12 +77,12 @@ const PAY_METHODS = [
   { id: 'card', label: 'Credit / Debit Card', icon: 'credit_card', color: '#6B5D50', kind: 'online' as const },
   { id: 'netbanking', label: 'Net Banking', icon: 'account_balance', color: '#6B5D50', kind: 'online' as const },
 ] as const;
-type PayMethodId = typeof PAY_METHODS[number]['id'] | 'counter';
+type PayMethodId = typeof PAY_METHODS[number]['id'];
 
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { items, updateQty, removeItem, clearCart, total, addItem } = useCart();
+  const { items, updateQty, removeItem, total, addItem } = useCart();
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -197,7 +197,7 @@ export default function CartPage() {
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
   const subtotal = total();
   const toPay = subtotal;
-  const payLabel = payMethod === 'counter' ? 'Pay at counter' : PAY_METHODS.find(m => m.id === payMethod)!.label;
+  const payLabel = PAY_METHODS.find(m => m.id === payMethod)!.label;
 
   // Recommendations filtered by pill + already-in-cart (in case one was just added)
   const recCats = Array.from(new Set(recs.map(r => r.category)));
@@ -246,7 +246,6 @@ export default function CartPage() {
     submitting.current = true;
     setPlacing(true);
     setError('');
-    const paymentMethod = payMethod === 'counter' ? 'counter' : 'online';
     try {
       const res = await fetch('/api/proxy/grabit/orders', {
         method: 'POST',
@@ -259,7 +258,7 @@ export default function CartPage() {
             ? { order_type: 'dine_in', table_number: Number(dineInTable) }
             : { pickup_slot: selectedSlot }),
           ...(notes ? { notes } : {}),
-          payment_method: paymentMethod,
+          payment_method: 'online' as const,
           items: items.map(i => ({
             menu_item_id: i.menu_item_id,
             quantity: i.quantity,
@@ -293,14 +292,6 @@ export default function CartPage() {
       const token = data.access_token as string;
       const orderUrl = `/${slug}/order/${data.order_id}?t=${token}`;
 
-      if (paymentMethod === 'counter') {
-        clearCart();
-        sessionStorage.removeItem('grabbit_slot');
-        sessionStorage.removeItem('grabbit_table');
-        sessionStorage.removeItem('grabbit_notes');
-        router.push(orderUrl);
-        return;
-      }
 
       // Online: Cashfree order creation is non-fatal server-side (the order is
       // already placed) - a null session here means the online-payment step itself
@@ -335,7 +326,7 @@ export default function CartPage() {
           tags: { feature: 'checkout', order_id: String(data.order_id), cashfree_order_id: data.cashfree.cashfree_order_id },
           extra: { error: result.error },
         });
-        setError('Payment was not completed. You can try again or pay at the counter.');
+        setError('Payment was not completed. Please try again.');
         return;
       }
       // result.redirect: true - the browser is navigating to Cashfree's hosted page.
@@ -540,17 +531,11 @@ export default function CartPage() {
         <div style={{ margin: '14px 16px 0', color: 'var(--gb-danger)', fontSize: 13.5, fontWeight: 600, padding: '12px 14px', background: '#FDECEA', borderRadius: 14 }}>{error}</div>
       )}
 
-      {/* pay-at-counter / online disclaimer (same rule the old checkout showed) */}
-      {payMethod === 'counter' ? (
-        <p style={{ fontSize: 12, color: 'var(--gb-muted)', fontWeight: 500, margin: '12px 20px 0', lineHeight: 1.5, textAlign: 'center' }}>
-          Pay with cash or UPI when you pick up. Your order is sent to the cafe the moment you place it.
-        </p>
-      ) : (
-        <p style={{ fontSize: 12, color: 'var(--gb-muted)', fontWeight: 500, margin: '12px 20px 0', lineHeight: 1.5, textAlign: 'center' }}>
-          Paid orders go straight to the cafe and can&apos;t be cancelled. Check your items and pickup
-          slot first. <a href="/refunds" style={{ color: 'var(--gb-muted)', textDecoration: 'underline' }}>Refund policy</a>
-        </p>
-      )}
+      {/* online-only disclaimer */}
+      <p style={{ fontSize: 12, color: 'var(--gb-muted)', fontWeight: 500, margin: '12px 20px 0', lineHeight: 1.5, textAlign: 'center' }}>
+        Paid orders go straight to the cafe and can&apos;t be cancelled. Check your items and pickup
+        slot first. <a href="/refunds" style={{ color: 'var(--gb-muted)', textDecoration: 'underline' }}>Refund policy</a>
+      </p>
 
       {/* Zomato-style payment footer: PAY USING ▾ + Place Order */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '12px 14px calc(18px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
@@ -607,17 +592,7 @@ export default function CartPage() {
               );
             })}
 
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-faint)', margin: '14px 2px 4px' }}>At the cafe</div>
-            <button
-              onClick={() => { setPayMethod('counter'); setShowPaySheet(false); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '12px 6px', border: 'none', background: 'transparent', cursor: 'pointer' }}
-            >
-              <span style={{ width: 34, height: 34, borderRadius: 10, background: '#E7DCCC33', color: '#6B5D50', display: 'grid', placeItems: 'center', flex: 'none' }}>
-                <MS name="storefront" size={19} color="#6B5D50" />
-              </span>
-              <span style={{ flex: 1, textAlign: 'left', fontSize: 14.5, fontWeight: payMethod === 'counter' ? 800 : 600, color: 'var(--gb-text)' }}>Pay at counter</span>
-              {payMethod === 'counter' && <MS name="check_circle" size={20} fill color="var(--gb-primary)" />}
-            </button>
+
           </div>
         </div>
       )}

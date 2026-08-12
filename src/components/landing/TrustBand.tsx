@@ -4,7 +4,7 @@ import { MS } from '@/components/gb/kit';
 
 const PILLARS = [
   { icon: 'bolt', label: 'Skip the wait' },
-  { icon: 'payments', label: 'Pay online or at counter' },
+  { icon: 'payments', label: 'Pay online, skip the queue' },
   { icon: 'chat', label: 'WhatsApp updates' },
 ];
 

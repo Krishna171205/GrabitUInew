@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Grabbit | LetsGrabbit — Order Coffee Ahead, Skip the Queue | Delhi',
   description:
     'LetsGrabbit — order coffee and snacks ahead from cafes near you in Delhi. ' +
-    'Pre-order, skip the queue, pick up in minutes. Pay online or at the counter. ' +
+    'Pre-order, skip the queue, pick up in minutes. Pay online with UPI, card, or netbanking. ' +
     'WhatsApp updates. Now live in Delhi. Try Grabbit / Lets Grabit today.',
   keywords: [
     'lets grabbit',
