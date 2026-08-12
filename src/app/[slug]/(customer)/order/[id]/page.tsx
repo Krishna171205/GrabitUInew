@@ -46,17 +46,20 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
-  // Arrival here means an order was placed - true whether the cart redirected via
-  // Cashfree's hosted page (redirectTarget: '_self', where the cart page never gets
-  // a chance to run its own cleanup because the browser navigates away) or paid at
-  // the counter. Clear once so a stale cart doesn't linger into the next order.
+  // Cashfree's returnUrl points here for EVERY checkout outcome - paid, failed, or
+  // the customer cancelling/backing out - so arrival alone isn't proof of payment.
+  // Only clear the cart once the order is confirmed actually placed (non-online
+  // payment, or online + paid); a pending/failed/cancelled payment must leave the
+  // cart intact so the customer can retry instead of re-adding everything.
   useEffect(() => {
+    if (!order) return;
+    if (order.payment_method === 'online' && order.payment_status !== 'paid') return;
     clearCart();
     sessionStorage.removeItem('grabbit_slot');
     sessionStorage.removeItem('grabbit_table');
     sessionStorage.removeItem('grabbit_notes');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order]);
 
   useEffect(() => {
     const refresh = (isPoll: boolean) =>
@@ -131,16 +134,19 @@ export default function OrderPage() {
   // (see OrderService.create + PaymentReconciliationService), not a client guess.
   if (order.payment_method === 'online' && order.payment_status === 'failed') {
     return (
-      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
-        <div style={{ background: 'var(--gb-danger)', paddingTop: 'calc(40px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 30, color: '#fff', textAlign: 'center' }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-            <MS name="cancel" size={36} fill color="#fff" />
+      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 32 }}>
+        <div style={{ background: 'linear-gradient(158deg,#9E2A2B 0%,#C13B3C 100%)', paddingTop: 'calc(32px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 26, color: '#fff', textAlign: 'center' }}>
+          <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+            <MS name="close" size={26} color="#fff" />
           </div>
-          <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, marginTop: 14 }}>Payment failed</div>
-          <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>No charge was made - your order was not placed</div>
+          <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500, marginTop: 12 }}>Payment failed</div>
+          <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 3 }}>No charge was made · your order wasn&apos;t placed</div>
         </div>
-        <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
-          Back to home
+        <button
+          onClick={() => router.push(`/${slug}/cart`)}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: 'calc(100% - 32px)', margin: '16px 16px 0', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14.5, fontWeight: 800, padding: 13, borderRadius: 13, cursor: 'pointer', boxShadow: '0 10px 20px -10px rgba(177,90,50,.6)' }}
+        >
+          Retry payment<MS name="arrow_forward" size={17} />
         </button>
       </div>
     );
@@ -148,17 +154,27 @@ export default function OrderPage() {
 
   if (order.payment_method === 'online' && order.payment_status === 'pending') {
     return (
-      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
-        <div style={{ background: 'linear-gradient(158deg,#8A6D2A 0%,#B08A2F 100%)', paddingTop: 'calc(40px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 30, color: '#fff', textAlign: 'center' }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-            <MS name="schedule" size={36} fill color="#fff" />
+      <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 32 }}>
+        <div style={{ background: 'linear-gradient(158deg,#8A6D2A 0%,#B08A2F 100%)', paddingTop: 'calc(32px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 26, color: '#fff', textAlign: 'center' }}>
+          <div style={{ position: 'relative', width: 50, height: 50, margin: '0 auto' }}>
+            <span className="gb-pulse-ring" style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(255,255,255,.55)' }} />
+            <div style={{ position: 'relative', width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MS name="schedule" size={26} color="#fff" />
+            </div>
           </div>
-          <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, marginTop: 14 }}>Confirming payment…</div>
-          <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>This page updates automatically once we hear back</div>
+          <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500, marginTop: 12 }}>Confirming payment…</div>
+          <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 3 }}>Updates automatically once we hear back - don&apos;t close this page</div>
         </div>
-        <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
-          Back to home
+        <button
+          onClick={() => router.push(`/${slug}/cart`)}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: 'calc(100% - 32px)', margin: '16px 16px 0', border: '1.5px solid #EEE4D6', background: '#fff', color: 'var(--gb-ink)', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 13, cursor: 'pointer' }}
+        >
+          Retry payment
         </button>
+        <style>{`
+          @keyframes gb-pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.7); opacity: 0; } }
+          .gb-pulse-ring { animation: gb-pulse 1.6s ease-out infinite; }
+        `}</style>
       </div>
     );
   }
