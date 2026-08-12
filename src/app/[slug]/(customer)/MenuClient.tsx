@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddon } from '@gradient365/gradient-commons';
 import { useCart, cartLineKey } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
+import { VoiceSearch } from '@/components/gb/VoiceSearch';
 import { inr, cafeOpenNow, fmtTime12 } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
@@ -417,7 +418,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 16, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
           {query
             ? <button type="button" onClick={() => setQuery('')} aria-label="Clear search" style={{ display: 'flex', border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}><MS name="close" size={20} color="#B0A08C" /></button>
-            : <MS name="mic" size={20} color="#C1502E" />}
+            : <VoiceSearch onResult={setQuery} />}
         </div>
       </div>
 

@@ -40,9 +40,9 @@ const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
   // Don't leak referrer to third-party sites
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // Disable browser features not needed by Grabit. geolocation is needed for
-  // "Use current location" (Swiggy/Zomato-style gate), so allow it for self only.
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+  // Disable browser features not needed by Grabit. geolocation (location gate) and
+  // microphone (voice search) are used by the app, so allow those for self only.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(self)' },
 ];
 
 const nextConfig: NextConfig = {

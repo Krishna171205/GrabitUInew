@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MS } from '@/components/gb/kit';
+import { VoiceSearch } from '@/components/gb/VoiceSearch';
 import { inr } from '@/components/gb/format';
 import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
 
@@ -59,7 +60,7 @@ export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
           // 16px minimum - iOS Safari auto-zooms on focus for inputs below that.
           style={{ flex: 1, fontSize: 16, color: 'var(--gb-text)', fontWeight: 500, border: 'none', outline: 'none', background: 'transparent' }}
         />
-        <MS name="mic" size={20} color="#C1502E" />
+        <VoiceSearch onResult={setQ} />
       </div>
 
       {query && dishResults.length > 0 && (
