@@ -269,6 +269,31 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     );
   };
 
+  // Grid-card variant (image-top layout): pinned bottom-right of the card's text
+  // block instead of overlapping the image, since the card has no fixed-height
+  // image box to float over like the horizontal carousels do.
+  const gridAddStep = (item: GrabbitMenuItem) => {
+    const qty = qtyOf(item.id);
+    if (qty > 0) {
+      return (
+        <div style={{ position: 'absolute', right: 10, bottom: 10, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 10, boxShadow: '0 4px 10px -4px rgba(60,40,25,.4)', overflow: 'hidden' }}>
+          <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+          <span style={{ minWidth: 16, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
+          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+        </div>
+      );
+    }
+    return (
+      <button
+        onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
+        className={shakeId === item.id ? 'gb-shake' : undefined}
+        style={{ position: 'absolute', right: 10, bottom: 10, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 9, padding: '6px 16px', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: '0 3px 10px -4px rgba(60,40,25,.4)' }}
+      >
+        Add
+      </button>
+    );
+  };
+
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24 }}>
       {closedToast && (
@@ -462,26 +487,32 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           return (
             <div key={cat}>
               <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
-              {catItems.map(item => (
-                <div key={item.id} style={{ display: 'flex', gap: 14, padding: '15px 0', borderBottom: '1px solid var(--gb-line)' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Veg veg={item.is_veg} /><span style={{ fontSize: 16, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</span></div>
-                    {item.description && <div style={{ fontSize: 13, color: 'var(--gb-muted)', lineHeight: 1.4, marginTop: 5, fontWeight: 500 }}>{item.description}</div>}
-                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8 }}>{inr(item.price)}</div>
-                  </div>
-                  <div style={{ width: 104, flex: 'none', position: 'relative' }}>
-                    <div style={{ width: 104, height: 96, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 18px -10px rgba(60,40,25,.4)', position: 'relative' }}>
-                      <Image src={item.image_url || ph(placeholderFor(item))} alt={item.name} fill sizes="104px" style={{ objectFit: 'cover' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, paddingBottom: 6 }}>
+                {catItems.map(item => (
+                  <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+                    <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
+                      <Image src={item.image_url || ph(placeholderFor(item))} alt={item.name} fill sizes="(max-width: 480px) 50vw, 220px" style={{ objectFit: 'cover' }} />
+                      {/* ponytail: grabit_menu_items has no is_veg column at all (items sync
+                          from Omega POS, whose own veg flag isn't mapped over) - item.is_veg
+                          is always null. Every current item genuinely is veg, so hardcoding
+                          the mark is accurate today; add the real column + Omega sync mapping
+                          before this cafe's menu ever adds a non-veg item, or this mark lies. */}
+                      <div style={{ position: 'absolute', top: 8, left: 8 }}><Veg veg={true} /></div>
+                      {isLoggedIn && (
+                        <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
+                          <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
+                        </button>
+                      )}
                     </div>
-                    {isLoggedIn && (
-                      <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
-                        <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
-                      </button>
-                    )}
-                    {addStep(item)}
+                    <div style={{ padding: '10px 12px 16px', position: 'relative' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-text)', lineHeight: 1.3, minHeight: 36, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</div>
+                      {item.description && <div style={{ fontSize: 12, color: 'var(--gb-muted)', lineHeight: 1.35, marginTop: 3, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</div>}
+                      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8, paddingRight: 60 }}>{inr(item.price)}</div>
+                      {gridAddStep(item)}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           );
         })}
