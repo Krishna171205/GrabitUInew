@@ -13,6 +13,16 @@ const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desser
 const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
   drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts',
 };
+
+// Sort modes for the menu list (Zomato-style). Only real signals — price is the
+// one universal field; ratings/popularity aren't in the backend yet.
+const SORT_MODES = [
+  { id: 'recommended', label: 'Recommended', icon: 'auto_awesome' },
+  { id: 'price_asc', label: 'Price: Low to High', icon: 'north' },
+  { id: 'price_desc', label: 'Price: High to Low', icon: 'south' },
+  { id: 'name_az', label: 'Name: A to Z', icon: 'sort_by_alpha' },
+] as const;
+type SortModeId = typeof SORT_MODES[number]['id'];
 // No per-item photos in the backend yet: one honest placeholder per category
 // (not a random cycle) so a coffee never shows a croissant. ponytail: swap
 // for real item.image_url once cafés upload photos.
@@ -119,6 +129,8 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   const [activeSub, setActiveSub] = useState<string>('all');
   const [showSubSheet, setShowSubSheet] = useState(false);
   const VISIBLE_SUBS = 3;
+  const [sortMode, setSortMode] = useState<SortModeId>('recommended');
+  const [showSortSheet, setShowSortSheet] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
   const [addonSheetItem, setAddonSheetItem] = useState<GrabbitMenuItem | null>(null);
@@ -178,6 +190,14 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
 
   const q = query.trim().toLowerCase();
   const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q)));
+  // Sort applies within the current category/subcategory view — Recommended keeps the
+  // cafe's own menu order (sort_order from the backend).
+  function sorted(list: GrabbitMenuItem[]): GrabbitMenuItem[] {
+    if (sortMode === 'price_asc') return [...list].sort((a, b) => a.price - b.price);
+    if (sortMode === 'price_desc') return [...list].sort((a, b) => b.price - a.price);
+    if (sortMode === 'name_az') return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    return list; // recommended: keep backend order
+  }
   const categoriesPresent = CATEGORIES.filter(c => available.some(i => i.category === c));
   const shownCats = activeCat === 'all' ? categoriesPresent : categoriesPresent.filter(c => c === activeCat);
   // Subcategories are scoped to the selected category (or all categories, when none picked yet).
@@ -405,7 +425,9 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           Subcategories share the same row as categories (Zomato-style), with a "+More"
           chip opening a sheet once there are more than fit on one line. */}
       <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', padding: '14px 16px' }}>
-        <div style={chip(false)}><MS name="tune" size={17} color="var(--gb-primary)" />Filters</div>
+        <button style={chip(sortMode !== 'recommended')} onClick={() => setShowSortSheet(true)} aria-label="Sort and filter menu">
+          <MS name="tune" size={17} color={sortMode !== 'recommended' ? '#fff' : 'var(--gb-primary)'} />Filters
+        </button>
         <button style={chip(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>All</button>
         {categoriesPresent.map(c => (
           <button key={c} style={chip(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>{CATEGORY_LABELS[c]}</button>
@@ -434,7 +456,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           <p style={{ textAlign: 'center', color: 'var(--gb-muted)', fontSize: 14, padding: '48px 0', fontWeight: 500 }}>No items match your search</p>
         )}
         {shownCats.map(cat => {
-          const catItems = available.filter(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub));
+          const catItems = sorted(available.filter(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub)));
           if (!catItems.length) return null;
           return (
             <div key={cat}>
@@ -494,6 +516,34 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
               {subsPresent.map(s => (
                 <button key={s} style={chip(activeSub === s)} onClick={() => { setActiveSub(s); setShowSubSheet(false); }}>{s}</button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSortSheet && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSortSheet(false)}>
+          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 448, margin: '0 auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Sort & filter</div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {SORT_MODES.map(m => {
+                const active = sortMode === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => { setSortMode(m.id); setShowSortSheet(false); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '13px 6px', border: 'none',
+                      background: 'transparent', cursor: 'pointer', borderBottom: '1px solid var(--gb-line)',
+                      fontSize: 14.5, fontWeight: active ? 800 : 600, color: active ? 'var(--gb-primary)' : 'var(--gb-text)',
+                    }}
+                  >
+                    <MS name={m.icon} size={18} color={active ? 'var(--gb-primary)' : 'var(--gb-muted-2)'} />
+                    <span style={{ flex: 1, textAlign: 'left' }}>{m.label}</span>
+                    {active && <MS name="check" size={18} color="var(--gb-primary)" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
