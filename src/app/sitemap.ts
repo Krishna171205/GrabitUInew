@@ -4,7 +4,7 @@
  * Covers all public, indexable routes with appropriate priority
  * and change frequency to guide Googlebot crawlers.
  *
- * Target keywords: "lets grabbit", "lets grabit", "grabbit"
+ * Target keywords: "lets grabbit", "grabbit"
  */
 import { SITE_URL, sitemapDate } from '@/lib/seo';
 

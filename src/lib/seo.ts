@@ -5,7 +5,7 @@
 
 export const SITE_URL = 'https://letsgrabbit.com';
 export const SITE_NAME = 'Grabbit';
-export const ALTERNATE_NAMES = ['LetsGrabbit', 'Lets Grabbit', 'Grabit', 'Order Ahead'];
+export const ALTERNATE_NAMES = ['LetsGrabbit', 'Lets Grabbit', 'Order Ahead'];
 
 export const DESCRIPTION =
   'Grabbit — order coffee and snacks ahead from cafes near you in Delhi. ' +
@@ -14,9 +14,7 @@ export const DESCRIPTION =
 
 export const BRAND_KEYWORDS = [
   'lets grabbit',
-  'lets grabit',
   'grabbit',
-  'grabit',
   'order ahead',
   'cafe ordering',
   'coffee order ahead delhi',
@@ -26,7 +24,7 @@ export const BRAND_KEYWORDS = [
   'delhi cafe app',
 ];
 
-export const PRIMARY_KEYWORDS = ['lets grabbit', 'lets grabit', 'grabbit'];
+export const PRIMARY_KEYWORDS = ['lets grabbit', 'grabbit'];
 
 // Pages that should be indexed by search engines
 export const INDEXED_ROUTES = ['/', '/partner', '/contact', '/privacy', '/terms', '/refunds'] as const;
@@ -64,10 +62,10 @@ export const organizationSchema: SeoSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Grabbit',
-  alternateName: ['LetsGrabbit', 'Lets Grabbit', 'Grabit', 'Grabbit Coffee'],
+  alternateName: ['LetsGrabbit', 'Lets Grabbit', 'Grabbit Coffee'],
   url: SITE_URL,
   logo: `${SITE_URL}/grabbit-logo.svg`,
-  brand: { '@type': 'Brand', name: 'Grabbit', alternateName: ['LetsGrabbit', 'Lets Grabit', 'Grabit'] },
+  brand: { '@type': 'Brand', name: 'Grabbit', alternateName: ['LetsGrabbit', 'Lets Grabbit'] },
   description: DESCRIPTION,
   keywords: BRAND_KEYWORDS.join(', '),
   contactPoint: [
@@ -88,7 +86,7 @@ export const websiteSchema: SeoSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Grabbit',
-  alternateName: ['LetsGrabbit', 'Grabit'],
+  alternateName: ['LetsGrabbit'],
   url: SITE_URL,
   description: DESCRIPTION,
   keywords: BRAND_KEYWORDS.join(', '),

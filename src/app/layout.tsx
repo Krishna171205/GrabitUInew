@@ -44,9 +44,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   keywords: [
     'lets grabbit',
-    'lets grabit',
     'grabbit',
-    'grabit',
     'order ahead',
     'cafe ordering',
     'coffee order ahead delhi',

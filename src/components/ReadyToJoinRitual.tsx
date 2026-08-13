@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -432,16 +433,9 @@ export function ReadyToJoinRitual() {
                     {l.label}
                   </a>
                 ))}
-                <a
-                  href="#cafe-search"
-                  className="ritual-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById("cafe-search")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
+                <Link href="/home" className="ritual-link">
                   Explore cafés
-                </a>
+                </Link>
               </nav>
 
               <div className="flex items-center gap-5 order-2">
