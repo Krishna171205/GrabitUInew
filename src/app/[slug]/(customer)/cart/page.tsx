@@ -6,7 +6,7 @@
  * launches Cashfree (online) straight from this screen. No separate review
  * page; the order page after payment is the tracking screen.
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -37,6 +37,39 @@ function interleaveByCategory(items: GrabbitMenuItem[]): GrabbitMenuItem[] {
     for (const bucket of buckets) if (bucket[i]) result.push(bucket[i]);
   }
   return result;
+}
+
+interface GrabbitOffer {
+  id: number;
+  title: string;
+  description: string | null;
+  offer_type: 'PERCENT' | 'FLAT' | 'FIRST_ORDER' | 'FREE_ITEM';
+  percent_off: number | null;
+  flat_off: number | null;
+  max_discount: number | null;
+  min_order_value: number | null;
+  free_item_menu_item_id: number | null;
+  free_item_name: string | null;
+  free_item_price: number | null;
+}
+
+// Mirrors OfferService.discountFor in preorderservice: percent discounts round
+// HALF_UP to 2dp before the max_discount cap is applied, and every result is
+// clamped to the cart value so a preview can never promise more than checkout
+// can honor. Server re-derives this from offer_id regardless - this is preview
+// only, so a stale value can only misdisplay, not mischarge.
+function discountFor(offer: GrabbitOffer, cartValue: number): number {
+  if (offer.min_order_value != null && cartValue < offer.min_order_value) return 0;
+  let discount: number;
+  if (offer.offer_type === 'FLAT') {
+    discount = offer.flat_off ?? 0;
+  } else if (offer.offer_type === 'FREE_ITEM') {
+    discount = offer.free_item_price ?? 0;
+  } else {
+    discount = Math.round(cartValue * (offer.percent_off ?? 0)) / 100;
+    if (offer.max_discount != null && discount > offer.max_discount) discount = offer.max_discount;
+  }
+  return discount > cartValue ? cartValue : discount;
 }
 
 // Custom time is a stepper over the same server-computed slots, not a raw
@@ -80,6 +113,57 @@ function Stepper({ qty, onChange }: { qty: number; onChange: (n: number) => void
   );
 }
 
+const CONFETTI_COLORS = ['#E08A1E', '#3E8E4E', '#9E2A2B', '#2E6F9E', '#C9A227'];
+
+// Zomato-style "offer unlocked" popup: a burst of falling confetti behind a
+// small card. Pure CSS animation, no new dependency - see globals.css's
+// gb-confetti-fall/gb-celebrate-in keyframes.
+function FreeItemCelebration({ offer, onDismiss }: { offer: GrabbitOffer; onDismiss: () => void }) {
+  const pieces = useMemo(() => Array.from({ length: 26 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 0.3,
+    duration: 1.5 + Math.random() * 1.1,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    round: i % 3 === 0,
+  })), []);
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(20,14,8,0.45)' }}>
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        {pieces.map((p) => (
+          <span
+            key={p.id}
+            className="gb-confetti-piece"
+            style={{
+              left: `${p.left}%`,
+              width: 8,
+              height: 8,
+              background: p.color,
+              borderRadius: p.round ? '50%' : 2,
+              animationDuration: `${p.duration}s`,
+              animationDelay: `${p.delay}s`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="gb-celebrate-card" style={{ position: 'relative', background: '#fff', borderRadius: 20, padding: '28px 24px', width: 'min(320px, 86vw)', textAlign: 'center', boxShadow: '0 24px 64px -12px rgba(0,0,0,0.35)' }}>
+        <div style={{ fontSize: 40, lineHeight: 1 }}>🎉</div>
+        <div className="gb-serif" style={{ fontSize: 18, fontWeight: 700, marginTop: 10, color: 'var(--gb-text)' }}>Offer unlocked!</div>
+        <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 6 }}>
+          {offer.free_item_name ?? 'A free item'} worth {inr(offer.free_item_price ?? 0)} added to your cart, free.
+        </div>
+        <button
+          onClick={onDismiss}
+          style={{ marginTop: 18, width: '100%', padding: '11px 0', borderRadius: 12, border: 'none', background: 'var(--gb-primary)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -89,6 +173,7 @@ export default function CartPage() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
+  const [pendingCashfree, setPendingCashfree] = useState<{ data: { order_id: number; payable: number | null; cashfree: { env: string; payment_session_id: string; cashfree_order_id: string } }; orderUrl: string } | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
@@ -100,6 +185,10 @@ export default function CartPage() {
   const [shakeSlot, setShakeSlot] = useState(false);
   // Order placement state (moved here from the deleted /checkout page)
   const submitting = useRef(false);
+  // Tracks the menu_item_id of the free-item unit *we* auto-added, so we only
+  // ever touch that one unit - never a line the customer added themselves.
+  const ownedFreeItemRef = useRef<number | null>(null);
+  const [showFreeItemCelebration, setShowFreeItemCelebration] = useState(false);
   const [cafeId, setCafeId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
@@ -132,6 +221,21 @@ export default function CartPage() {
     requestAnimationFrame(() => setShakeSlot(true));
     setTimeout(() => setShakeSlot(false), 550);
   }
+
+  // Offers for this cafe, client-side preview only - see discountFor's comment.
+  const [offers, setOffers] = useState<GrabbitOffer[]>([]);
+  const [offersLoading, setOffersLoading] = useState(true);
+  useEffect(() => {
+    if (!slug) { setOffersLoading(false); return; }
+    let cancelled = false;
+    setOffersLoading(true);
+    fetch(`/api/proxy/grabit/offers/${slug}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((d) => { if (!cancelled) setOffers(Array.isArray(d) ? d : []); })
+      .catch(() => { if (!cancelled) setOffers([]); })
+      .finally(() => { if (!cancelled) setOffersLoading(false); });
+    return () => { cancelled = true; };
+  }, [slug]);
 
   // Resolve cafe id (MenuClient caches it), and pull the logged-in customer's
   // name/phone so the order can be created without re-asking.
@@ -205,7 +309,56 @@ export default function CartPage() {
 
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
   const subtotal = total();
-  const toPay = subtotal;
+
+  // FIRST_ORDER offers depend on eligibility (has this customer ever ordered
+  // here?) that only the server knows - never auto-apply one here, since a
+  // discount the checkout silently declines is worse than showing none.
+  const applicableOffers = offers.filter((o) => o.offer_type !== 'FIRST_ORDER');
+  const bestOffer = applicableOffers
+    .map((o) => ({ offer: o, discount: discountFor(o, subtotal) }))
+    .filter((x) => x.discount > 0)
+    .sort((a, b) => b.discount - a.discount)[0];
+  // Nearest offer the cart just misses, so we can nudge "add ₹X more" instead
+  // of saying nothing.
+  const nearMissOffer = !bestOffer
+    ? applicableOffers
+        .filter((o) => o.min_order_value != null && subtotal < o.min_order_value)
+        .sort((a, b) => a.min_order_value! - b.min_order_value!)[0]
+    : undefined;
+
+  const toPay = Math.max(0, bestOffer ? subtotal - bestOffer.discount : subtotal);
+
+  // Auto-add/remove the FREE_ITEM giveaway as a normal cart line (it's priced and
+  // discounted server-side just like everything else - see discountFor's comment).
+  // ownedFreeItemRef tracks the one unit *we* added, so a line the customer already
+  // had is never touched, and we only ever remove the unit we ourselves added.
+  useEffect(() => {
+    const freeOffer = bestOffer?.offer.offer_type === 'FREE_ITEM' ? bestOffer.offer : null;
+    const targetId = freeOffer?.free_item_menu_item_id ?? null;
+
+    if (targetId != null) {
+      if (ownedFreeItemRef.current == null && !items.some(i => i.menu_item_id === targetId)) {
+        addItem({
+          menu_item_id: targetId,
+          name: freeOffer!.free_item_name ?? 'Free item',
+          price: freeOffer!.free_item_price ?? 0,
+          quantity: 1,
+          image_url: null,
+          addons: [],
+        }, slug);
+        ownedFreeItemRef.current = targetId;
+        setShowFreeItemCelebration(true);
+      }
+    } else if (ownedFreeItemRef.current != null) {
+      const owned = ownedFreeItemRef.current;
+      const line = items.find(i => i.menu_item_id === owned);
+      if (line) {
+        const key = cartLineKey(line);
+        if (line.quantity <= 1) removeItem(key); else updateQty(key, line.quantity - 1);
+      }
+      ownedFreeItemRef.current = null;
+    }
+  }, [bestOffer, items, addItem, removeItem, updateQty, slug]);
 
   // Recommendations filtered by pill + already-in-cart (in case one was just added)
   const recCats = Array.from(new Set(recs.map(r => r.category)));
@@ -253,13 +406,52 @@ export default function CartPage() {
     await createOrder();
   }
 
+  // Loads and launches the Cashfree SDK for an already-created order. Split out
+  // of createOrder so the price-mismatch confirmation below can call it after
+  // the customer explicitly agrees to the server-corrected total.
+  async function launchCashfreeCheckout(data: { order_id: number; cashfree: { env: string; payment_session_id: string; cashfree_order_id: string } }, orderUrl: string) {
+    await new Promise<void>((resolve, reject) => {
+      if (document.getElementById('cashfree-sdk')) { resolve(); return; }
+      const script = document.createElement('script');
+      script.id = 'cashfree-sdk';
+      script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Cashfree SDK'));
+      document.head.appendChild(script);
+    });
+    // redirectTarget: '_self' (not '_modal') - the UPI app-intent (PayTM/PhonePe)
+    // has to launch from a top-level page. A full-page redirect to Cashfree's
+    // hosted checkout doesn't have the iframe app-intent problem.
+    // @ts-ignore
+    const result = await Cashfree({ mode: data.cashfree.env === 'production' ? 'production' : 'sandbox' })
+      .checkout({
+        paymentSessionId: data.cashfree.payment_session_id,
+        returnUrl: `${window.location.origin}${orderUrl}`,
+        redirectTarget: '_self',
+      });
+    // result.error here is a pre-navigation SDK/network failure (the browser never
+    // left this page). Actual payment success/failure is decided server-side.
+    if (result?.error) {
+      Sentry.captureMessage('cashfree_checkout_error', {
+        level: 'warning',
+        tags: { feature: 'checkout', order_id: String(data.order_id), cashfree_order_id: data.cashfree.cashfree_order_id },
+        extra: { error: result.error },
+      });
+      setError('Payment was not completed. Please try again.');
+    }
+  }
+
   // Order creation + payment (moved from the deleted /checkout page).
-  async function createOrder() {
+  // dropOffer: pass null to force a full-price retry after the server rejects
+  // the offer this render's bestOffer picked (claimed by someone else, cap
+  // hit, window closed since the customer opened the cart).
+  async function createOrder(dropOffer?: null) {
     if (!cafeId) { setError('Could not load the café. Please try again.'); return; }
     if (submitting.current) return;
     submitting.current = true;
     setPlacing(true);
     setError('');
+    const offerIdToSend = dropOffer === null ? undefined : bestOffer?.offer.id;
     try {
       const res = await fetch('/api/proxy/grabit/orders', {
         method: 'POST',
@@ -273,6 +465,7 @@ export default function CartPage() {
             : { pickup_slot: selectedSlot }),
           ...(notes ? { notes } : {}),
           payment_method: 'online' as const,
+          offer_id: offerIdToSend,
           items: items.map(i => ({
             menu_item_id: i.menu_item_id,
             quantity: i.quantity,
@@ -300,12 +493,20 @@ export default function CartPage() {
           setShowOfflineModal(true);
           return;
         }
+        // The offer stopped being valid between preview and submit. Retry once
+        // at full price instead of dead-ending checkout on an offer the
+        // customer didn't cause the problem with.
+        if ((data.code === 'OFFER_INVALID' || data.code === 'OFFER_MIN_ORDER') && offerIdToSend != null) {
+          submitting.current = false;
+          setPlacing(false);
+          await createOrder(null);
+          return;
+        }
         throw new Error(data.error || 'Failed');
       }
 
       const token = data.access_token as string;
       const orderUrl = `/${slug}/order/${data.order_id}?t=${token}`;
-
 
       // Online: Cashfree order creation is non-fatal server-side (the order is
       // already placed) - a null session here means the online-payment step itself
@@ -313,36 +514,18 @@ export default function CartPage() {
       if (!data.cashfree) {
         throw new Error('Online payment is temporarily unavailable. Please try again in a moment.');
       }
-      await new Promise<void>((resolve, reject) => {
-        if (document.getElementById('cashfree-sdk')) { resolve(); return; }
-        const script = document.createElement('script');
-        script.id = 'cashfree-sdk';
-        script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Cashfree SDK'));
-        document.head.appendChild(script);
-      });
-      // redirectTarget: '_self' (not '_modal') - the UPI app-intent (PayTM/PhonePe)
-      // has to launch from a top-level page. A full-page redirect to Cashfree's
-      // hosted checkout doesn't have the iframe app-intent problem.
-      // @ts-ignore
-      const result = await Cashfree({ mode: data.cashfree.env === 'production' ? 'production' : 'sandbox' })
-        .checkout({
-          paymentSessionId: data.cashfree.payment_session_id,
-          returnUrl: `${window.location.origin}${orderUrl}`,
-          redirectTarget: '_self',
-        });
-      // result.error here is a pre-navigation SDK/network failure (the browser never
-      // left this page). Actual payment success/failure is decided server-side.
-      if (result?.error) {
-        Sentry.captureMessage('cashfree_checkout_error', {
-          level: 'warning',
-          tags: { feature: 'checkout', order_id: String(data.order_id), cashfree_order_id: data.cashfree.cashfree_order_id },
-          extra: { error: result.error },
-        });
-        setError('Payment was not completed. Please try again.');
+
+      // Server independently re-derives the discount from offer_id - if it
+      // silently granted less than this render's preview showed (offer
+      // dropped above, or eligibility changed underneath), don't launch
+      // payment on a total the customer never agreed to.
+      const serverPayable = data.payable != null ? Number(data.payable) : subtotal;
+      if (Math.abs(serverPayable - toPay) > 0.5) {
+        setPendingCashfree({ data, orderUrl });
         return;
       }
+
+      await launchCashfreeCheckout(data, orderUrl);
       // result.redirect: true - the browser is navigating to Cashfree's hosted page.
       // The order page (return_url) picks up from here and clears the cart itself.
     } catch (e) {
@@ -372,6 +555,10 @@ export default function CartPage() {
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 170 }}>
+      {showFreeItemCelebration && bestOffer?.offer.offer_type === 'FREE_ITEM' && (
+        <FreeItemCelebration offer={bestOffer.offer} onDismiss={() => setShowFreeItemCelebration(false)} />
+      )}
+
       {/* header */}
       <div style={{ background: '#fff', padding: 'calc(11px + env(safe-area-inset-top)) 16px 12px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--gb-line)' }}>
         <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={19} color="var(--gb-ink)" /></button>
@@ -387,25 +574,63 @@ export default function CartPage() {
         </div>
       )}
 
+      {bestOffer?.offer.offer_type === 'FREE_ITEM' && (
+        <div style={{ margin: '10px 16px 0', background: 'linear-gradient(135deg, #FFF7ED, #FFEFD5)', border: '1px solid #F3D9A6', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}>
+            <MS name="celebration" size={19} color="var(--gb-primary)" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--gb-text)' }}>Special offer for you</div>
+            <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 1 }}>
+              {bestOffer.offer.free_item_name ?? 'A free item'} worth {inr(bestOffer.offer.free_item_price ?? 0)}
+            </div>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', borderRadius: 8, padding: '4px 9px', flex: 'none' }}>ADDED</span>
+        </div>
+      )}
+
       {/* items */}
       <div style={{ padding: '4px 16px 2px' }}>
         {items.map(item => {
           const addonsSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0);
           const lineKey = cartLineKey(item);
+          // The one unit of a FREE_ITEM giveaway we auto-added - system-controlled like
+          // Zomato/Swiggy's free items, so no stepper: it comes and goes with the offer.
+          const isFreeGift = bestOffer?.offer.offer_type === 'FREE_ITEM'
+            && item.menu_item_id === bestOffer.offer.free_item_menu_item_id;
           return (
             <div key={lineKey} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--gb-line)' }}>
               <Veg veg={item.is_veg} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{inr(item.price)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {isFreeGift ? (
+                    <>
+                      <span style={{ textDecoration: 'line-through' }}>{inr(item.price)}</span>
+                      <span style={{ color: 'var(--gb-primary)', fontWeight: 800 }}>FREE</span>
+                    </>
+                  ) : (
+                    inr(item.price)
+                  )}
+                </div>
                 {item.addons && item.addons.length > 0 && (
                   <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', marginTop: 3 }}>
                     + {item.addons.map(a => a.name).join(', ')}
                   </div>
                 )}
               </div>
-              <Stepper qty={item.quantity} onChange={(v) => updateQty(lineKey, v)} />
-              <div style={{ minWidth: 52, textAlign: 'right', fontSize: 13.5, fontWeight: 800, color: 'var(--gb-text)' }}>{inr((item.price + addonsSum) * item.quantity)}</div>
+              {isFreeGift ? (
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', borderRadius: 8, padding: '4px 9px', flex: 'none' }}>ADDED</span>
+              ) : (
+                <Stepper qty={item.quantity} onChange={(v) => updateQty(lineKey, v)} />
+              )}
+              <div style={{ minWidth: 52, textAlign: 'right', fontSize: 13.5, fontWeight: 800, color: 'var(--gb-text)' }}>
+                {isFreeGift ? (
+                  <span style={{ textDecoration: 'line-through', color: 'var(--gb-muted-2)' }}>{inr((item.price + addonsSum) * item.quantity)}</span>
+                ) : (
+                  inr((item.price + addonsSum) * item.quantity)
+                )}
+              </div>
             </div>
           );
         })}
@@ -545,6 +770,20 @@ export default function CartPage() {
       <div style={{ margin: '12px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
         {!dineInTable && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Pickup fee</span><span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span></div>}
+        {offersLoading && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}><span>Checking for offers…</span></div>
+        )}
+        {bestOffer && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 12.5, color: 'var(--gb-primary)', fontWeight: 700, padding: '4px 0' }}>
+            <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bestOffer.offer.title}</span>
+            <span style={{ flex: 'none' }}>-{inr(bestOffer.discount)}</span>
+          </div>
+        )}
+        {!offersLoading && !bestOffer && nearMissOffer && (
+          <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}>
+            Add {inr(nearMissOffer.min_order_value! - subtotal)} more to unlock {nearMissOffer.description || nearMissOffer.title}
+          </div>
+        )}
         <div style={{ height: 1, background: 'var(--gb-line)', margin: '8px 0' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}><span>To pay</span><span>{inr(toPay)}</span></div>
       </div>
@@ -638,6 +877,32 @@ export default function CartPage() {
               style={{ display: 'block', width: '100%', marginTop: 18, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', border: 'none', borderRadius: 14, padding: '13px', fontSize: 15, fontWeight: 800, cursor: 'pointer' }}
             >
               OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Order is already placed - this only confirms the server-corrected
+          total before launching payment, it never offers to cancel. */}
+      {pendingCashfree && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(20,10,5,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 340, width: '100%', textAlign: 'center', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--gb-primary-pale)', display: 'grid', placeItems: 'center', margin: '0 auto' }}>
+              <MS name="info" size={26} color="var(--gb-primary)" />
+            </div>
+            <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 14 }}>Total has changed</div>
+            <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 6, lineHeight: 1.4 }}>
+              Your order is placed, but the discount shown didn&apos;t apply. You&apos;ll pay {inr(Number(pendingCashfree.data.payable ?? 0))} instead of {inr(toPay)}.
+            </div>
+            <button
+              onClick={() => {
+                const p = pendingCashfree;
+                setPendingCashfree(null);
+                if (p) launchCashfreeCheckout(p.data, p.orderUrl);
+              }}
+              style={{ display: 'block', width: '100%', marginTop: 18, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', border: 'none', borderRadius: 14, padding: '13px', fontSize: 15, fontWeight: 800, cursor: 'pointer' }}
+            >
+              Continue to pay {inr(Number(pendingCashfree.data.payable ?? 0))}
             </button>
           </div>
         </div>
