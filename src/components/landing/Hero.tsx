@@ -7,6 +7,7 @@ import { HeroPhone, AppState } from './HeroPhone';
 import { HeroProductStage } from './HeroProductStage';
 import { FloatingStatusCard } from './FloatingStatusCard';
 import FoldText from '../FoldText';
+import ShinyText from '../ShinyText';
 
 // Subtle, organic curved SVG connector lines linking floating cards directly to the central phone
 const ConnectorLines = ({
@@ -278,7 +279,7 @@ export default function Hero() {
           transition={{ delay: 0.3, duration: 0.4 }}
           className="text-[22px] sm:text-[28px] lg:text-[32px] font-serif italic text-[#1A1311] leading-none mb-2"
         >
-          Skip the queue.
+          <ShinyText text="Skip the queue." disabled={false} speed={2} className="" color="#1A1311" shineColor="#F09819" spread={120} direction="left" />
         </motion.h2>
 
         {/* DESCRIPTION */}
