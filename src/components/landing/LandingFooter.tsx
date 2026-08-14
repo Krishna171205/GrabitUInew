@@ -7,9 +7,8 @@ export default function LandingFooter() {
   return (
     <footer style={{ background: 'var(--gb-ink)', color: 'rgba(255,255,255,.7)', padding: '48px 22px' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MS name="storefront" size={22} color="var(--gb-peach)" />
-          <span className="gb-serif" style={{ fontSize: 20, fontWeight: 600, color: '#fff' }}>Grabbit</span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/transparent-image.svg" alt="Grabbit" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
         </div>
         <nav style={{ display: 'flex', flexWrap: 'wrap', gap: 20, fontSize: 14, fontWeight: 600 }}>
           <Link href="/home" style={{ color: 'rgba(255,255,255,.7)' }}>Browse cafés</Link>

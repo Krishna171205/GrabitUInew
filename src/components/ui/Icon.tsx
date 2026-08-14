@@ -98,44 +98,17 @@ export function GrabbitLogo({
 }) {
   const c = mono ? 'currentColor' : color;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: height * 0.34, height }}>
-      <svg height={height} viewBox="0 0 24 28" fill="none" style={{ display: 'block' }}>
-        <g stroke={c} strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 3v7M11 3v7M15 3v7" />
-          <path d="M5 10h12a0 0 0 0 1 0 0 6 6 0 0 1-6 6h0a6 6 0 0 1-6-6Z" fill={mono ? 'none' : c} />
-          <path d="M11 16v9" />
-        </g>
-      </svg>
-      <span
-        style={{
-          fontWeight: 800,
-          fontSize: height * 0.92,
-          letterSpacing: '-0.03em',
-          color: c,
-          lineHeight: 1,
-          fontFamily: 'var(--font)',
-          position: 'relative',
-        }}
-      >
-        Grab
-        <span style={{ position: 'relative' }}>
-          i
-          <span
-            style={{
-              position: 'absolute',
-              top: height * -0.04,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: height * 0.17,
-              height: height * 0.17,
-              borderRadius: '50%',
-              background: dot,
-            }}
-          />
-        </span>
-        t
-      </span>
-    </span>
+    <img
+      src="/new-logo.svg"
+      alt="Grabbit"
+      style={{
+        height: height * 1.6,
+        width: 'auto',
+        display: 'block',
+        objectFit: 'contain',
+        mixBlendMode: 'multiply'
+      }}
+    />
   );
 }
 

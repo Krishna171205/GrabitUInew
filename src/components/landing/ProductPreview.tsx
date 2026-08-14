@@ -33,6 +33,47 @@ function Orb({ o, p }: { o: OrbDef; p: MotionValue<number> }) {
   );
 }
 
+// Orbital Nodes System for smooth, perfectly circular tracks.
+const OrbitNode = ({
+  radius,
+  baseAngle, // 0 is top (12 o'clock). Negative is left, positive is right.
+  swing = 8, // how many degrees to oscillate
+  duration = 20, // seconds for a full swing
+  children
+}: {
+  radius: number;
+  baseAngle: number;
+  swing?: number;
+  duration?: number;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div
+      className="absolute top-[280px] left-1/2 pointer-events-none"
+      style={{
+        width: radius * 2,
+        height: radius * 2,
+        transform: 'translate(-50%, -50%)',
+      }}
+    >
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotate: [baseAngle, baseAngle + swing, baseAngle - swing, baseAngle] }}
+        transition={{ repeat: Infinity, duration, ease: "easeInOut" }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
+          <motion.div
+            animate={{ rotate: [-baseAngle, -(baseAngle + swing), -(baseAngle - swing), -baseAngle] }}
+            transition={{ repeat: Infinity, duration, ease: "easeInOut" }}
+          >
+            {children}
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 export default function ProductPreview() {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
@@ -63,10 +104,53 @@ export default function ProductPreview() {
   function handleLeave() { tiltX.set(0); tiltY.set(0); sheenOpacity.set(0); }
 
   return (
-    <section ref={sectionRef} style={{ position: 'relative', background: 'var(--gb-surface)', padding: '48px 22px 88px', overflow: 'hidden' }}>
+    <section ref={sectionRef} style={{ position: 'relative', background: 'var(--gb-surface)', padding: '160px 22px 88px', overflow: 'hidden' }}>
+      
+      {/* Orbital Tracks Background Dome */}
+      <div className="absolute inset-0 mx-auto flex justify-center w-full pointer-events-none z-0 overflow-visible">
+        <div className="absolute top-[280px] left-1/2 -translate-x-1/2 flex items-center justify-center">
+          {/* Outer Track */}
+          <div className="absolute w-[1000px] h-[1000px] rounded-full border-[1.5px] border-[#1A1311]/[0.05]" />
+          {/* Middle Track */}
+          <div className="absolute w-[800px] h-[800px] rounded-full border-[1.5px] border-[#1A1311]/[0.05]" />
+          {/* Inner Track */}
+          <div className="absolute w-[600px] h-[600px] rounded-full border-[1.5px] border-[#1A1311]/[0.05]" />
+        </div>
+        
+        {/* Outer Track Nodes */}
+        <OrbitNode radius={500} baseAngle={-40} duration={25} swing={6}>
+          <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-2 text-[13px] font-semibold text-[#1A1311] whitespace-nowrap"><span className="text-lg">☕</span> 5 min prep</div>
+        </OrbitNode>
+        <OrbitNode radius={500} baseAngle={35} duration={22} swing={8}>
+          <div className="w-10 h-10 rounded-full shadow-sm border border-gray-100 overflow-hidden"><img src="https://i.pravatar.cc/100?img=32" alt="avatar" /></div>
+        </OrbitNode>
+        <OrbitNode radius={500} baseAngle={-10} duration={19} swing={5}>
+          <div className="bg-white w-10 h-10 rounded-full shadow-sm border border-gray-100 flex items-center justify-center text-lg">🔥</div>
+        </OrbitNode>
+
+        {/* Middle Track Nodes */}
+        <OrbitNode radius={400} baseAngle={45} duration={20} swing={7}>
+          <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1311] whitespace-nowrap"><span className="text-[#F09819] text-base">📍</span> 200m away</div>
+        </OrbitNode>
+        <OrbitNode radius={400} baseAngle={-25} duration={24} swing={5}>
+          <div className="w-10 h-10 rounded-full shadow-sm border border-gray-100 overflow-hidden"><img src="https://i.pravatar.cc/100?img=44" alt="avatar" /></div>
+        </OrbitNode>
+        <OrbitNode radius={400} baseAngle={15} duration={18} swing={6}>
+          <div className="bg-white w-10 h-10 rounded-full shadow-sm border border-gray-100 flex items-center justify-center text-lg">🤎</div>
+        </OrbitNode>
+
+        {/* Inner Track Nodes */}
+        <OrbitNode radius={300} baseAngle={-45} duration={16} swing={8}>
+          <div className="bg-white w-10 h-10 rounded-full shadow-sm border border-gray-100 flex items-center justify-center text-lg">✨</div>
+        </OrbitNode>
+        <OrbitNode radius={300} baseAngle={25} duration={21} swing={6}>
+          <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1311] whitespace-nowrap"><span className="text-[#F09819] text-base">⭐</span> 4.9 Rated</div>
+        </OrbitNode>
+      </div>
+
       {ORBS.map((o, i) => <Orb key={i} o={o} p={scrollYProgress} />)}
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1120, margin: '0 auto', textAlign: 'center' }}>
-        <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, letterSpacing: '-.01em', margin: '0 0 40px', color: 'var(--gb-text-strong)' }}>
+        <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, letterSpacing: '-.01em', margin: '0 0 40px', color: 'var(--gb-text-strong)', position: 'relative' }}>
           Order in seconds.<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-primary)' }}>Pick up in minutes.</span>
         </h2>
         <motion.div

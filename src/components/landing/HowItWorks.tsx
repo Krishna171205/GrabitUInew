@@ -1,155 +1,185 @@
-// grabbit/src/components/landing/HowItWorks.tsx
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import {
-  motion, useScroll, useTransform, useMotionValue, useMotionValueEvent,
-  useReducedMotion, type MotionValue,
-} from 'framer-motion';
-import { STEPS } from './content';
-
-type NodeDef = { x: number; y: number; at: number; side: 'left' | 'right' };
-type Layout = { viewBox: string; path: string; maxH: string; cardW: number; nodes: NodeDef[] };
-
-// Clean espresso base with a warm top glow — replaces the muddy olive-transition
-// gradient. Marigold pop comes from the journey path/token, not the backdrop.
-const SECTION_BG = 'radial-gradient(125% 95% at 50% 6%, #3A2512 0%, #22140B 52%, #150C05 100%)';
-
-// Desktop: serpentine left → right → left. Station cards sit ON the path (line routes behind them).
-const DESKTOP: Layout = {
-  viewBox: '0 0 1000 720',
-  maxH: '58vh',
-  cardW: 400,
-  path: 'M 180 130 C 545 150, 415 360, 760 360 C 415 360, 545 570, 180 590',
-  nodes: [
-    { x: 180, y: 130, at: 0.06, side: 'left' },
-    { x: 760, y: 360, at: 0.5, side: 'right' },
-    { x: 180, y: 590, at: 0.94, side: 'left' },
-  ],
-};
-
-// Mobile: vertical rail, cards stacked, line bows right between stops.
-const MOBILE: Layout = {
-  viewBox: '0 0 400 760',
-  maxH: '64vh',
-  cardW: 332,
-  path: 'M 54 90 C 265 175, 265 295, 54 380 C 265 465, 265 585, 54 670',
-  nodes: [
-    { x: 54, y: 90, at: 0.06, side: 'left' },
-    { x: 54, y: 380, at: 0.5, side: 'left' },
-    { x: 54, y: 670, at: 0.94, side: 'left' },
-  ],
-};
-
-function Station({
-  node, step, cardW, progress, reduced,
-}: {
-  node: NodeDef; step: (typeof STEPS)[number]; cardW: number;
-  progress: MotionValue<number>; reduced: boolean;
-}) {
-  const a0 = node.at - 0.16;
-  const opacity = useTransform(progress, [a0, node.at], [0.4, 1]);
-  const lift = useTransform(progress, [a0, node.at], [16, 0]);
-  const ring = useTransform(progress, [a0, node.at], [0, 1]);
-  const right = node.side === 'right';
-  const foX = right ? node.x + 46 - cardW : node.x - 46;
-
-  const badge = (
-    <div style={{ position: 'relative', width: 48, height: 48, flex: 'none' }}>
-      <motion.div style={{ position: 'absolute', inset: -7, borderRadius: 999, border: '2px solid var(--gb-primary)', opacity: reduced ? 1 : ring }} />
-      <div style={{ width: 48, height: 48, borderRadius: 999, background: 'var(--gb-primary)', color: '#241612', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{step.n}</div>
-    </div>
-  );
-
-  return (
-    <motion.foreignObject x={foX} y={node.y - 78} width={cardW} height={156}
-      style={{ opacity: reduced ? 1 : opacity, y: reduced ? 0 : lift, overflow: 'visible' }}>
-      <div style={{ borderRadius: 24, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)', padding: 6, boxShadow: '0 18px 46px -26px rgba(0,0,0,.6)' }}>
-        <div style={{ display: 'flex', flexDirection: right ? 'row-reverse' : 'row', alignItems: 'center', gap: 14, borderRadius: 18, background: 'rgba(24,14,9,.92)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)', padding: '14px 16px', textAlign: right ? 'right' : 'left' }}>
-          {badge}
-          <div>
-            <div className="gb-serif" style={{ fontSize: 30, fontWeight: 600, color: '#fff', lineHeight: 1.12 }}>{step.title}</div>
-            <div style={{ fontSize: 21, lineHeight: 1.38, color: 'rgba(255,255,255,.85)', marginTop: 5 }}>{step.body}</div>
-          </div>
-        </div>
-      </div>
-    </motion.foreignObject>
-  );
-}
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
+import { MS } from '@/components/gb/kit';
 
 export default function HowItWorks() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const pathRef = useRef<SVGPathElement>(null);
-  const lenRef = useRef(0);
-  const reduced = !!useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
-  const L = isMobile ? MOBILE : DESKTOP;
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)');
-    const on = () => setIsMobile(mq.matches);
-    on();
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
-  const trail = useTransform(scrollYProgress, [0, 1], [1, 0]);
-
-  const tokenX = useMotionValue(L.nodes[0].x);
-  const tokenY = useMotionValue(L.nodes[0].y);
-
-  useEffect(() => {
-    const p = pathRef.current;
-    if (!p) return;
-    lenRef.current = p.getTotalLength();
-    const prog = reduced ? 1 : scrollYProgress.get();
-    const pt = p.getPointAtLength(prog * lenRef.current);
-    tokenX.set(pt.x); tokenY.set(pt.y);
-  }, [reduced, isMobile, tokenX, tokenY, scrollYProgress]);
-
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    const p = pathRef.current; if (!p || reduced) return;
-    const len = lenRef.current || p.getTotalLength();
-    const pt = p.getPointAtLength(Math.max(0, Math.min(1, v)) * len);
-    tokenX.set(pt.x); tokenY.set(pt.y);
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start end', 'end start']
   });
 
   return (
-    <section id="how-it-works" ref={sectionRef} style={{ position: 'relative', height: '240vh', background: SECTION_BG, color: '#fff' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 22px', overflow: 'hidden' }}>
-        <div style={{ maxWidth: 1000, width: '100%', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gb-peach)', border: '1px solid rgba(255,255,255,.16)', borderRadius: 999, padding: '5px 12px' }}>How it works</span>
-          </div>
-          <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, lineHeight: 1.1, margin: '0 0 8px', textAlign: 'center' }}>
-            From browse to pickup<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>in minutes.</span>
+    <section ref={containerRef} className="py-24 md:py-32 bg-[#FDFBF7] text-[#1A1311] overflow-hidden">
+      <div className="max-w-[1200px] mx-auto px-6">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-20 md:mb-32">
+          <h2 className="text-[36px] md:text-[52px] font-black tracking-tighter leading-none mb-6">
+            Coffee without <br /> <span className="text-[#F09819] italic font-serif">the wait.</span>
           </h2>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 10px' }}>
-            Follow an order from tap to counter.
+          <p className="text-[16px] md:text-[18px] text-[#8A7A6B] font-semibold leading-relaxed">
+            Your daily coffee ritual, completely reimagined. No more queues, no more delays. Just perfect timing.
           </p>
-
-          <svg viewBox={L.viewBox} style={{ width: '100%', height: 'auto', maxHeight: L.maxH, display: 'block', margin: '0 auto', overflow: 'visible' }} aria-hidden>
-            {/* ambient glow under the route */}
-            <path d={L.path} fill="none" stroke="var(--gb-primary)" strokeWidth={9} strokeLinecap="round" style={{ filter: 'blur(7px)', opacity: 0.16 }} />
-            {/* dotted full track */}
-            <path d={L.path} fill="none" stroke="rgba(255,255,255,.16)" strokeWidth={2.5} strokeLinecap="round" strokeDasharray="1 12" />
-            {/* trail drawn in on scroll */}
-            <motion.path ref={pathRef} d={L.path} fill="none" stroke="var(--gb-primary)" strokeWidth={4} strokeLinecap="round"
-              pathLength={1} strokeDasharray={1} style={{ strokeDashoffset: reduced ? 0 : trail }} />
-
-            {/* station cards render after the path, so the line routes behind them */}
-            {L.nodes.map((node, i) => (
-              <Station key={`${isMobile}-${i}`} node={node} step={STEPS[i]} cardW={L.cardW} progress={scrollYProgress} reduced={reduced} />
-            ))}
-
-            {/* travelling order token, on top */}
-            <motion.g style={{ x: tokenX, y: tokenY }}>
-              <circle r={23} fill="var(--gb-primary)" style={{ filter: 'drop-shadow(0 0 11px rgba(255,177,0,.75))' }} />
-              <circle r={23} fill="none" stroke="#241612" strokeWidth={2} />
-              <text y={7} textAnchor="middle" fontSize={20}>☕</text>
-            </motion.g>
-          </svg>
         </div>
+
+        {/* --- STEP 01: DISCOVER --- */}
+        <div className="flex flex-col md:flex-row items-center justify-between mb-24 md:mb-40 gap-10">
+          <div className="w-full md:w-5/12 order-2 md:order-1">
+            <div className="relative w-full max-w-[340px] mx-auto">
+              {/* Product UI Mockup: Discover */}
+              <motion.div 
+                style={{ y: useTransform(scrollYProgress, [0, 0.4], [50, -20]) }}
+                className="bg-white rounded-[32px] p-4 shadow-[0_20px_60px_rgba(26,19,17,0.08)] border border-[#EBE4D8]"
+              >
+                <div className="flex items-center gap-2 mb-4 bg-gray-50 p-3 rounded-2xl">
+                  <MS name="search" size={18} color="#8A7A6B" />
+                  <div className="h-2 w-24 bg-gray-200 rounded-full" />
+                </div>
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex gap-3 items-center">
+                      <div className="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                        <img src={`https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&q=80&sig=${i}`} className="w-full h-full object-cover opacity-80" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="h-3 w-3/4 bg-[#1A1311] rounded-full mb-2" />
+                        <div className="flex gap-2">
+                          <div className="h-2 w-10 bg-[#F09819] rounded-full" />
+                          <div className="h-2 w-16 bg-gray-200 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+              {/* Floating Element */}
+              <motion.div 
+                style={{ y: useTransform(scrollYProgress, [0, 0.4], [100, -60]) }}
+                className="absolute -right-8 -bottom-8 bg-[#1A1311] text-white p-4 rounded-2xl shadow-xl flex items-center gap-3 border border-white/10"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#F09819] flex items-center justify-center"><MS name="near_me" size={20} /></div>
+                <div>
+                  <div className="text-[11px] font-bold text-white/60 tracking-widest uppercase">Nearby</div>
+                  <div className="text-[16px] font-black">12 Cafés</div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+          <div className="w-full md:w-5/12 order-1 md:order-2">
+            <div className="text-[13px] font-bold text-[#F09819] tracking-widest uppercase mb-3 flex items-center gap-2">
+              <span className="w-6 h-px bg-[#F09819]" /> STEP 01
+            </div>
+            <h3 className="text-[32px] md:text-[42px] font-black leading-[1.1] mb-4 text-[#1A1311]">
+              Discover local favorites.
+            </h3>
+            <p className="text-[#8A7A6B] text-[16px] font-semibold leading-relaxed">
+              Instantly find the best cafés around you. See live pickup times, read reviews, and explore curated menus tailored to your taste.
+            </p>
+          </div>
+        </div>
+
+        {/* --- STEP 02: PRE-ORDER --- */}
+        <div className="flex flex-col md:flex-row items-center justify-between mb-24 md:mb-40 gap-10">
+          <div className="w-full md:w-5/12">
+            <div className="text-[13px] font-bold text-[#F09819] tracking-widest uppercase mb-3 flex items-center gap-2">
+              <span className="w-6 h-px bg-[#F09819]" /> STEP 02
+            </div>
+            <h3 className="text-[32px] md:text-[42px] font-black leading-[1.1] mb-4 text-[#1A1311]">
+              Customize & order.
+            </h3>
+            <p className="text-[#8A7A6B] text-[16px] font-semibold leading-relaxed">
+              Oat milk? Extra shot? Customize your order exactly how you like it. Pay securely ahead of time with a single tap.
+            </p>
+          </div>
+          <div className="w-full md:w-5/12">
+            <div className="relative w-full max-w-[340px] mx-auto">
+              {/* Product UI Mockup: Pre-Order */}
+              <motion.div 
+                style={{ y: useTransform(scrollYProgress, [0.2, 0.7], [50, -30]) }}
+                className="bg-white rounded-[32px] overflow-hidden shadow-[0_20px_60px_rgba(26,19,17,0.08)] border border-[#EBE4D8] flex flex-col"
+              >
+                <div className="h-40 bg-gray-100 relative">
+                  <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <div className="text-[20px] font-black">Iced Americano</div>
+                    <div className="text-[14px] font-bold text-[#F09819]">₹180</div>
+                  </div>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <div className="text-[14px] font-bold text-[#1A1311]">Milk</div>
+                    <div className="text-[12px] font-semibold bg-[#F09819]/10 text-[#F09819] px-2 py-1 rounded">Oat Milk</div>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <div className="text-[14px] font-bold text-[#1A1311]">Espresso</div>
+                    <div className="text-[12px] font-semibold bg-gray-100 text-[#8A7A6B] px-2 py-1 rounded">Extra Shot</div>
+                  </div>
+                  <div className="w-full bg-[#1A1311] text-white rounded-xl py-3 text-center font-bold text-[14px] mt-2">
+                    Add to Cart
+                  </div>
+                </div>
+              </motion.div>
+              {/* Floating Element */}
+              <motion.div 
+                style={{ y: useTransform(scrollYProgress, [0.2, 0.7], [80, -80]) }}
+                className="absolute -left-10 top-10 bg-white p-3 rounded-2xl shadow-xl flex items-center gap-3 border border-[#EBE4D8]"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#EBE4D8] flex items-center justify-center text-[18px]">✨</div>
+                <div>
+                  <div className="text-[10px] font-bold text-[#8A7A6B] tracking-widest uppercase">Customized</div>
+                  <div className="text-[14px] font-black text-[#1A1311]">Just for you</div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- STEP 03: PICK UP --- */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="w-full md:w-5/12 order-2 md:order-1">
+            <div className="relative w-full max-w-[340px] mx-auto">
+              {/* Product UI Mockup: Pick Up */}
+              <motion.div 
+                style={{ y: useTransform(scrollYProgress, [0.5, 1], [50, -30]) }}
+                className="bg-[#F09819] rounded-[32px] p-8 text-center shadow-[0_20px_60px_rgba(240,152,25,0.3)] flex flex-col items-center justify-center text-white h-[360px]"
+              >
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-6 text-[#F09819]">
+                  <MS name="check" size={32} />
+                </div>
+                <div className="text-[12px] font-bold tracking-widest uppercase opacity-90 mb-1">Status</div>
+                <div className="text-[32px] font-black leading-none mb-6">ORDER READY</div>
+                
+                <div className="bg-[rgba(255,255,255,0.3)] w-full py-4 rounded-2xl">
+                  <div className="text-[11px] font-bold tracking-widest uppercase opacity-80 mb-1">Pickup Counter</div>
+                  <div className="text-[42px] font-black leading-none">04</div>
+                </div>
+              </motion.div>
+              {/* Floating Element */}
+              <motion.div 
+                style={{ y: useTransform(scrollYProgress, [0.5, 1], [100, -60]) }}
+                className="absolute -right-8 bottom-12 bg-white p-4 rounded-2xl shadow-xl border border-[#EBE4D8]"
+              >
+                <div className="text-[10px] font-bold text-[#8A7A6B] tracking-widest uppercase mb-1">Time Saved</div>
+                <div className="text-[24px] font-black text-[#1A1311]">14 Min</div>
+              </motion.div>
+            </div>
+          </div>
+          <div className="w-full md:w-5/12 order-1 md:order-2">
+            <div className="text-[13px] font-bold text-[#F09819] tracking-widest uppercase mb-3 flex items-center gap-2">
+              <span className="w-6 h-px bg-[#F09819]" /> STEP 03
+            </div>
+            <h3 className="text-[32px] md:text-[42px] font-black leading-[1.1] mb-4 text-[#1A1311]">
+              Walk in. Walk out.
+            </h3>
+            <p className="text-[#8A7A6B] text-[16px] font-semibold leading-relaxed">
+              Skip the entire queue. Your order is prepared exactly for your arrival time. Just grab it from the counter and go.
+            </p>
+          </div>
+        </div>
+
       </div>
     </section>
   );
