@@ -1,11 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
 import { useState, useEffect } from 'react';
 import { HeroPhone, AppState } from './HeroPhone';
 import { HeroProductStage } from './HeroProductStage';
 import { FloatingStatusCard } from './FloatingStatusCard';
+import FoldText from '../FoldText';
 
 // Subtle, organic curved SVG connector lines linking floating cards directly to the central phone
 const ConnectorLines = ({
@@ -241,15 +242,34 @@ export default function Hero() {
         </motion.div>
 
         {/* HEADLINE */}
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-[36px] sm:text-[54px] lg:text-[68px] xl:text-[74px] font-black tracking-tighter text-[#1A1311] leading-[0.92] mb-1.5 max-w-[920px]"
-        >
-          ORDER AHEAD WITH <br />
-          <span className="text-[#F09819]">GRABBIT.</span>
-        </motion.h1>
+        <h1 className="text-[36px] sm:text-[54px] lg:text-[68px] xl:text-[74px] font-black tracking-tighter leading-[0.92] mb-1.5 max-w-[920px]">
+          <FoldText
+            text="ORDER AHEAD WITH"
+            splitBy="word"
+            hinge="top"
+            trigger="mount"
+            duration={0.65}
+            stagger={0.05}
+            ease="power3.out"
+            color="#1A1311"
+            fontSize="inherit"
+            fontWeight="inherit"
+            className="block"
+          />
+          <FoldText
+            text="GRABBIT."
+            splitBy="char"
+            hinge="top"
+            trigger="mount"
+            duration={0.8}
+            stagger={0.06}
+            ease="back.out(1.5)"
+            color="#F09819"
+            fontSize="inherit"
+            fontWeight="inherit"
+            className="block mt-1"
+          />
+        </h1>
 
         {/* TAGLINE */}
         <motion.h2
