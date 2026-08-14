@@ -2,80 +2,203 @@
 
 import { motion } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HeroPhone, AppState } from './HeroPhone';
 import { HeroProductStage } from './HeroProductStage';
 import { FloatingStatusCard } from './FloatingStatusCard';
 
-// Stripe-grade SVG connector lines linking floating node cards directly to central product stage
-const ConnectorLines = ({ activeCard }: { activeCard: string | null }) => (
-  <svg 
-    className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden lg:block"
-    viewBox="0 0 1000 580"
-    preserveAspectRatio="xMidYMid meet"
-  >
-    {/* Top Left Node (Cafés Near You) -> Phone Socket */}
-    <path 
-      d="M 235 110 C 315 110, 345 170, 385 170" 
-      fill="none" 
-      stroke={activeCard === 'cafes' ? '#F09819' : 'rgba(240,152,25,0.35)'} 
-      strokeWidth={activeCard === 'cafes' ? '2.5' : '1.5'} 
-      strokeDasharray={activeCard === 'cafes' ? 'none' : '4 4'}
-      className="transition-all duration-300"
-    />
-    <circle cx="385" cy="170" r="3.5" fill={activeCard === 'cafes' ? '#F09819' : 'rgba(240,152,25,0.5)'} />
+// Subtle, organic curved SVG connector lines linking floating cards directly to the central phone
+const ConnectorLines = ({
+  activeEnergyCard
+}: {
+  activeEnergyCard: string | null
+}) => {
+  // SVG Paths
+  const paths = {
+    cafes: "M 120 80 C 220 80, 220 180, 380 180", // Top Left
+    time: "M 135 335 C 235 335, 235 320, 380 320", // Bottom Left
+    ready: "M 880 80 C 780 80, 780 180, 620 180", // Top Right
+    rated: "M 865 335 C 765 335, 765 320, 620 320"  // Bottom Right
+  };
 
-    {/* Bottom Left Node (Time Saved) -> Phone Socket (Moved Upward to 52%) */}
-    <path 
-      d="M 235 340 C 315 340, 345 310, 385 310" 
-      fill="none" 
-      stroke={activeCard === 'time' ? '#F09819' : 'rgba(240,152,25,0.35)'} 
-      strokeWidth={activeCard === 'time' ? '2.5' : '1.5'} 
-      strokeDasharray={activeCard === 'time' ? 'none' : '4 4'}
-      className="transition-all duration-300"
-    />
-    <circle cx="385" cy="310" r="3.5" fill={activeCard === 'time' ? '#F09819' : 'rgba(240,152,25,0.5)'} />
+  // Helper to get the correct path. Energy flows Phone -> Card.
+  const getPath = (id: string) => {
+    // Top Left (cafes): Card node is at x=198, y=36
+    if (id === 'cafes') return "M 360 140 C 280 140, 240 36, 198 36";
+    // Bottom Left (time): Card node is at x=213, y=295
+    if (id === 'time') return "M 360 260 C 280 260, 245 295, 213 295";
 
-    {/* Top Right Node (Order Ready) -> Phone Socket */}
-    <path 
-      d="M 765 120 C 685 120, 655 180, 615 180" 
-      fill="none" 
-      stroke={activeCard === 'ready' ? '#F09819' : 'rgba(240,152,25,0.35)'} 
-      strokeWidth={activeCard === 'ready' ? '2.5' : '1.5'} 
-      strokeDasharray={activeCard === 'ready' ? 'none' : '4 4'}
-      className="transition-all duration-300"
-    />
-    <circle cx="615" cy="180" r="3.5" fill={activeCard === 'ready' ? '#F09819' : 'rgba(240,152,25,0.5)'} />
+    // Top Right (ready): Card node is at x=802, y=36
+    if (id === 'ready') return "M 640 140 C 720 140, 760 36, 802 36";
+    // Bottom Right (rated): Card node is at x=787, y=295
+    if (id === 'rated') return "M 640 260 C 720 260, 755 295, 787 295";
 
-    {/* Bottom Right Node (Rated By You) -> Phone Socket (Moved Upward to 54%) */}
-    <path 
-      d="M 765 350 C 685 350, 655 320, 615 320" 
-      fill="none" 
-      stroke={activeCard === 'rated' ? '#F09819' : 'rgba(240,152,25,0.35)'} 
-      strokeWidth={activeCard === 'rated' ? '2.5' : '1.5'} 
-      strokeDasharray={activeCard === 'rated' ? 'none' : '4 4'}
-      className="transition-all duration-300"
-    />
-    <circle cx="615" cy="320" r="3.5" fill={activeCard === 'rated' ? '#F09819' : 'rgba(240,152,25,0.5)'} />
+    return "";
+  };
 
-    {/* Sparkle Nodes */}
-    <path d="M 285 95 L 286.5 91 L 288 95 L 292 96.5 L 288 98 L 286.5 102 L 285 98 L 281 96.5 Z" fill="#F09819" opacity="0.7" />
-    <path d="M 715 360 L 716.5 356 L 718 360 L 722 361.5 L 718 363 L 716.5 367 L 715 363 L 711 361.5 Z" fill="#F09819" opacity="0.7" />
-  </svg>
-);
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden lg:block"
+      viewBox="0 0 1000 600"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <linearGradient id="activePulse" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#F09819" stopOpacity="0.8" />
+          <stop offset="50%" stopColor="#FFB100" stopOpacity="1" />
+          <stop offset="100%" stopColor="#F09819" stopOpacity="0.8" />
+        </linearGradient>
+        <filter id="lineGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {['cafes', 'time', 'ready', 'rated'].map((cardId) => {
+        const isActive = activeEnergyCard === cardId;
+        const d = getPath(cardId);
+
+        return (
+          <g key={cardId}>
+            {/* Base idle dotted line (Highly visible & warm) */}
+            <path
+              d={d}
+              fill="none"
+              stroke="rgba(240,152,25,0.65)"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray="4 8"
+            />
+
+            {/* Active drawing line (Vivid, ultra-bright glowing dots) */}
+            {isActive && (
+              <motion.path
+                d={d}
+                fill="none"
+                stroke="#FFB100"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeDasharray="4 8"
+                style={{ filter: 'drop-shadow(0 0 6px rgba(255, 177, 0, 0.9))' }}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
+            )}
+
+            {/* Moving glowing particle (GPU Accelerated, Ultra-Smooth 60fps) */}
+            {isActive && (
+              <motion.path
+                d={d}
+                fill="none"
+                stroke="#FFFFFF"
+                strokeWidth="6"
+                strokeLinecap="round"
+                style={{
+                  filter: 'drop-shadow(0 0 10px rgba(255,177,0,1)) drop-shadow(0 0 4px rgba(255,255,255,0.9))',
+                  willChange: 'transform, opacity'
+                }}
+                initial={{ pathLength: 0.01, pathSpacing: 1, pathOffset: 0, opacity: 0 }}
+                animate={{
+                  pathOffset: [0, 1],
+                  opacity: [0, 1, 1, 0]
+                }}
+                transition={{
+                  pathOffset: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
+                  opacity: { duration: 0.55, times: [0, 0.1, 0.9, 1] }
+                }}
+              />
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
 
 export default function Hero() {
   const [phoneState, setPhoneState] = useState<AppState>('HOME');
-  const [activeCard, setActiveCard] = useState<string | null>('cafes');
+
+  // Animation Orchestration State
+  const [activeEnergyCard, setActiveEnergyCard] = useState<string | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+
+  // To trigger the micro-reactions on the card, we track when energy ARRIVES.
+  // We use a separate state to briefly set isReceivingEnergy to true.
+  const [receivingCard, setReceivingCard] = useState<string | null>(null);
+
+  // The automatic storytelling loop (Fast & Energetic)
+  useEffect(() => {
+    // If a card is being hovered, PAUSE the loop entirely.
+    if (hoveredCard) {
+      return;
+    }
+
+    const cycle = ['cafes', 'ready', 'time', 'rated'];
+    let currentIndex = 0;
+
+    const runCycle = () => {
+      const cardId = cycle[currentIndex];
+
+      // 1. Start the energy flow (triggers fast SVG animation phone -> card)
+      setActiveEnergyCard(cardId);
+
+      // 2. Exactly when particle hits (550ms), trigger the card reaction
+      const hitTimer = setTimeout(() => {
+        setReceivingCard(cardId);
+      }, 550);
+
+      // 3. Clear the card reaction
+      const clearReactionTimer = setTimeout(() => {
+        setReceivingCard(null);
+      }, 950);
+
+      currentIndex = (currentIndex + 1) % cycle.length;
+
+      return () => {
+        clearTimeout(hitTimer);
+        clearTimeout(clearReactionTimer);
+      };
+    };
+
+    // Initial run immediately
+    let cleanups = runCycle();
+
+    // Fast 1.4 second cycle interval
+    const interval = setInterval(() => {
+      if (cleanups) cleanups();
+      cleanups = runCycle();
+    }, 1400);
+
+    return () => {
+      clearInterval(interval);
+      if (cleanups) cleanups();
+    };
+  }, [hoveredCard]);
+
+  // Handle manual interaction (hover override)
+  useEffect(() => {
+    if (hoveredCard) {
+      setActiveEnergyCard(hoveredCard);
+
+      const hitTimer = setTimeout(() => {
+        setReceivingCard(hoveredCard);
+      }, 400);
+
+      return () => clearTimeout(hitTimer);
+    } else {
+      setReceivingCard(null);
+    }
+  }, [hoveredCard]);
 
   const handleCardClick = (cardId: string, targetState: AppState) => {
-    setActiveCard(cardId);
+    setHoveredCard(cardId); // lock it as active momentarily
     setPhoneState(targetState);
   };
 
   return (
-    <section className="relative w-full min-h-screen bg-[#FDFBF7] font-sans pt-[80px] sm:pt-[92px] pb-12 flex flex-col items-center justify-start overflow-visible">
-      
+    <section className="relative w-full min-h-[95vh] bg-[#FDFBF7] font-sans pt-[80px] sm:pt-[92px] pb-12 flex flex-col items-center justify-start overflow-hidden">
+
       {/* ========================================= */}
       {/* 1. CINEMATIC CAFÉ BACKGROUND SYSTEM */}
       {/* ========================================= */}
@@ -85,33 +208,33 @@ export default function Hero() {
           loop
           muted
           playsInline
-          className="w-full h-full object-cover saturate-[0.85] opacity-80"
+          className="w-full h-full object-cover saturate-[0.95] opacity-100"
           src="/hero-cafe.mp4"
         />
-        
-        {/* Soft cream radial wash */}
-        <div 
+
+        {/* Soft cream radial wash - lightened to let video show clearly */}
+        <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse at 50% 30%, rgba(253, 251, 247, 0.65) 0%, rgba(253, 251, 247, 0.86) 70%, rgba(253, 251, 247, 0.94) 100%)'
+            background: 'radial-gradient(ellipse at 50% 30%, rgba(253, 251, 247, 0.35) 0%, rgba(253, 251, 247, 0.65) 70%, rgba(253, 251, 247, 0.85) 100%)'
           }}
         />
 
         {/* Warm center glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[450px] bg-[#F09819]/10 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-[#F09819]/10 rounded-full blur-[120px]" />
       </div>
 
       {/* ========================================= */}
       {/* 2. ZONE 1: HERO COPY (COMPACT & TIGHT) */}
       {/* ========================================= */}
-      <div className="max-w-[1000px] mx-auto px-4 relative z-10 w-full flex flex-col items-center text-center pt-2 sm:pt-4 shrink-0">
-        
+      <div className="max-w-[1000px] mx-auto px-4 relative z-10 w-full flex flex-col items-center text-center pt-2 sm:pt-4 shrink-0 pointer-events-auto">
+
         {/* BADGE */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
-          className="inline-flex items-center gap-2 bg-[#FDFBF7]/90 backdrop-blur-md border border-[#EBE4D8] shadow-xs rounded-full px-3 py-1 mb-2.5 cursor-default"
+          className="inline-flex items-center gap-2 bg-[#FDFBF7]/90 border border-[#EBE4D8] shadow-xs rounded-full px-3 py-1 mb-2.5 cursor-default"
         >
           <div className="w-2 h-2 rounded-full bg-[#F09819] animate-pulse" />
           <span className="text-[10px] font-bold text-[#1A1311] tracking-[0.16em] uppercase">Now In Delhi</span>
@@ -153,9 +276,9 @@ export default function Hero() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          className="flex items-center justify-center gap-3 mb-3 z-20"
+          className="flex items-center justify-center gap-3 mb-3"
         >
-          <div 
+          <div
             onClick={() => handleCardClick('cafes', 'EXPLORE')}
             className="group flex items-center justify-center gap-2 bg-[#1A1311] text-white px-5.5 py-2 rounded-full font-bold text-[13.5px] cursor-pointer hover:bg-[#F09819] transition-colors shadow-xs active:scale-95"
           >
@@ -169,124 +292,110 @@ export default function Hero() {
       </div>
 
       {/* ========================================= */}
-      {/* 3. ZONE 2: PRODUCT STAGE WITH 3D MOBILE EMERGENCE */}
+      {/* 3. ZONE 2: PRODUCT STAGE WITH 3D PARALLAX */}
       {/* ========================================= */}
-      <div className="w-full relative flex-1 flex items-start justify-center min-h-[580px] lg:min-h-[620px] pb-10 overflow-visible">
-        
+      <div className="w-full relative flex-1 flex items-start justify-center min-h-[580px] lg:min-h-[620px] pb-10 overflow-visible mt-2 pointer-events-none">
+
+        {/* We enable pointer events on the stage wrapper so the phone/cards are clickable */}
         <HeroProductStage>
-          
-          <div className="relative w-full max-w-[1000px] h-[580px] lg:h-[600px] flex justify-center items-start pt-2">
-            
-            <ConnectorLines activeCard={activeCard} />
 
-            {/* CENTER PHONE WITH SHARED STATE & REALISTIC HARDWARE */}
-            <div className="relative z-10">
-              <HeroPhone 
-                activeState={phoneState} 
-                onStateChange={(st) => {
-                  setPhoneState(st);
-                  if (st === 'HOME' || st === 'EXPLORE') setActiveCard('cafes');
-                  else if (st === 'CART') setActiveCard('time');
-                  else if (st === 'READY') setActiveCard('ready');
-                  else if (st === 'CAFE') setActiveCard('rated');
-                }} 
-              />
-            </div>
+          {/* Connector SVG Background (Layer 1 - Behihnd phone!) */}
+          <div
+            className="absolute inset-0 mx-auto flex justify-center w-full max-w-[1000px] h-[600px] pointer-events-none z-[5]"
+            style={{ transform: 'translateZ(-40px)' }}
+          >
+            <ConnectorLines activeEnergyCard={activeEnergyCard} />
+          </div>
 
-            {/* --- STRIPE-GRADE FLOATING NODES (REFINED VERTICAL POSITIONS) --- */}
-            {/* Top Left: Cafés Near You Node */}
-            <FloatingStatusCard 
-              type="grid"
-              label="Cafés Near You"
-              value="4 nearby"
-              active={activeCard === 'cafes'}
-              onClick={() => handleCardClick('cafes', 'HOME')}
-              delay={0.5}
-              duration={4.5}
-              floatDirection="vertical"
-              socketPosition="right"
-              className="top-[7%] left-[10px] xl:left-[30px] hidden lg:flex"
+          {/* CENTER PHONE (Layer 3 - Sharpest, Top) */}
+          <div className="relative z-[20] flex justify-center items-start pt-2 pointer-events-auto">
+            <HeroPhone
+              activeState={phoneState}
+              activeEnergyCard={activeEnergyCard}
+              onStateChange={(st) => {
+                setPhoneState(st);
+              }}
             />
 
-            {/* Bottom Left: Time Saved Node (MOVED UPWARD TO 52%) */}
-            <FloatingStatusCard 
-              type="graph"
-              label="Time Saved"
-              badge="Zero-Wait"
-              value="14 min"
-              active={activeCard === 'time'}
-              onClick={() => handleCardClick('time', 'CART')}
-              detail="On average per order"
-              icon={<MS name="schedule" size={20} />}
-              delay={0.7}
-              duration={5.2}
-              floatDirection="horizontal"
-              socketPosition="right"
-              className="top-[52%] left-[20px] xl:left-[40px] hidden lg:flex"
+            {/* --- FLOATING PRODUCT INSIGHT CARDS (Layer 2) --- */}
+
+            {/* Top Left: Cafés Near You Node */}
+            <FloatingStatusCard
+              type="cafes"
+              label="Cafés Near You"
+              value="4 nearby"
+              active={hoveredCard === 'cafes'}
+              isReceivingEnergy={receivingCard === 'cafes'}
+              onClick={() => handleCardClick('cafes', 'HOME')}
+              onHoverStart={() => setHoveredCard('cafes')}
+              onHoverEnd={() => setHoveredCard(null)}
+              icon={<MS name="location_on" size={24} />}
+              delay={0.15}
+              entranceDirection="right" // Appears from right (behind phone) sliding left
+              className="hidden lg:flex z-[10]"
+              style={{ position: 'absolute', top: '-40px', left: '-380px' }}
             />
 
             {/* Top Right: Order Ready Node */}
-            <FloatingStatusCard 
+            <FloatingStatusCard
+              type="ready"
               label="Order Ready"
               badge="POS Sync"
-              value="Pick up now"
-              active={activeCard === 'ready'}
-              onClick={() => handleCardClick('ready', 'READY')}
+              value="☕ Pick up now"
               detail="Barista KDS Alerted"
-              icon={<MS name="local_cafe" size={20} />}
-              delay={0.6}
-              duration={5.7}
-              floatDirection="vertical"
-              socketPosition="left"
-              className="top-[9%] right-[10px] xl:right-[30px] hidden lg:flex"
+              active={hoveredCard === 'ready'}
+              isReceivingEnergy={receivingCard === 'ready'}
+              onClick={() => handleCardClick('ready', 'READY')}
+              onHoverStart={() => setHoveredCard('ready')}
+              onHoverEnd={() => setHoveredCard(null)}
+              icon={<MS name="coffee" size={24} />}
+              delay={0.25}
+              entranceDirection="left" // Appears from left sliding right
+              className="hidden lg:flex z-[10]"
+              style={{ position: 'absolute', top: '-30px', right: '-380px' }}
             />
 
-            {/* Bottom Right: Rated By You Node (MOVED UPWARD TO 54%) */}
-            <FloatingStatusCard 
+            {/* Bottom Left: Time Saved Node */}
+            <FloatingStatusCard
+              type="time"
+              label="Time Saved"
+              badge="Zero-Wait"
+              value="14 min"
+              detail="On average"
+              active={hoveredCard === 'time'}
+              isReceivingEnergy={receivingCard === 'time'}
+              onClick={() => handleCardClick('time', 'CART')}
+              onHoverStart={() => setHoveredCard('time')}
+              onHoverEnd={() => setHoveredCard(null)}
+              icon={<MS name="schedule" size={24} />}
+              delay={0.35}
+              entranceDirection="right"
+              className="hidden lg:flex z-[10]"
+              style={{ position: 'absolute', top: '220px', left: '-365px' }}
+            />
+
+            {/* Bottom Right: Rated By You Node */}
+            <FloatingStatusCard
               type="rating"
               label="Rated By You"
-              badge="4.9 ★"
+              badge="Top Rated"
               value="4.9 / 5.0"
-              active={activeCard === 'rated'}
+              detail="Loved by coffee people"
+              active={hoveredCard === 'rated'}
+              isReceivingEnergy={receivingCard === 'rated'}
               onClick={() => handleCardClick('rated', 'CAFE')}
-              detail="Loved by coffee lovers"
-              icon={<MS name="star" size={20} />}
-              delay={0.8}
-              duration={6.0}
-              floatDirection="pulse"
-              socketPosition="left"
-              className="top-[54%] right-[20px] xl:right-[40px] hidden lg:flex"
+              onHoverStart={() => setHoveredCard('rated')}
+              onHoverEnd={() => setHoveredCard(null)}
+              icon={<MS name="star" size={24} />}
+              delay={0.45}
+              entranceDirection="left"
+              className="hidden lg:flex z-[10]"
+              style={{ position: 'absolute', top: '220px', right: '-365px' }}
             />
-
           </div>
 
         </HeroProductStage>
 
-      </div>
-
-      {/* ========================================= */}
-      {/* 4. BOTTOM TICKER MARQUEE */}
-      {/* ========================================= */}
-      <div className="w-full bg-gradient-to-t from-[#EBE4D8]/90 via-[#FDFBF7]/80 to-transparent text-[#1A1311] py-3 overflow-hidden relative z-30 border-t border-white/70 backdrop-blur-xs shrink-0 mt-6">
-        <motion.div
-          className="flex items-center gap-8 shrink-0 whitespace-nowrap"
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ repeat: Infinity, duration: 45, ease: 'linear' }}
-        >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-8 text-[10px] font-bold tracking-[0.2em] uppercase">
-              <span>Coffee</span> <span className="text-[#F09819]">✦</span>
-              <span>Croissants</span> <span className="text-[#F09819]">✦</span>
-              <span>Cold Brew</span> <span className="text-[#F09819]">✦</span>
-              <span>Matcha</span> <span className="text-[#F09819]">✦</span>
-              <span>Sandwiches</span> <span className="text-[#F09819]">✦</span>
-              <span>Desserts</span> <span className="text-[#F09819]">✦</span>
-              <span>Quick Pickup</span> <span className="text-[#F09819]">✦</span>
-              <span>No Wait</span> <span className="text-[#F09819]">✦</span>
-              <span>More time for you</span> <span className="text-[#F09819]">✦</span>
-            </div>
-          ))}
-        </motion.div>
       </div>
 
     </section>

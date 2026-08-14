@@ -152,7 +152,7 @@ export default function HowItWorks() {
                 <div className="text-[12px] font-bold tracking-widest uppercase opacity-90 mb-1">Status</div>
                 <div className="text-[32px] font-black leading-none mb-6">ORDER READY</div>
                 
-                <div className="bg-white/20 backdrop-blur-md w-full py-4 rounded-2xl">
+                <div className="bg-[rgba(255,255,255,0.3)] w-full py-4 rounded-2xl">
                   <div className="text-[11px] font-bold tracking-widest uppercase opacity-80 mb-1">Pickup Counter</div>
                   <div className="text-[42px] font-black leading-none">04</div>
                 </div>

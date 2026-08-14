@@ -2,816 +2,896 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-// App States
-export type AppState = 'HOME' | 'CAFE' | 'PRODUCT' | 'CART' | 'CONFIRMATION' | 'READY' | 'EXPLORE' | 'ORDERS' | 'PROFILE';
-
-export interface CafeItem {
-  id: number;
-  name: string;
-  rating: number;
-  dist: string;
-  prep: string;
-  tag: string;
-  img: string;
-}
-
-export interface MenuItem {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  desc: string;
-  img: string;
-}
-
-const CAFES: CafeItem[] = [
-  { id: 1, name: 'Blue Tokai Coffee', rating: 4.8, dist: '0.8 km', prep: '7 min', tag: 'Specialty Espresso', img: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&q=80' },
-  { id: 2, name: 'Third Wave Coffee', rating: 4.7, dist: '1.2 km', prep: '9 min', tag: 'Handcrafted Brews', img: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80' },
-  { id: 3, name: 'Subko Coffee Bar', rating: 4.9, dist: '1.8 km', prep: '6 min', tag: 'Artisan Bakery', img: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80' },
-];
-
-const MENU: MenuItem[] = [
-  { id: 1, name: 'Iced Cappuccino', category: 'Coffee', price: 180, desc: 'Bold espresso topped with cold foamed milk.', img: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=200&q=80' },
-  { id: 2, name: 'Butter Croissant', category: 'Pastry', price: 160, desc: 'Flaky, double-baked French butter croissant.', img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&q=80' },
-  { id: 3, name: 'Nitro Cold Brew', category: 'Cold Brew', price: 220, desc: 'Velvety nitrogen-infused steep brew.', img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=200&q=80' },
-  { id: 4, name: 'Iced Matcha Latte', category: 'Matcha', price: 210, desc: 'Ceremonial Uji matcha with oat milk.', img: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=200&q=80' },
-];
-
-const LOCATIONS = ['Delhi NCR', 'Connaught Place', 'Greater Kailash', 'Vasant Kunj', 'Khan Market'];
-const CATEGORIES = ['All', '☕ Coffee', 'Cold Brew', 'Matcha', 'Pastry'];
-
-const OFFERS = [
-  { title: 'WEEKEND SPECIAL', offer: '20% OFF', sub: 'on your first order', code: 'GRAB20', bg: 'from-[#F09819] to-[#E65100]' },
-  { title: 'MORNING TREAT', offer: 'FREE CROISSANT', sub: 'with any Nitro Cold Brew', code: 'BREWTREAT', bg: 'from-[#312E81] to-[#4F46E5]' },
-  { title: 'GRABBIT REWARD', offer: '₹100 OFF', sub: 'on orders above ₹400', code: 'SAVEMORE', bg: 'from-[#065F46] to-[#10B981]' },
-];
+export type AppState = 'HOME' | 'EXPLORE' | 'CAFE' | 'PRODUCT' | 'CART' | 'CONFIRMATION' | 'READY' | 'PROFILE';
 
 interface HeroPhoneProps {
   activeState?: AppState;
+  activeEnergyCard?: string | null;
   onStateChange?: (state: AppState) => void;
 }
 
-export function HeroPhone({ activeState: externalState, onStateChange }: HeroPhoneProps) {
-  const [internalState, setInternalState] = useState<AppState>('HOME');
-  const activeState = externalState || internalState;
+const promoThemes: Record<string, { tag: string; title: string; code: string; color: string; gradient: string; img: string }> = {
+  cafes: {
+    tag: 'Weekend Special',
+    title: '20% OFF',
+    code: 'Use code GRAB20',
+    color: '#D46C20',
+    gradient: 'from-[#D46C20] via-[#D46C20]/80 to-transparent',
+    img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop'
+  },
+  ready: {
+    tag: 'Express Pickup',
+    title: 'ZERO WAIT',
+    code: 'Pre-order ahead',
+    color: '#2A1B10',
+    gradient: 'from-[#2A1B10] via-[#2A1B10]/80 to-transparent',
+    img: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=600&auto=format&fit=crop'
+  },
+  time: {
+    tag: 'Happy Hour',
+    title: 'BUY 1 GET 1',
+    code: 'Use code BOGO50',
+    color: '#E09A00',
+    gradient: 'from-[#E09A00] via-[#E09A00]/80 to-transparent',
+    img: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=600&auto=format&fit=crop'
+  },
+  rated: {
+    tag: 'Top Rated',
+    title: '4.9★ CAFÉS',
+    code: 'Explore Delhi',
+    color: '#3E2C22',
+    gradient: 'from-[#3E2C22] via-[#3E2C22]/80 to-transparent',
+    img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=600&auto=format&fit=crop'
+  }
+};
 
-  const changeState = (newState: AppState) => {
-    setInternalState(newState);
-    if (onStateChange) onStateChange(newState);
-  };
-
-  // Interactive App State
-  const [selectedLocation, setSelectedLocation] = useState('Delhi NCR');
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [hasUnreadNotif, setHasUnreadNotif] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [favorites, setFavorites] = useState<number[]>([1]);
-  const [offerIndex, setOfferIndex] = useState(0);
-  const [addedToast, setAddedToast] = useState(false);
+export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', onStateChange }: HeroPhoneProps) {
+  const [internalState, setInternalState] = useState<AppState>(activeState);
+  const [favorite, setFavorite] = useState(false);
   
-  // Cart & Product Detail State
-  const [selectedCafe, setSelectedCafe] = useState<CafeItem>(CAFES[0]);
-  const [selectedProduct, setSelectedProduct] = useState<MenuItem>(MENU[0]);
-  const [selectedSize, setSelectedSize] = useState<'Small' | 'Medium' | 'Large'>('Medium');
-  const [selectedAddons, setSelectedAddons] = useState<string[]>(['Oat Milk']);
-  const [cartItems, setCartItems] = useState<{ product: MenuItem; size: string; addons: string[] }>({
-    product: MENU[0],
-    size: 'Medium',
-    addons: ['Oat Milk']
-  });
+  // Active promo theme based on current energy transition
+  const currentPromoKey = (activeEnergyCard && promoThemes[activeEnergyCard]) ? activeEnergyCard : 'cafes';
+  const promo = promoThemes[currentPromoKey];
+  
+  // Interactive App Sub-States
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCity, setSelectedCity] = useState('Delhi NCR');
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [couponApplied, setCouponApplied] = useState(true); // GRAB20 enabled by default
+  const [cartCount, setCartCount] = useState(2);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Auto-advance offer carousel
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setOfferIndex((prev) => (prev + 1) % OFFERS.length);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Sync external state
-  useEffect(() => {
-    if (externalState) {
-      setInternalState(externalState);
-    }
-  }, [externalState]);
-
-  const toggleFavorite = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
+  const state = onStateChange ? activeState : internalState;
+  const setState = (newState: AppState) => {
+    if (onStateChange) onStateChange(newState);
+    else setInternalState(newState);
   };
 
-  const handleAddToCart = () => {
-    setCartItems({ product: selectedProduct, size: selectedSize, addons: selectedAddons });
-    setAddedToast(true);
-    setTimeout(() => {
-      setAddedToast(false);
-      changeState('CART');
-    }, 700);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2000);
   };
 
-  const filteredCafes = CAFES.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.tag.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredMenu = MENU.filter(m => {
-    const cat = selectedCategory.replace('☕ ', '');
-    const matchesCategory = selectedCategory === 'All' || m.category === cat;
-    const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const cities = ['Delhi NCR', 'Mumbai', 'Bengaluru', 'Gurgaon', 'South Delhi'];
 
   return (
-    <motion.div
-      className="relative mx-auto w-[320px] sm:w-[340px] lg:w-[350px] h-[550px] sm:h-[585px] lg:h-[610px] rounded-[48px] bg-[#120D0B] p-[10px] shadow-[0_24px_50px_rgba(0,0,0,0.5),0_10px_20px_rgba(0,0,0,0.4)] border-[1px] border-white/15 ring-4 ring-[#261E1A] will-change-transform select-none"
-    >
-      {/* Dynamic Hardware Buttons */}
-      <div className="absolute top-[110px] -left-[13px] w-[3px] h-[28px] bg-[#2A201C] rounded-l-md" />
-      <div className="absolute top-[150px] -left-[13px] w-[3px] h-[45px] bg-[#2A201C] rounded-l-md" />
-      <div className="absolute top-[205px] -left-[13px] w-[3px] h-[45px] bg-[#2A201C] rounded-l-md" />
-      <div className="absolute top-[160px] -right-[13px] w-[3px] h-[60px] bg-[#2A201C] rounded-r-md" />
-
-      {/* Screen Glare & Reflection Overlay */}
-      <div className="absolute inset-0 rounded-[46px] pointer-events-none z-50 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent opacity-60" />
-
-      {/* Internal Screen Container */}
-      <div className="relative w-full h-full bg-[#FDFBF7] rounded-[38px] overflow-hidden flex flex-col justify-between text-[#1A1311] font-sans">
+    <div className="relative mx-auto w-[310px] h-[640px] shrink-0 z-20 pointer-events-auto">
+      
+      {/* ------------------------------------- */}
+      {/* PHYSICAL HARDWARE (DEEP ESPRESSO) */}
+      {/* ------------------------------------- */}
+      
+      {/* Outer Case & Two-Layer Shadow */}
+      <div className="absolute inset-0 bg-[#140F0D] rounded-[48px] shadow-[0_30px_60px_rgba(20,10,5,0.25),0_8px_16px_rgba(20,10,5,0.4)] overflow-visible">
         
-        {/* Dynamic Island & Status Bar */}
-        <div className="relative pt-2.5 px-6 flex items-center justify-between z-30 shrink-0 bg-[#FDFBF7]">
-          <span className="text-[12px] font-bold tracking-tight text-[#1A1311]">9:41</span>
+        {/* Subtle Warm Highlight Rim */}
+        <div className="absolute inset-[-1px] rounded-[49px] bg-gradient-to-br from-[#8A7A6B]/40 via-transparent to-[#140F0D] opacity-80 pointer-events-none" />
+        
+        {/* Physical Side Buttons */}
+        <div className="absolute -left-[3px] top-[120px] w-[3px] h-[32px] bg-[#2A2422] rounded-l-sm shadow-sm" />
+        <div className="absolute -left-[3px] top-[165px] w-[3px] h-[32px] bg-[#2A2422] rounded-l-sm shadow-sm" />
+        <div className="absolute -right-[3px] top-[140px] w-[3px] h-[48px] bg-[#2A2422] rounded-r-sm shadow-sm" />
+
+        {/* Screen Area (Inner Bezel & Display) */}
+        <div className="absolute inset-[6px] bg-black rounded-[42px] overflow-hidden">
           
-          {/* Dynamic Island */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[94px] h-[24px] bg-[#1A1311] rounded-full flex items-center justify-between px-2.5 shadow-xs">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#2A201C]" />
-            <div className="w-2 h-2 rounded-full bg-[#10B981]/80 animate-pulse" />
+          {/* Subtle Glass Reflection */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none z-50 mix-blend-overlay" />
+          <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none z-50 opacity-20 blur-sm" />
+
+          {/* Dynamic Island Notch */}
+          <div className="absolute top-[14px] left-1/2 -translate-x-1/2 w-[95px] h-[28px] bg-black rounded-full z-50 flex items-center justify-between px-2.5 shadow-[inset_0_-1px_2px_rgba(255,255,255,0.05)]">
+            <div className="w-[10px] h-[10px] rounded-full bg-[#111] border border-white/5" />
+            <div className="w-[10px] h-[10px] rounded-full bg-[#050505] shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)]" />
           </div>
 
-          <div className="flex items-center gap-1.5 text-[#1A1311]">
-            <MS name="signal_cellular_4_bar" size={13} />
-            <MS name="wifi" size={13} />
-            <MS name="battery_full" size={14} />
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* APP SCREEN CONTENT SWITCHER WITH ANIMS */}
-        {/* ========================================================= */}
-        <div className="relative flex-1 overflow-y-auto no-scrollbar pt-2 px-3.5 pb-2">
-          
-          <AnimatePresence mode="wait">
+          {/* Inner Display (App UI) */}
+          <div className="absolute inset-0 bg-[#FDFBF7] text-[#1A1311] overflow-hidden flex flex-col font-sans">
             
-            {/* ----------------------------------------------------- */}
-            {/* 1. HOME SCREEN */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'HOME' && (
-              <motion.div
-                key="home"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.25 }}
-                className="flex flex-col gap-3 pb-4"
-              >
-                {/* Header Greeting & Location Selector */}
-                <div className="flex items-center justify-between mt-1">
-                  <div>
-                    <div className="text-[11px] font-medium text-[#8A7A6B]">Good morning 👋</div>
-                    <button 
-                      onClick={() => setShowLocationPicker(!showLocationPicker)}
-                      className="flex items-center gap-1 text-[13.5px] font-extrabold text-[#1A1311] hover:text-[#F09819] transition-colors"
-                    >
-                      <MS name="location_on" size={14} className="text-[#F09819]" />
-                      <span>{selectedLocation}</span>
-                      <MS name="keyboard_arrow_down" size={15} />
-                    </button>
-                  </div>
-
-                  {/* Notification Button */}
-                  <button 
-                    onClick={() => {
-                      setShowNotifications(!showNotifications);
-                      setHasUnreadNotif(false);
-                    }}
-                    className="relative w-8.5 h-8.5 rounded-full bg-white border border-[#EBE4D8] shadow-xs flex items-center justify-center text-[#1A1311] hover:bg-gray-50 active:scale-95 transition-all"
-                  >
-                    <MS name="notifications" size={17} />
-                    {hasUnreadNotif && (
-                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F09819] animate-pulse" />
-                    )}
-                  </button>
+            {/* iOS Status Bar */}
+            <div className="h-[46px] w-full flex items-center justify-between px-7 shrink-0 pt-[10px] text-[12px] font-bold tracking-tight z-40 bg-[#FDFBF7]">
+              <span>9:41</span>
+              <div className="flex items-center gap-1.5 opacity-80">
+                <MS name="signal_cellular_4_bar" size={13} />
+                <MS name="wifi" size={13} />
+                <div className="w-[20px] h-[11px] border border-black rounded-[4px] p-[1px] relative">
+                  <div className="bg-black w-full h-full rounded-[2px]" />
+                  <div className="absolute -right-[3px] top-[2.5px] w-[2px] h-[4px] bg-black rounded-r-sm" />
                 </div>
+              </div>
+            </div>
 
-                {/* SEARCH BAR WITH EXPANDABLE SUGGESTIONS */}
-                <div className="relative">
-                  <div className={`flex items-center gap-2 bg-white border ${isSearchFocused ? 'border-[#F09819] ring-2 ring-[#F09819]/20' : 'border-[#EBE4D8]'} rounded-xl px-3 py-2 shadow-2xs transition-all`}>
-                    <MS name="search" size={16} className="text-[#8A7A6B]" />
-                    <input 
-                      type="text"
-                      placeholder="Search cafés, coffee, snacks..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => setIsSearchFocused(true)}
-                      onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                      className="w-full text-[12px] bg-transparent outline-none text-[#1A1311] placeholder:text-[#8A7A6B]"
-                    />
-                    {searchQuery && (
-                      <button onClick={() => setSearchQuery('')}>
-                        <MS name="close" size={14} className="text-[#8A7A6B]" />
-                      </button>
-                    )}
+            {/* Interactive Toast Notification */}
+            <AnimatePresence>
+              {toastMessage && (
+                <motion.div 
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  className="absolute top-[50px] left-4 right-4 bg-[#1A1311] text-white text-[11px] font-bold py-2 px-3 rounded-full shadow-lg z-50 flex items-center gap-2 justify-center"
+                >
+                  <MS name="check_circle" size={14} className="text-[#F09819]" />
+                  <span>{toastMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* City Picker Modal */}
+            <AnimatePresence>
+              {showCityPicker && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/60 z-50 flex items-end"
+                  onClick={() => setShowCityPicker(false)}
+                >
+                  <motion.div 
+                    initial={{ y: 100 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: 100 }}
+                    className="w-full bg-[#FDFBF7] rounded-t-[28px] p-5 border-t border-[#EBE4D8] shadow-xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-[14px] font-black">Select Your City</h4>
+                      <div onClick={() => setShowCityPicker(false)} className="cursor-pointer p-1">
+                        <MS name="close" size={18} />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {cities.map((city) => (
+                        <div 
+                          key={city}
+                          onClick={() => {
+                            setSelectedCity(city);
+                            setShowCityPicker(false);
+                            showToast(`Switched to ${city}`);
+                          }}
+                          className={`p-3 rounded-xl border text-[13px] font-bold flex justify-between items-center cursor-pointer transition-colors ${selectedCity === city ? 'bg-[#F09819]/10 border-[#F09819] text-[#F09819]' : 'bg-white border-[#EBE4D8]'}`}
+                        >
+                          <span>{city}</span>
+                          {selectedCity === city && <MS name="check" size={16} />}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Notifications Popover */}
+            <AnimatePresence>
+              {notificationsOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="absolute top-[55px] right-4 w-[240px] bg-white border border-[#EBE4D8] rounded-[20px] p-4 shadow-xl z-50"
+                >
+                  <div className="flex justify-between items-center mb-2.5">
+                    <span className="text-[12px] font-black">Notifications</span>
+                    <span onClick={() => setNotificationsOpen(false)} className="text-[10px] font-bold text-[#F09819] cursor-pointer">Close</span>
                   </div>
+                  <div className="space-y-2">
+                    <div className="p-2 rounded-lg bg-[#FFF8EC] border border-[#F09819]/20 flex gap-2">
+                      <MS name="stars" size={16} className="text-[#F09819] shrink-0" />
+                      <div className="text-[10px]">
+                        <p className="font-bold text-[#1A1311]">₹50 Off Next Order</p>
+                        <p className="text-[#8A7A6B]">Valid for Blue Tokai Coffee</p>
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-gray-50 flex gap-2">
+                      <MS name="local_shipping" size={16} className="text-[#8A7A6B] shrink-0" />
+                      <div className="text-[10px]">
+                        <p className="font-bold text-[#1A1311]">Order Delivered</p>
+                        <p className="text-[#8A7A6B]">Blue Tokai • 2 hrs ago</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                  {/* Search Suggestions Dropdown */}
-                  {isSearchFocused && !searchQuery && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#EBE4D8] rounded-xl p-2.5 shadow-md z-40 text-left">
-                      <div className="text-[9px] font-bold text-[#8A7A6B] uppercase mb-1.5 tracking-wider">Popular Nearby</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {['☕ Cappuccino', '☕ Cold Brew', '🥐 Croissant', '🍵 Matcha'].map((item, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setSearchQuery(item.replace(/^[^\s]+\s/, ''))}
-                            className="text-[10px] font-bold bg-[#FDFBF7] border border-[#EBE4D8] hover:bg-[#F09819] hover:text-white px-2 py-1 rounded-md transition-colors"
+            {/* SCREEN CONTENT AREA */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden noscroll pb-24 relative">
+              <AnimatePresence mode="wait">
+                
+                {/* 1. HOME SCREEN */}
+                {state === 'HOME' && (
+                  <motion.div 
+                    key="home"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col w-full h-full"
+                  >
+                    {/* Header */}
+                    <div className="px-6 pt-2 pb-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-extrabold text-[#8A7A6B] uppercase tracking-[0.1em] mb-0.5">Good morning 👋</p>
+                          <div 
+                            onClick={() => setShowCityPicker(true)}
+                            className="flex items-center gap-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all"
                           >
-                            {item}
+                            <span className="text-[15px] font-black">{selectedCity}</span>
+                            <MS name="expand_more" size={16} className="text-[#8A7A6B]" />
+                          </div>
+                        </div>
+                        <div 
+                          onClick={() => setNotificationsOpen(!notificationsOpen)}
+                          className="w-10 h-10 rounded-full border border-[#EBE4D8] flex items-center justify-center text-[#1A1311] relative cursor-pointer active:scale-95 transition-transform bg-white shadow-xs"
+                        >
+                          <MS name="notifications" size={20} />
+                          <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#F09819] rounded-full border-[1.5px] border-white" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Search */}
+                    <div className="px-6 mb-5">
+                      <div 
+                        onClick={() => setState('EXPLORE')}
+                        className="w-full bg-white border border-[#EBE4D8] rounded-[20px] h-[48px] flex items-center px-4 shadow-[0_2px_8px_rgba(26,19,17,0.03)] cursor-pointer active:scale-[0.98] transition-transform group"
+                      >
+                        <MS name="search" size={20} className="text-[#8A7A6B] group-hover:text-[#F09819] transition-colors" />
+                        <span className="text-[14px] text-[#8A7A6B] ml-3 font-medium">Search cafés, coffee...</span>
+                        <div className="ml-auto w-8 h-8 bg-[#1A1311] rounded-full flex items-center justify-center text-white shadow-sm">
+                          <MS name="tune" size={16} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Premium Promotional Banner (Dynamic Synced Theme & Image) */}
+                    <div className="px-6 mb-6">
+                      <motion.div 
+                        key={currentPromoKey}
+                        initial={{ opacity: 0.9 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.4 }}
+                        onClick={() => setState('CAFE')}
+                        className="w-full h-[105px] rounded-[20px] overflow-hidden relative shadow-sm cursor-pointer active:scale-[0.98] transition-all duration-500 flex items-center pl-5"
+                        style={{ backgroundColor: promo.color }}
+                      >
+                        <div className="relative z-20 text-white">
+                          <motion.p 
+                            key={`tag-${currentPromoKey}`}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-[8px] font-extrabold uppercase tracking-widest bg-white/20 inline-block px-1.5 py-0.5 rounded-sm mb-1"
+                          >
+                            {promo.tag}
+                          </motion.p>
+                          <motion.h3 
+                            key={`title-${currentPromoKey}`}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.05 }}
+                            className="text-[24px] font-black leading-none mb-1"
+                          >
+                            {promo.title}
+                          </motion.h3>
+                          <motion.div 
+                            key={`code-${currentPromoKey}`}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-black text-white text-[9px] font-bold px-2.5 py-1 rounded-md w-fit uppercase mt-1.5 shadow-sm"
+                          >
+                            {promo.code}
+                          </motion.div>
+                        </div>
+                        
+                        {/* Dynamic Overlay Gradient */}
+                        <div className={`absolute inset-0 bg-gradient-to-r ${promo.gradient} z-10 transition-all duration-500`} />
+                        
+                        {/* Dynamic Background Image */}
+                        <motion.img 
+                          key={`img-${currentPromoKey}`}
+                          initial={{ opacity: 0, scale: 1.05 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.45 }}
+                          src={promo.img} 
+                          alt={promo.title} 
+                          className="absolute right-0 top-0 bottom-0 w-3/5 object-cover object-center z-0" 
+                        />
+                      </motion.div>
+                    </div>
+
+                    {/* Categories (Dense Chips) */}
+                    <div className="px-6 mb-6">
+                      <div className="flex justify-between items-end mb-3">
+                        <h3 className="text-[15px] font-black">Categories</h3>
+                        <span onClick={() => setState('EXPLORE')} className="text-[11px] font-bold text-[#F09819] cursor-pointer hover:underline">See all</span>
+                      </div>
+                      <div className="flex gap-3 overflow-x-auto noscroll pb-1">
+                        {[
+                          { name: 'Coffee', icon: 'local_cafe' },
+                          { name: 'Cold Brew', icon: 'local_drink' },
+                          { name: 'Matcha', icon: 'emoji_food_beverage' },
+                          { name: 'Pastry', icon: 'bakery_dining' }
+                        ].map((cat) => (
+                          <div 
+                            key={cat.name} 
+                            onClick={() => {
+                              setActiveCategory(cat.name);
+                              setState('EXPLORE');
+                            }}
+                            className={`flex flex-col items-center justify-center shrink-0 w-[62px] h-[64px] rounded-[18px] shadow-xs cursor-pointer active:scale-95 transition-transform border ${activeCategory === cat.name ? 'bg-[#F09819] text-white border-[#F09819]' : 'bg-white border-[#EBE4D8] text-[#1A1311] hover:border-[#8A7A6B]'}`}
+                          >
+                            <MS name={cat.icon} size={22} className="mb-1" />
+                            <span className="text-[10px] font-bold">{cat.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Nearby Cafes */}
+                    <div className="px-6 pb-6">
+                      <div className="flex justify-between items-end mb-3">
+                        <h3 className="text-[15px] font-black">Nearby cafés</h3>
+                        <span onClick={() => setState('EXPLORE')} className="text-[11px] font-bold text-[#F09819] cursor-pointer hover:underline">See all</span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {/* Cafe Card 1: Blue Tokai */}
+                        <div 
+                          onClick={() => setState('CAFE')}
+                          className="w-full flex items-center gap-3.5 bg-white border border-[#EBE4D8] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform group"
+                        >
+                          <div className="w-[76px] h-[76px] bg-gray-200 rounded-[16px] overflow-hidden relative shrink-0">
+                            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Cafe" />
+                          </div>
+                          
+                          <div className="flex flex-col flex-1 py-0.5">
+                            <div className="flex justify-between items-start mb-0.5">
+                              <h4 className="text-[14px] font-bold leading-tight">Blue Tokai Coffee</h4>
+                              <div 
+                                className="text-[#8A7A6B] hover:text-red-500 transition-colors p-1"
+                                onClick={(e) => { e.stopPropagation(); setFavorite(!favorite); showToast(favorite ? 'Removed from favorites' : 'Saved to favorites'); }}
+                              >
+                                <MS name={favorite ? 'favorite' : 'favorite_border'} size={18} className={favorite ? 'text-red-500' : ''} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#8A7A6B] mb-1.5">
+                              <span className="flex items-center gap-0.5 text-[#F09819]"><MS name="star" size={12} /> 4.9</span>
+                              <span className="w-0.5 h-0.5 rounded-full bg-[#8A7A6B]" />
+                              <span>0.8 km</span>
+                            </div>
+                            <div className="bg-[#10B981]/10 text-[#10B981] w-fit px-2 py-0.5 rounded flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wide">
+                              Ready in 07 min
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Cafe Card 2: Third Wave */}
+                        <div 
+                          onClick={() => setState('CAFE')}
+                          className="w-full flex items-center gap-3.5 bg-white border border-[#EBE4D8] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform group"
+                        >
+                          <div className="w-[76px] h-[76px] bg-gray-200 rounded-[16px] overflow-hidden relative shrink-0">
+                            <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Third Wave Coffee" />
+                          </div>
+                          
+                          <div className="flex flex-col flex-1 py-0.5">
+                            <div className="flex justify-between items-start mb-0.5">
+                              <h4 className="text-[14px] font-bold leading-tight">Third Wave Coffee</h4>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#8A7A6B] mb-1.5">
+                              <span className="flex items-center gap-0.5 text-[#F09819]"><MS name="star" size={12} /> 4.8</span>
+                              <span className="w-0.5 h-0.5 rounded-full bg-[#8A7A6B]" />
+                              <span>1.2 km</span>
+                            </div>
+                            <div className="bg-[#10B981]/10 text-[#10B981] w-fit px-2 py-0.5 rounded flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wide">
+                              Ready in 10 min
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* 2. EXPLORE SCREEN */}
+                {state === 'EXPLORE' && (
+                  <motion.div 
+                    key="explore"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col w-full h-full px-6 pt-2"
+                  >
+                    {/* Sticky Header, Search & Filter Pills */}
+                    <div className="sticky top-0 bg-[#FDFBF7] z-20 pt-1 pb-2 border-b border-[#EBE4D8]/60">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div onClick={() => setState('HOME')} className="p-2 rounded-full bg-white border border-[#EBE4D8] cursor-pointer active:scale-90 transition-transform">
+                          <MS name="arrow_back" size={18} />
+                        </div>
+                        <h2 className="text-[18px] font-black">Explore Cafés</h2>
+                      </div>
+
+                      {/* Search Bar */}
+                      <div className="bg-white border border-[#EBE4D8] rounded-[18px] h-[42px] flex items-center px-3 mb-3 shadow-xs">
+                        <MS name="search" size={18} className="text-[#8A7A6B]" />
+                        <input 
+                          type="text" 
+                          placeholder="Search espresso, cold brew..." 
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full bg-transparent text-[13px] font-bold px-2 outline-none"
+                        />
+                        {searchQuery && (
+                          <div onClick={() => setSearchQuery('')} className="cursor-pointer">
+                            <MS name="cancel" size={16} className="text-[#8A7A6B]" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Filter Pills */}
+                      <div className="flex gap-2 overflow-x-auto noscroll pb-1">
+                        {['All', 'Top Rated', 'Fastest', 'Coffee', 'Matcha', 'Food'].map((filter) => (
+                          <button
+                            key={filter}
+                            onClick={() => setActiveCategory(filter)}
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-bold border shrink-0 transition-colors ${activeCategory === filter ? 'bg-[#1A1311] text-white border-[#1A1311]' : 'bg-white border-[#EBE4D8] text-[#8A7A6B]'}`}
+                          >
+                            {filter}
                           </button>
                         ))}
                       </div>
                     </div>
-                  )}
-                </div>
 
-                {/* OFFER BANNER CAROUSEL */}
-                <div 
-                  onClick={() => setOfferIndex((offerIndex + 1) % OFFERS.length)}
-                  className={`relative w-full rounded-2xl p-3.5 text-white bg-gradient-to-r ${OFFERS[offerIndex].bg} shadow-sm overflow-hidden cursor-pointer active:scale-98 transition-all`}
-                >
-                  <div className="relative z-10">
-                    <span className="text-[9px] font-extrabold tracking-[0.14em] uppercase bg-black/25 px-2 py-0.5 rounded-full">
-                      {OFFERS[offerIndex].title}
-                    </span>
-                    <div className="text-[20px] font-black leading-tight mt-1">
-                      {OFFERS[offerIndex].offer}
-                    </div>
-                    <div className="text-[11px] font-medium text-white/90 mb-2">
-                      {OFFERS[offerIndex].sub}
-                    </div>
-                    <div className="inline-flex items-center gap-1 bg-white text-[#1A1311] font-bold text-[10px] px-2.5 py-1 rounded-full shadow-xs">
-                      Use code {OFFERS[offerIndex].code}
-                    </div>
-                  </div>
-
-                  {/* Offer Decoration Graphic */}
-                  <div className="absolute -right-3 -bottom-3 w-24 h-24 rounded-full bg-white/10 blur-xs pointer-events-none" />
-                  
-                  {/* Pagination Dots */}
-                  <div className="absolute bottom-2 right-3 flex gap-1 z-10">
-                    {OFFERS.map((_, idx) => (
-                      <span 
-                        key={idx} 
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${idx === offerIndex ? 'bg-white w-3' : 'bg-white/40'}`} 
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* CATEGORIES HORIZONTAL FILTER */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[12px] font-extrabold text-[#1A1311]">Categories</span>
-                    <span className="text-[10px] font-bold text-[#F09819]">See all</span>
-                  </div>
-
-                  <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                    {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
-                          selectedCategory === cat 
-                            ? 'bg-[#F09819] text-white shadow-xs' 
-                            : 'bg-white border border-[#EBE4D8] text-[#1A1311] hover:bg-gray-50'
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* NEARBY CAFÉS SECTION */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[12px] font-extrabold text-[#1A1311]">Cafés near you</span>
-                    <span className="text-[10px] font-bold text-[#F09819]">4 nearby</span>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    {filteredCafes.map((cafe) => (
-                      <motion.div
-                        key={cafe.id}
-                        whileHover={{ y: -2, scale: 1.01 }}
-                        onClick={() => {
-                          setSelectedCafe(cafe);
-                          changeState('CAFE');
-                        }}
-                        className="flex items-center gap-2.5 bg-white border border-[#EBE4D8] rounded-2xl p-2 shadow-2xs cursor-pointer hover:border-[#F09819]/50 transition-all"
-                      >
-                        <img src={cafe.img} alt={cafe.name} className="w-13 h-13 rounded-xl object-cover shrink-0" />
-                        <div className="flex-1 min-w-0 text-left">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[12px] font-bold text-[#1A1311] truncate">{cafe.name}</span>
-                            <button onClick={(e) => toggleFavorite(cafe.id, e)}>
-                              <MS 
-                                name={favorites.includes(cafe.id) ? "favorite" : "favorite_border"} 
-                                size={14} 
-                                className={favorites.includes(cafe.id) ? "text-[#F09819]" : "text-[#8A7A6B]"} 
-                              />
-                            </button>
-                          </div>
-                          <div className="text-[10px] text-[#8A7A6B] flex items-center gap-1 mt-0.5">
-                            <span className="text-[#F09819] font-bold">★ {cafe.rating}</span>
-                            <span>•</span>
-                            <span>{cafe.dist}</span>
-                          </div>
-                          <div className="inline-flex items-center gap-1 text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-1.5 py-0.2 rounded-full mt-1">
-                            <span className="w-1 h-1 rounded-full bg-[#10B981] animate-pulse" />
-                            Ready in {cafe.prep}
+                    {/* Cafes Grid */}
+                    <div className="space-y-3 pt-3 pb-32">
+                      {[
+                        { name: 'Blue Tokai Coffee', rating: '4.9', dist: '0.8 km', time: '7 min', img: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop' },
+                        { name: 'Third Wave Coffee', rating: '4.8', dist: '1.2 km', time: '10 min', img: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop' },
+                        { name: 'Araku Specialty Coffee', rating: '4.9', dist: '2.1 km', time: '12 min', img: 'https://images.unsplash.com/photo-1497636577773-f1231844b336?q=80&w=600&auto=format&fit=crop' },
+                        { name: 'Subko Specialty Coffee', rating: '4.7', dist: '2.5 km', time: '15 min', img: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=600&auto=format&fit=crop' }
+                      ].filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((cafe) => (
+                        <div 
+                          key={cafe.name}
+                          onClick={() => setState('CAFE')}
+                          className="w-full flex items-center gap-3.5 bg-white border border-[#EBE4D8] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
+                        >
+                          <img src={cafe.img} className="w-[68px] h-[68px] rounded-[16px] object-cover shrink-0" alt={cafe.name} />
+                          <div className="flex-1">
+                            <h4 className="text-[14px] font-bold">{cafe.name}</h4>
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#8A7A6B] my-1">
+                              <span className="flex items-center text-[#F09819]"><MS name="star" size={12} /> {cafe.rating}</span>
+                              <span>•</span>
+                              <span>{cafe.dist}</span>
+                            </div>
+                            <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded">Ready in {cafe.time}</span>
                           </div>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 2. CAFÉ DETAIL SCREEN */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'CAFE' && (
-              <motion.div
-                key="cafe"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-                className="flex flex-col gap-3 pb-4 text-left"
-              >
-                {/* Back bar */}
-                <button 
-                  onClick={() => changeState('HOME')}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F09819] hover:underline"
-                >
-                  <MS name="arrow_back" size={14} /> Back to Cafés
-                </button>
-
-                {/* Cafe Hero Header */}
-                <div className="relative rounded-2xl overflow-hidden h-28 border border-[#EBE4D8]">
-                  <img src={selectedCafe.img} alt={selectedCafe.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3 flex flex-col justify-end text-white">
-                    <div className="text-[15px] font-extrabold leading-tight">{selectedCafe.name}</div>
-                    <div className="text-[10px] text-white/80 flex items-center gap-2 mt-0.5">
-                      <span className="text-[#F09819] font-bold">★ {selectedCafe.rating}</span>
-                      <span>•</span>
-                      <span>{selectedCafe.dist}</span>
-                      <span>•</span>
-                      <span className="text-emerald-400 font-bold">Ready in {selectedCafe.prep}</span>
+                      ))}
                     </div>
-                  </div>
-                </div>
+                  </motion.div>
+                )}
 
-                {/* Popular Menu Items */}
-                <div className="text-[12px] font-extrabold text-[#1A1311] mt-1">Popular Menu</div>
-                
-                <div className="flex flex-col gap-2">
-                  {filteredMenu.map((item) => (
-                    <div 
-                      key={item.id}
-                      onClick={() => {
-                        setSelectedProduct(item);
-                        changeState('PRODUCT');
-                      }}
-                      className="flex items-center justify-between bg-white border border-[#EBE4D8] rounded-xl p-2.5 shadow-2xs hover:border-[#F09819] cursor-pointer transition-all"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <img src={item.img} alt={item.name} className="w-10 h-10 rounded-lg object-cover" />
-                        <div>
-                          <div className="text-[11.5px] font-bold text-[#1A1311]">{item.name}</div>
-                          <div className="text-[10px] text-[#8A7A6B] truncate max-w-[130px]">{item.desc}</div>
-                        </div>
+                {/* 3. CAFÉ MENU SCREEN */}
+                {state === 'CAFE' && (
+                  <motion.div 
+                    key="cafe"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col w-full h-full relative"
+                  >
+                    {/* Header Image */}
+                    <div className="w-full h-[140px] relative shrink-0">
+                      <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop" className="w-full h-full object-cover" alt="Blue Tokai" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      
+                      <div 
+                        onClick={() => setState('HOME')}
+                        className="absolute top-3 left-4 w-8 h-8 rounded-full bg-[rgba(255,255,255,0.95)] flex items-center justify-center cursor-pointer active:scale-90 transition-transform z-10 shadow-sm"
+                      >
+                        <MS name="arrow_back" size={18} />
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-[12px] font-black text-[#1A1311]">₹{item.price}</div>
-                        <span className="text-[9px] font-bold text-[#F09819] bg-[#F09819]/10 px-1.5 py-0.5 rounded-full">
-                          + Add
+
+                      <div className="absolute bottom-3 left-4 right-4 text-white flex justify-between items-end">
+                        <div>
+                          <h3 className="text-[17px] font-black leading-tight">Blue Tokai Coffee</h3>
+                          <p className="text-[10px] text-white/80 font-bold">Connaught Place • 0.8 km</p>
+                        </div>
+                        <span className="bg-[#F09819] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <MS name="star" size={12} /> 4.9
                         </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
 
-            {/* ----------------------------------------------------- */}
-            {/* 3. PRODUCT CUSTOMIZATION SCREEN */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'PRODUCT' && (
-              <motion.div
-                key="product"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col gap-3 pb-4 text-left"
-              >
-                <button 
-                  onClick={() => changeState('CAFE')}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F09819]"
-                >
-                  <MS name="arrow_back" size={14} /> Back to menu
-                </button>
+                    {/* Menu Items */}
+                    <div className="p-5 flex-1 space-y-3">
+                      <h4 className="text-[13px] font-black uppercase tracking-wider text-[#8A7A6B]">Must Try Drinks</h4>
 
-                <img src={selectedProduct.img} alt={selectedProduct.name} className="w-full h-32 rounded-2xl object-cover border border-[#EBE4D8]" />
-
-                <div>
-                  <div className="text-[16px] font-black text-[#1A1311]">{selectedProduct.name}</div>
-                  <div className="text-[11px] text-[#8A7A6B] leading-tight mt-0.5">{selectedProduct.desc}</div>
-                  <div className="text-[15px] font-black text-[#F09819] mt-1">₹{selectedProduct.price}</div>
-                </div>
-
-                {/* Size Selection */}
-                <div>
-                  <div className="text-[10px] font-bold text-[#8A7A6B] uppercase mb-1">Select Size</div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {(['Small', 'Medium', 'Large'] as const).map(s => (
-                      <button
-                        key={s}
-                        onClick={() => setSelectedSize(s)}
-                        className={`py-1.5 text-[11px] font-bold rounded-lg border transition-all ${
-                          selectedSize === s ? 'bg-[#F09819] text-white border-[#F09819]' : 'bg-white border-[#EBE4D8] text-[#1A1311]'
-                        }`}
+                      {/* Item 1 */}
+                      <div 
+                        onClick={() => setState('PRODUCT')}
+                        className="p-3 bg-white border border-[#EBE4D8] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
                       >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <div className="flex gap-3 items-center">
+                          <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=200&auto=format&fit=crop" className="w-14 h-14 rounded-xl object-cover shrink-0" alt="Vietnamese Iced" />
+                          <div>
+                            <h5 className="text-[13px] font-bold">Vietnamese Iced Coffee</h5>
+                            <p className="text-[10px] text-[#8A7A6B] font-medium">Sweetened condensed milk</p>
+                            <span className="text-[13px] font-black text-[#1A1311] mt-0.5 block">₹240</span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCartCount(cartCount + 1);
+                            showToast('Added Vietnamese Iced Coffee!');
+                          }}
+                          className="px-3 py-1.5 bg-[#F09819]/10 text-[#F09819] border border-[#F09819]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
+                        >
+                          ADD +
+                        </button>
+                      </div>
 
-                {/* Add-ons */}
-                <div>
-                  <div className="text-[10px] font-bold text-[#8A7A6B] uppercase mb-1">Custom Milk / Extra</div>
-                  {['Oat Milk (+₹30)', 'Extra Shot (+₹40)'].map(addon => (
-                    <label key={addon} className="flex items-center justify-between text-[11px] font-bold py-1 text-[#1A1311] cursor-pointer">
-                      <span>{addon}</span>
-                      <input 
-                        type="checkbox" 
-                        defaultChecked={addon.includes('Oat')} 
-                        className="accent-[#F09819]" 
-                      />
-                    </label>
-                  ))}
-                </div>
-
-                {/* Add to order button */}
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full bg-[#1A1311] hover:bg-[#F09819] text-white py-2.5 rounded-xl font-bold text-[12.5px] transition-colors shadow-xs active:scale-95 flex items-center justify-center gap-1.5 mt-1"
-                >
-                  <span>Add to order</span> • <span>₹{selectedProduct.price + (selectedSize === 'Large' ? 30 : 0)}</span>
-                </button>
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 4. CART & SUMMARY */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'CART' && (
-              <motion.div
-                key="cart"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                className="flex flex-col gap-3 text-left pb-4"
-              >
-                <div className="text-[14px] font-extrabold text-[#1A1311]">Your Order Summary</div>
-                
-                <div className="bg-white border border-[#EBE4D8] rounded-2xl p-3 shadow-2xs flex flex-col gap-2">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <div className="flex items-center gap-2">
-                      <img src={cartItems.product.img} className="w-9 h-9 rounded-lg object-cover" alt="item" />
-                      <div>
-                        <div className="text-[11.5px] font-bold text-[#1A1311]">{cartItems.product.name}</div>
-                        <div className="text-[9.5px] text-[#8A7A6B]">{cartItems.size} • Oat Milk</div>
+                      {/* Item 2 */}
+                      <div 
+                        onClick={() => setState('PRODUCT')}
+                        className="p-3 bg-white border border-[#EBE4D8] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
+                      >
+                        <div className="flex gap-3 items-center">
+                          <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=200&auto=format&fit=crop" className="w-14 h-14 rounded-xl object-cover shrink-0" alt="Almond Croissant" />
+                          <div>
+                            <h5 className="text-[13px] font-bold">Almond Croissant</h5>
+                            <p className="text-[10px] text-[#8A7A6B] font-medium">Flaky & freshly baked</p>
+                            <span className="text-[13px] font-black text-[#1A1311] mt-0.5 block">₹180</span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCartCount(cartCount + 1);
+                            showToast('Added Almond Croissant!');
+                          }}
+                          className="px-3 py-1.5 bg-[#F09819]/10 text-[#F09819] border border-[#F09819]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
+                        >
+                          ADD +
+                        </button>
                       </div>
                     </div>
-                    <span className="text-[12px] font-bold text-[#1A1311]">₹{cartItems.product.price}</span>
-                  </div>
 
-                  <div className="flex justify-between text-[11px] text-[#8A7A6B]">
-                    <span>Subtotal</span>
-                    <span>₹{cartItems.product.price}</span>
-                  </div>
-                  <div className="flex justify-between text-[11px] text-[#8A7A6B]">
-                    <span>Convenience Fee (Zero Wait)</span>
-                    <span className="text-[#10B981] font-bold">FREE</span>
-                  </div>
-                  <div className="flex justify-between text-[12.5px] font-black text-[#1A1311] border-t border-gray-100 pt-1.5">
-                    <span>Total</span>
-                    <span>₹{cartItems.product.price}</span>
-                  </div>
-                </div>
+                    {/* Floating Bottom Cart Bar */}
+                    {cartCount > 0 && (
+                      <div className="px-5 pb-3">
+                        <div 
+                          onClick={() => setState('CART')}
+                          className="w-full bg-[#1A1311] text-white p-3 rounded-full flex justify-between items-center cursor-pointer active:scale-95 transition-transform shadow-lg"
+                        >
+                          <div className="flex items-center gap-2 pl-2">
+                            <span className="w-6 h-6 bg-[#F09819] rounded-full text-white text-[11px] font-bold flex items-center justify-center">{cartCount}</span>
+                            <span className="text-[12px] font-bold">Items added</span>
+                          </div>
+                          <div className="flex items-center gap-1 pr-2 text-[12px] font-bold text-[#F09819]">
+                            <span>View Cart</span>
+                            <MS name="arrow_forward" size={16} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
 
-                <div className="bg-[#FFF3DC] border border-[#FFE7B0] rounded-xl p-2.5 flex items-center gap-2 text-[10.5px] text-[#8A7A6B]">
-                  <MS name="schedule" size={16} className="text-[#F09819]" />
-                  <span>Estimated pickup ready in <strong>7 mins</strong></span>
-                </div>
-
-                <button
-                  onClick={() => changeState('CONFIRMATION')}
-                  className="w-full bg-[#1A1311] hover:bg-[#F09819] text-white py-2.5 rounded-xl font-bold text-[12.5px] transition-colors shadow-xs active:scale-95 flex items-center justify-center gap-1"
-                >
-                  Order ahead →
-                </button>
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 5. CONFIRMATION SCREEN */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'CONFIRMATION' && (
-              <motion.div
-                key="confirm"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex flex-col items-center text-center gap-3 py-6"
-              >
-                <div className="w-12 h-12 rounded-full bg-[#10B981]/15 text-[#10B981] flex items-center justify-center">
-                  <MS name="check_circle" size={32} />
-                </div>
-
-                <div>
-                  <div className="text-[10px] font-bold tracking-[0.14em] text-[#10B981] uppercase">ORDER CONFIRMED</div>
-                  <div className="text-[16px] font-black text-[#1A1311] mt-0.5">Blue Tokai Coffee</div>
-                  <div className="text-[11px] text-[#8A7A6B]">Order #GRB2408</div>
-                </div>
-
-                <div className="bg-white border border-[#EBE4D8] rounded-2xl p-4 w-full shadow-2xs">
-                  <div className="text-[10px] font-bold text-[#8A7A6B] uppercase">Estimated Pickup In</div>
-                  <div className="text-[32px] font-black text-[#F09819] leading-none my-1">07 MIN</div>
-                  <div className="text-[10.5px] text-[#8A7A6B]">We'll have it ready when you arrive.</div>
-                </div>
-
-                <button
-                  onClick={() => changeState('READY')}
-                  className="w-full bg-[#F09819] text-white py-2.5 rounded-xl font-bold text-[12px] shadow-xs active:scale-95"
-                >
-                  View Order Status →
-                </button>
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 6. ORDER READY SCREEN (SYNCS WITH FLOATING CARD) */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'READY' && (
-              <motion.div
-                key="ready"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="flex flex-col items-center text-center gap-3 py-4"
-              >
-                <div className="w-12 h-12 rounded-full bg-[#F09819] text-white flex items-center justify-center animate-bounce shadow-md">
-                  <MS name="local_cafe" size={24} />
-                </div>
-
-                <div>
-                  <span className="text-[9px] font-bold tracking-[0.16em] uppercase bg-[#10B981]/15 text-[#10B981] px-2.5 py-0.5 rounded-full">
-                    ● ORDER READY
-                  </span>
-                  <div className="text-[17px] font-black text-[#1A1311] mt-1.5">Pick Up Now</div>
-                  <div className="text-[11px] text-[#8A7A6B]">Counter #2 • Blue Tokai</div>
-                </div>
-
-                <div className="bg-white border border-[#EBE4D8] rounded-2xl p-3.5 w-full shadow-2xs text-left">
-                  <div className="text-[10px] font-bold text-[#8A7A6B] uppercase mb-1">Your Items</div>
-                  <div className="flex items-center justify-between text-[11.5px] font-bold text-[#1A1311]">
-                    <span>1x Iced Cappuccino (Medium)</span>
-                    <span>Ready</span>
-                  </div>
-                  <div className="text-[10px] text-[#8A7A6B] mt-0.5">Barista KDS Alerted • Zero Wait</div>
-                </div>
-
-                <button
-                  onClick={() => changeState('HOME')}
-                  className="w-full bg-[#1A1311] text-white py-2 rounded-xl font-bold text-[11.5px]"
-                >
-                  Done • Back to Home
-                </button>
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 7. EXPLORE TAB */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'EXPLORE' && (
-              <motion.div
-                key="explore"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col gap-3 text-left pb-4"
-              >
-                <div className="text-[14px] font-extrabold text-[#1A1311]">Explore Cafés Near You</div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  {CAFES.concat([{ id: 4, name: 'Roastery Coffee', rating: 4.9, dist: '2.1 km', prep: '8 min', tag: 'Cold Brews', img: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400&q=80' }]).map(c => (
-                    <div 
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedCafe(c);
-                        changeState('CAFE');
-                      }}
-                      className="bg-white border border-[#EBE4D8] rounded-xl p-2 text-left cursor-pointer hover:border-[#F09819]"
-                    >
-                      <img src={c.img} className="w-full h-16 rounded-lg object-cover mb-1.5" alt="cafe" />
-                      <div className="text-[11px] font-bold text-[#1A1311] truncate">{c.name}</div>
-                      <div className="text-[9px] text-[#8A7A6B]">★ {c.rating} • {c.dist}</div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 8. ORDERS TAB */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'ORDERS' && (
-              <motion.div
-                key="orders"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col gap-3 text-left pb-4"
-              >
-                <div className="text-[14px] font-extrabold text-[#1A1311]">Active & Past Orders</div>
-                
-                <div 
-                  onClick={() => changeState('READY')}
-                  className="bg-[#FFF3DC] border border-[#F09819] rounded-2xl p-3 cursor-pointer shadow-2xs"
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-bold text-[#F09819] uppercase">Active Order</span>
-                    <span className="text-[10px] font-bold text-[#10B981]">● Ready Now</span>
-                  </div>
-                  <div className="text-[13px] font-black text-[#1A1311]">Blue Tokai Coffee</div>
-                  <div className="text-[10px] text-[#8A7A6B]">Order #GRB2408 • Counter #2</div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ----------------------------------------------------- */}
-            {/* 9. PROFILE TAB */}
-            {/* ----------------------------------------------------- */}
-            {activeState === 'PROFILE' && (
-              <motion.div
-                key="profile"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col gap-3 text-left pb-4"
-              >
-                <div className="text-[14px] font-extrabold text-[#1A1311]">Your Profile</div>
-                
-                <div className="bg-white border border-[#EBE4D8] rounded-2xl p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#F09819] text-white font-bold flex items-center justify-center">
-                    JD
-                  </div>
-                  <div>
-                    <div className="text-[12px] font-bold text-[#1A1311]">John Doe</div>
-                    <div className="text-[10px] text-[#8A7A6B]">john@grabbit.com • 340 pts</div>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-[#EBE4D8] rounded-xl p-2.5 flex flex-col gap-2 text-[11px] font-bold text-[#1A1311]">
-                  <div className="flex items-center justify-between cursor-pointer">
-                    <span>Saved Cafés</span>
-                    <span>1</span>
-                  </div>
-                  <div className="flex items-center justify-between cursor-pointer">
-                    <span>Payment Methods</span>
-                    <span>UPI</span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-          </AnimatePresence>
-
-          {/* Location Picker Sheet Dropdown */}
-          {showLocationPicker && (
-            <div className="absolute inset-x-2 top-12 bg-white border border-[#EBE4D8] rounded-2xl p-3 shadow-lg z-50 text-left">
-              <div className="text-[10px] font-bold text-[#8A7A6B] uppercase mb-1.5">Select Location</div>
-              <div className="flex flex-col gap-1">
-                {LOCATIONS.map((loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => {
-                      setSelectedLocation(loc);
-                      setShowLocationPicker(false);
-                    }}
-                    className={`flex items-center justify-between text-[11px] font-bold px-2 py-1.5 rounded-lg transition-colors ${
-                      selectedLocation === loc ? 'bg-[#FFF3DC] text-[#F09819]' : 'hover:bg-gray-50 text-[#1A1311]'
-                    }`}
+                {/* 4. PRODUCT DETAIL SCREEN */}
+                {state === 'PRODUCT' && (
+                  <motion.div 
+                    key="product"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="flex flex-col w-full h-full p-5 relative"
                   >
-                    <span>{loc}</span>
-                    {selectedLocation === loc && <MS name="check" size={14} />}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    <div className="flex justify-between items-center mb-3">
+                      <div onClick={() => setState('CAFE')} className="p-2 rounded-full bg-white border border-[#EBE4D8] cursor-pointer">
+                        <MS name="close" size={18} />
+                      </div>
+                      <span className="text-[12px] font-bold text-[#8A7A6B]">Blue Tokai</span>
+                    </div>
 
-          {/* Notifications Drawer */}
-          {showNotifications && (
-            <div className="absolute inset-x-2 top-12 bg-white border border-[#EBE4D8] rounded-2xl p-3 shadow-lg z-50 text-left">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] font-bold text-[#8A7A6B] uppercase">Notifications</span>
-                <button onClick={() => setShowNotifications(false)}>
-                  <MS name="close" size={14} />
-                </button>
-              </div>
-              <div className="flex flex-col gap-1.5 text-[10.5px]">
-                <div className="p-1.5 rounded bg-gray-50 font-medium">● Your Blue Tokai order is ready!</div>
-                <div className="p-1.5 rounded bg-gray-50 font-medium">● New café nearby: Subko Coffee Bar</div>
-                <div className="p-1.5 rounded bg-gray-50 font-medium">● You earned 100 Grabbit points</div>
-              </div>
-            </div>
-          )}
+                    <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=600&auto=format&fit=crop" className="w-full h-[140px] rounded-[24px] object-cover mb-4 shadow-sm" alt="Product" />
 
-          {/* Toast Notification */}
-          {addedToast && (
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-[#1A1311] text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg z-50 flex items-center gap-1">
-              <MS name="check" size={13} className="text-[#10B981]" /> Added to order!
-            </div>
-          )}
+                    <h3 className="text-[18px] font-black mb-1">Vietnamese Iced Coffee</h3>
+                    <p className="text-[11px] text-[#8A7A6B] mb-4 leading-relaxed">Signature espresso poured over condensed milk & ice. Strong, sweet & creamy.</p>
 
+                    <div className="space-y-3 mb-6">
+                      <div>
+                        <label className="text-[11px] font-extrabold uppercase text-[#8A7A6B]">Size</label>
+                        <div className="flex gap-2 mt-1">
+                          <button className="flex-1 py-2 bg-[#F09819]/10 border border-[#F09819] rounded-xl text-[11px] font-bold text-[#F09819]">Regular (350ml)</button>
+                          <button className="flex-1 py-2 bg-white border border-[#EBE4D8] rounded-xl text-[11px] font-bold text-[#8A7A6B]">Large (450ml) +₹40</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        setCartCount(cartCount + 1);
+                        setState('CART');
+                      }}
+                      className="w-full py-3.5 bg-[#1A1311] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-md"
+                    >
+                      Add to Order • ₹240
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* 5. CART / CHECKOUT SCREEN */}
+                {state === 'CART' && (
+                  <motion.div 
+                    key="cart"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col w-full h-full p-5 relative"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div onClick={() => setState('HOME')} className="p-2 rounded-full bg-white border border-[#EBE4D8] cursor-pointer">
+                        <MS name="arrow_back" size={18} />
+                      </div>
+                      <h2 className="text-[16px] font-black">Checkout Order</h2>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-3 space-y-3 shadow-xs">
+                      <div className="flex justify-between items-center text-[12px] font-bold pb-2 border-b border-[#EBE4D8]">
+                        <span>1x Vietnamese Iced Coffee</span>
+                        <span>₹240</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[12px] font-bold pb-2 border-b border-[#EBE4D8]">
+                        <span>1x Almond Croissant</span>
+                        <span>₹180</span>
+                      </div>
+                      
+                      {/* Coupon Pill */}
+                      <div 
+                        onClick={() => {
+                          setCouponApplied(!couponApplied);
+                          showToast(couponApplied ? 'Coupon Removed' : 'GRAB20 Applied!');
+                        }}
+                        className="flex justify-between items-center p-2 rounded-xl bg-[#F09819]/10 border border-[#F09819]/30 text-[11px] font-bold text-[#F09819] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <MS name="local_offer" size={14} />
+                          <span>{couponApplied ? 'GRAB20 (20% Off)' : 'Apply Coupon'}</span>
+                        </div>
+                        <span className="text-[10px] underline">{couponApplied ? 'REMOVE' : 'APPLY'}</span>
+                      </div>
+                    </div>
+
+                    {/* Bill Breakdown */}
+                    <div className="bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-4 text-[11px] font-bold space-y-1.5 shadow-xs">
+                      <div className="flex justify-between text-[#8A7A6B]">
+                        <span>Item Total</span>
+                        <span>₹420</span>
+                      </div>
+                      {couponApplied && (
+                        <div className="flex justify-between text-[#10B981]">
+                          <span>Discount (20%)</span>
+                          <span>-₹84</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-[#8A7A6B]">
+                        <span>Convenience Fee</span>
+                        <span>₹0 (Free)</span>
+                      </div>
+                      <div className="flex justify-between text-[13px] font-black text-[#1A1311] pt-2 border-t border-[#EBE4D8]">
+                        <span>To Pay</span>
+                        <span>₹{couponApplied ? 336 : 420}</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setState('CONFIRMATION')}
+                      className="w-full py-3.5 bg-[#F09819] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <span>Pay ₹{couponApplied ? 336 : 420} & Order</span>
+                      <MS name="arrow_forward" size={16} />
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* 6. CONFIRMATION / PREPARING SCREEN */}
+                {state === 'CONFIRMATION' && (
+                  <motion.div 
+                    key="confirmation"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center w-full h-full p-6 text-center"
+                  >
+                    <div className="w-14 h-14 bg-[#F09819]/10 border-2 border-[#F09819] rounded-full flex items-center justify-center text-[#F09819] mb-4 animate-pulse">
+                      <MS name="hourglass_top" size={28} />
+                    </div>
+                    <h3 className="text-[18px] font-black mb-1">Preparing Your Order</h3>
+                    <p className="text-[11px] text-[#8A7A6B] mb-6">Barista at Blue Tokai is brewing your coffee.</p>
+
+                    <div className="w-full bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-6 text-left shadow-xs">
+                      <div className="flex justify-between items-center text-[11px] font-bold text-[#8A7A6B] mb-2">
+                        <span>ESTIMATED PICKUP</span>
+                        <span className="text-[#F09819] font-black">04:30 mins</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: '0%' }}
+                          animate={{ width: '75%' }}
+                          transition={{ duration: 3 }}
+                          className="h-full bg-[#F09819] rounded-full"
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setState('READY')}
+                      className="w-full py-3.5 bg-[#1A1311] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform"
+                    >
+                      Simulate Order Ready
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* 7. ORDER READY SCREEN */}
+                {state === 'READY' && (
+                  <motion.div 
+                    key="ready"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center w-full h-full px-6 text-center"
+                  >
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", delay: 0.1 }}
+                      className="w-14 h-14 bg-[#10B981] rounded-full flex items-center justify-center text-white mb-3 shadow-md"
+                    >
+                      <MS name="done" size={28} />
+                    </motion.div>
+                    
+                    <h2 className="text-[18px] font-black mb-1">Order Ready for Pickup!</h2>
+                    <p className="text-[11px] text-[#8A7A6B] mb-5 leading-relaxed">
+                      Show code at <strong>Blue Tokai Counter</strong>.
+                    </p>
+
+                    <div className="w-full bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-5 shadow-xs">
+                      <div className="text-[10px] font-bold text-[#8A7A6B] uppercase mb-1">Pickup Token</div>
+                      <div className="text-[22px] font-black text-[#F09819] mb-3 tracking-widest">#GT-8492</div>
+                      <div className="flex justify-between items-center text-[11px] font-bold pt-2 border-t border-[#EBE4D8] text-[#8A7A6B]">
+                        <span>1x Vietnamese Iced</span>
+                        <span>1x Croissant</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setState('HOME')}
+                      className="w-full py-3.5 bg-[#1A1311] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform shadow-md"
+                    >
+                      Back to Home
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* 8. PROFILE / ACCOUNT SCREEN */}
+                {state === 'PROFILE' && (
+                  <motion.div 
+                    key="profile"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col w-full h-full p-5"
+                  >
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="w-12 h-12 rounded-full bg-[#F09819]/20 border border-[#F09819] flex items-center justify-center text-[#F09819] font-black text-[16px]">
+                        S
+                      </div>
+                      <div>
+                        <h3 className="text-[15px] font-black">Shriyansh Sharma</h3>
+                        <p className="text-[10px] text-[#8A7A6B] font-bold">GrabbIt Gold Member • 340 pts</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mb-6">
+                      {[
+                        { icon: 'receipt_long', title: 'Order History', action: () => setState('READY') },
+                        { icon: 'favorite', title: 'Favorite Cafés', action: () => setState('EXPLORE') },
+                        { icon: 'location_on', title: 'Saved Addresses', action: () => setShowCityPicker(true) },
+                        { icon: 'payment', title: 'Payment Methods', action: () => showToast('Saved UPI & Cards Active') },
+                        { icon: 'help_outline', title: 'Support & FAQ', action: () => showToast('Connecting to 24/7 Support...') }
+                      ].map((item) => (
+                        <div 
+                          key={item.title}
+                          onClick={item.action}
+                          className="p-3 bg-white border border-[#EBE4D8] rounded-[16px] flex items-center justify-between cursor-pointer active:scale-98 transition-transform shadow-xs"
+                        >
+                          <div className="flex items-center gap-3 text-[12px] font-bold">
+                            <MS name={item.icon} size={18} className="text-[#8A7A6B]" />
+                            <span>{item.title}</span>
+                          </div>
+                          <MS name="chevron_right" size={18} className="text-[#8A7A6B]" />
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
+            </div>
+
+            {/* BOTTOM APP NAVIGATION */}
+            <div className="absolute bottom-0 inset-x-0 h-[84px] bg-[rgba(255,255,255,0.95)] border-t border-[rgba(235,228,216,0.5)] flex items-start justify-around pt-3.5 px-3 z-40 pb-5 shadow-[0_-4px_12px_rgba(26,19,17,0.02)]">
+              {[
+                { id: 'HOME', icon: 'home', label: 'Home' },
+                { id: 'EXPLORE', icon: 'search', label: 'Explore' },
+                { id: 'CART', icon: 'receipt_long', label: 'Orders' },
+                { id: 'PROFILE', icon: 'person', label: 'Profile' }
+              ].map((item) => {
+                const isActive = state === item.id || (state === 'CAFE' && item.id === 'HOME') || (state === 'READY' && item.id === 'CART') || (state === 'CONFIRMATION' && item.id === 'CART');
+                return (
+                  <div 
+                    key={item.id}
+                    onClick={() => setState(item.id as AppState)}
+                    className="flex flex-col items-center gap-1 cursor-pointer w-14 group"
+                  >
+                    <div className={`relative flex items-center justify-center w-12 h-9 rounded-full transition-colors duration-200 ${isActive ? 'bg-[#F09819]/10' : 'group-hover:bg-gray-100'}`}>
+                      <MS 
+                        name={item.icon} 
+                        size={22} 
+                        className={`transition-colors duration-200 ${isActive ? 'text-[#F09819]' : 'text-[#8A7A6B]'}`} 
+                      />
+                      {item.id === 'CART' && cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#F09819] text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
+                          {cartCount}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`text-[9.5px] font-bold transition-colors duration-200 ${isActive ? 'text-[#1A1311]' : 'text-[#8A7A6B]'}`}>
+                      {item.label}
+                    </span>
+                  </div>
+                );
+              })}
+              
+              {/* Home indicator bar (iOS) */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[110px] h-[4px] bg-[#1A1311] rounded-full opacity-90" />
+            </div>
+
+          </div>
         </div>
-
-        {/* ========================================================= */}
-        {/* BOTTOM NAVIGATION TABS */}
-        {/* ========================================================= */}
-        <div className="h-12 border-t border-[#EBE4D8] bg-white px-4 flex items-center justify-between shrink-0 rounded-b-[38px] z-30">
-          <button 
-            onClick={() => changeState('HOME')}
-            className={`flex flex-col items-center text-[9px] font-bold transition-colors ${
-              ['HOME', 'CAFE', 'PRODUCT'].includes(activeState) ? 'text-[#F09819]' : 'text-[#8A7A6B]'
-            }`}
-          >
-            <MS name="home" size={18} />
-            <span>Home</span>
-          </button>
-
-          <button 
-            onClick={() => changeState('EXPLORE')}
-            className={`flex flex-col items-center text-[9px] font-bold transition-colors ${
-              activeState === 'EXPLORE' ? 'text-[#F09819]' : 'text-[#8A7A6B]'
-            }`}
-          >
-            <MS name="explore" size={18} />
-            <span>Explore</span>
-          </button>
-
-          <button 
-            onClick={() => changeState('CART')}
-            className={`relative flex flex-col items-center text-[9px] font-bold transition-colors ${
-              ['CART', 'CONFIRMATION', 'READY', 'ORDERS'].includes(activeState) ? 'text-[#F09819]' : 'text-[#8A7A6B]'
-            }`}
-          >
-            <MS name="shopping_bag" size={18} />
-            <span>Orders</span>
-          </button>
-
-          <button 
-            onClick={() => changeState('PROFILE')}
-            className={`flex flex-col items-center text-[9px] font-bold transition-colors ${
-              activeState === 'PROFILE' ? 'text-[#F09819]' : 'text-[#8A7A6B]'
-            }`}
-          >
-            <MS name="person" size={18} />
-            <span>Profile</span>
-          </button>
-        </div>
-
       </div>
-    </motion.div>
+    </div>
   );
 }

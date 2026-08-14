@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Baloo_2, Mukta } from 'next/font/google';
+import { Baloo_2, Mukta, Poppins } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
@@ -15,16 +15,12 @@ const baloo = Baloo_2({
   preload: true,
 });
 
-// UI / body: Satoshi (Fontshare, self-hosted). Latin only, Devanagari falls to Mukta.
-const satoshi = localFont({
-  variable: '--font-ui',
+// UI / body: Poppins (Google Fonts). Latin only, Devanagari falls to Mukta.
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
-  src: [
-    { path: '../fonts/Satoshi-400.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/Satoshi-500.woff2', weight: '500', style: 'normal' },
-    { path: '../fonts/Satoshi-700.woff2', weight: '700', style: 'normal' },
-    { path: '../fonts/Satoshi-900.woff2', weight: '900', style: 'normal' },
-  ],
+  variable: '--font-ui',
 });
 
 // Hindi body / dense Devanagari UI.
@@ -111,7 +107,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable}`}>
+    <html lang="en" className={`scroll-smooth ${baloo.variable} ${poppins.variable} ${mukta.variable}`}>
       <head>
         {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link

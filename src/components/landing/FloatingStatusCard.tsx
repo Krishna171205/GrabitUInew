@@ -10,15 +10,15 @@ export interface FloatingProductCardProps {
   detail?: string | ReactNode;
   icon?: ReactNode;
   delay?: number;
-  duration?: number;
   className?: string;
   style?: React.CSSProperties;
-  floatDirection?: 'vertical' | 'horizontal' | 'pulse' | 'rotate';
   onClick?: () => void;
+  onHoverStart?: () => void;
+  onHoverEnd?: () => void;
   active?: boolean;
-  type?: 'standard' | 'grid' | 'graph' | 'rating';
-  brands?: string[];
-  socketPosition?: 'top' | 'right' | 'left' | 'bottom';
+  type?: 'cafes' | 'time' | 'ready' | 'rating';
+  entranceDirection?: 'left' | 'right';
+  isReceivingEnergy?: boolean;
 }
 
 export function FloatingStatusCard({ 
@@ -28,243 +28,386 @@ export function FloatingStatusCard({
   detail, 
   icon, 
   delay = 0, 
-  duration = 5,
   className = '', 
   style = {},
-  floatDirection = 'vertical',
   onClick,
+  onHoverStart,
+  onHoverEnd,
   active = false,
-  type = 'standard',
-  brands,
-  socketPosition = 'right'
+  type = 'cafes',
+  entranceDirection = 'left',
+  isReceivingEnergy = false
 }: FloatingProductCardProps) {
 
   const [isHovered, setIsHovered] = useState(false);
-  const [animatedValue, setAnimatedValue] = useState<string | ReactNode>(value);
-  const [starCount, setStarCount] = useState(5);
+  const [hasHoveredTime, setHasHoveredTime] = useState(false);
+  const [timeValue, setTimeValue] = useState('14 min');
 
-  // Counter micro-animation on hover for Time Saved
+  // Time Saved Count-Up Animation (Runs when hovered OR when receiving energy from phone)
   useEffect(() => {
-    if (isHovered && label.toLowerCase().includes('time')) {
+    if ((isHovered || isReceivingEnergy) && type === 'time') {
       let step = 0;
-      const sequence = ['0 min', '4 min', '8 min', '12 min', '14 min'];
+      const sequence = ['0 min', '5 min', '10 min', '14 min'];
       const interval = setInterval(() => {
         if (step < sequence.length) {
-          setAnimatedValue(sequence[step]);
+          setTimeValue(sequence[step]);
           step++;
         } else {
           clearInterval(interval);
         }
-      }, 70);
-      return () => clearInterval(interval);
-    } else {
-      setAnimatedValue(value);
-    }
-  }, [isHovered, label, value]);
-
-  // Star micro-animation on hover for Ratings
-  useEffect(() => {
-    if (isHovered && label.toLowerCase().includes('rated')) {
-      let count = 1;
-      const interval = setInterval(() => {
-        if (count <= 5) {
-          setStarCount(count);
-          count++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 80);
+      }, 60);
       return () => clearInterval(interval);
     }
-  }, [isHovered, label]);
+  }, [isHovered, isReceivingEnergy, type]);
 
-  // Floating animation definition
-  const getFloatAnimation = () => {
-    switch (floatDirection) {
-      case 'horizontal': return { x: [0, 5, 0] };
-      case 'pulse': return { scale: [1, 1.015, 1] };
-      case 'rotate': return { rotate: [0, 1, -1, 0] };
-      case 'vertical':
-      default: return { y: [0, -4, 0] };
-    }
-  };
-
-  // Connection Socket Positioning
-  const getSocketClasses = () => {
-    switch (socketPosition) {
-      case 'left': return '-left-2 top-1/2 -translate-y-1/2';
-      case 'top': return '-top-2 left-1/2 -translate-x-1/2';
-      case 'bottom': return '-bottom-2 left-1/2 -translate-x-1/2';
-      case 'right':
-      default: return '-right-2 top-1/2 -translate-y-1/2';
-    }
-  };
+  // Entrance start positions
+  const startX = entranceDirection === 'left' ? 20 : -20;
+  
+  // Is this card actively highlighted or receiving energy?
+  const isEngaged = active || isHovered || isReceivingEnergy;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.94, y: 15 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.96, x: startX, y: 0 }}
+      animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
       transition={{ 
-        opacity: { delay, duration: 0.5, ease: "easeOut" },
-        scale: { delay, type: 'spring', stiffness: 120, damping: 18 }
+        duration: 0.8, 
+        delay,
+        ease: "easeOut"
       }}
-      className={`absolute cursor-pointer select-none z-30 ${className}`}
+      className={`absolute cursor-pointer select-none z-10 flex items-center group ${
+        entranceDirection === 'left' ? 'flex-row' : 'flex-row-reverse'
+      } ${className}`}
       style={style}
       onClick={onClick}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverStart={() => {
+        setIsHovered(true);
+        if (onHoverStart) onHoverStart();
+      }}
+      onHoverEnd={() => {
+        setIsHovered(false);
+        if (onHoverEnd) onHoverEnd();
+      }}
     >
+      
+      {/* 
+        The Tiny Connection Node (Faces the phone)
+      */}
+      <div className={`relative flex items-center justify-center ${entranceDirection === 'left' ? 'mr-[-1px] z-0' : 'ml-[-1px] z-0'}`}>
+        <motion.div 
+          animate={isReceivingEnergy ? { 
+            scale: 1.4, 
+            boxShadow: '0 0 12px rgba(240,152,25,0.7)',
+            background: 'linear-gradient(to bottom right, #F09819, #F09819)'
+          } : isHovered ? { 
+            scale: 1.2, 
+            boxShadow: '0 0 8px rgba(240,152,25,0.4)',
+            background: 'linear-gradient(to bottom right, #F09819, #D46C20)'
+          } : { 
+            scale: 1, 
+            boxShadow: '0 2px 4px rgba(30,20,10,0.1)',
+            background: 'linear-gradient(to bottom right, #F09819, #D46C20)'
+          }}
+          transition={{ duration: 0.25 }}
+          className="w-[8px] h-[8px] rounded-full flex items-center justify-center relative z-20 border border-[rgba(255,255,255,0.6)] shadow-sm"
+        >
+          {/* Inner white dot */}
+          <motion.div 
+            animate={{ opacity: isReceivingEnergy ? 1 : 0.8 }}
+            className="w-[3px] h-[3px] rounded-full bg-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)]" 
+          />
+        </motion.div>
+      </div>
+
       <motion.div
-        animate={getFloatAnimation()}
-        transition={{
-          repeat: Infinity,
-          duration: duration,
-          ease: "easeInOut",
-          delay: delay + 0.3
+        animate={isReceivingEnergy ? { 
+          scale: 1.03,
+          y: -4,
+          boxShadow: '0 20px 50px rgba(240,152,25,0.25), 0 8px 20px rgba(240,152,25,0.12)',
+          borderColor: 'rgba(240,152,25,0.8)'
+        } : active ? { 
+          scale: 1.015,
+          y: -2,
+          boxShadow: '0 14px 36px rgba(240,152,25,0.18), 0 4px 12px rgba(30,20,10,0.06)',
+          borderColor: 'rgba(240,152,25,0.4)'
+        } : { 
+          scale: 1,
+          y: 0,
+          boxShadow: '0 8px 24px rgba(30,20,10,0.06), 0 2px 6px rgba(30,20,10,0.03)',
+          borderColor: 'rgba(255,255,255,0.8)'
         }}
-        whileHover={{ y: -4, scale: 1.025, boxShadow: '0 20px 40px rgba(240,152,25,0.2)' }}
-        whileTap={{ scale: 0.97 }}
-        className={`relative bg-[#FDFBF7]/92 backdrop-blur-xl border ${
-          active || isHovered 
-            ? 'border-[#F09819] ring-2 ring-[#F09819]/50 shadow-[0_16px_36px_rgba(240,152,25,0.18)]' 
-            : 'border-[#EBE4D8] shadow-[0_12px_32px_rgba(26,19,17,0.07)]'
-        } rounded-[22px] transition-all duration-300 ${
-          type === 'grid' ? 'p-3.5 w-[205px]' : 'px-4 py-3 w-[200px]'
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+        style={{ willChange: 'transform, opacity, box-shadow' }}
+        whileHover={{ 
+          y: -4, 
+          scale: 1.025, 
+          boxShadow: '0 18px 48px rgba(240,152,25,0.2), 0 6px 16px rgba(30,20,10,0.06)' 
+        }}
+        whileTap={{ scale: 0.99 }}
+        className={`relative bg-[#FFFDF8] border rounded-[22px] w-[230px] p-[20px] pr-[24px] transition-all duration-300 z-10 overflow-hidden ${
+          entranceDirection === 'left' ? 'order-1' : 'order-1'
         }`}
       >
-        {/* Uniform Connection Socket Dot */}
-        <div className={`absolute ${getSocketClasses()} w-3 h-3 rounded-full border-2 border-white transition-all duration-300 z-20 ${
-          active || isHovered 
-            ? 'bg-[#F09819] shadow-[0_0_10px_#F09819] scale-125' 
-            : 'bg-[#F09819] shadow-[0_0_5px_rgba(240,152,25,0.4)]'
-        }`} />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none mix-blend-overlay" />
 
-        {/* TYPE 1: CAFÉS NEAR YOU GRID NODE */}
-        {type === 'grid' && (
-          <div className="flex flex-col text-left">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">{label}</span>
-              <span className="inline-flex items-center gap-1 text-[8.5px] font-bold text-[#F09819] bg-[#F09819]/10 px-1.5 py-0.2 rounded-full border border-[#F09819]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                LIVE
+        {/* TYPE 1: CAFÉS NEAR YOU */}
+        {type === 'cafes' && (
+          <div className="flex flex-col text-left relative z-10">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+                {label}
               </span>
+              <motion.div 
+                animate={isReceivingEnergy ? { backgroundColor: 'rgba(16,185,129,0.2)' } : { backgroundColor: 'rgba(16,185,129,0.1)' }}
+                className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full border border-[#10B981]/20 shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)] transition-colors"
+              >
+                <motion.span 
+                  animate={isReceivingEnergy ? { boxShadow: '0 0 10px rgba(16,185,129,1)' } : {}}
+                  className="w-[5px] h-[5px] rounded-full bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.8)] animate-[pulse_2s_ease-in-out_infinite]" 
+                />
+                <span className="text-[8px] font-bold text-[#10B981] uppercase tracking-wider">LIVE</span>
+              </motion.div>
             </div>
             
-            <div className="text-[14.5px] font-black text-[#1A1311] leading-tight mb-1">
-              {value || '4 nearby'}
-            </div>
-
-            <div className="flex -space-x-1.5 mb-2">
-              {[1, 2, 3, 4].map((i) => (
-                <img key={i} src={`https://i.pravatar.cc/100?img=${i+12}`} className="w-4.5 h-4.5 rounded-full border border-white" alt="User" />
-              ))}
-            </div>
-
-            <div className="text-[10px] font-bold text-[#1A1311] flex items-center justify-between pt-1 border-t border-[#EBE4D8]/60">
-              <span className="text-[#8A7A6B]">120+ Outlets</span>
-              <span className="text-[#F09819] font-mono">100% Sync ↗</span>
-            </div>
-          </div>
-        )}
-
-        {/* TYPE 2: TIME SAVED WITH SPARKLINE GRAPH */}
-        {type === 'graph' && (
-          <div className="flex items-center gap-3">
-            {icon && (
-              <div className={`flex items-center justify-center w-9.5 h-9.5 rounded-full border ${
-                active || isHovered ? 'bg-[#F09819] text-white border-[#F09819]' : 'border-[#FFE7B0] bg-[#FFF3DC] text-[#F09819]'
-              } shrink-0 transition-colors`}>
-                {icon}
-              </div>
-            )}
-            
-            <div className="flex flex-col text-left flex-1 min-w-0">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-[8.5px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">{label}</span>
-                {badge && (
-                  <span className="text-[7.5px] font-bold text-[#F09819] bg-[#F09819]/10 px-1 py-0.2 rounded font-mono">
-                    {badge}
-                  </span>
-                )}
-              </div>
-
-              <div className="text-[15px] font-black text-[#1A1311] leading-tight mb-0.5">
-                {animatedValue}
-              </div>
-
-              {/* Sparkline mini line graph */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-semibold text-[#8A7A6B]">{detail || 'On average'}</span>
-                <svg className="w-10 h-3 overflow-visible" viewBox="0 0 40 12">
-                  <path d="M 0 10 Q 10 2, 20 8 T 40 2" fill="none" stroke="#F09819" strokeWidth="1.5" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TYPE 3: RATING NODE WITH STAGGERED STARS */}
-        {type === 'rating' && (
-          <div className="flex items-center gap-3">
-            {icon && (
-              <div className={`flex items-center justify-center w-9.5 h-9.5 rounded-full border ${
-                active || isHovered ? 'bg-[#F09819] text-white border-[#F09819]' : 'border-[#FFE7B0] bg-[#FFF3DC] text-[#F09819]'
-              } shrink-0 transition-colors`}>
-                {icon}
-              </div>
-            )}
-            
-            <div className="flex flex-col text-left">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-[8.5px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">{label}</span>
-                {badge && (
-                  <span className="text-[7.5px] font-bold text-[#F09819] bg-[#F09819]/10 px-1 py-0.2 rounded font-mono">
-                    {badge}
-                  </span>
-                )}
-              </div>
-
-              <div className="text-[15px] font-black text-[#1A1311] leading-tight mb-0.5">
-                {value}
-              </div>
-
-              <div className="text-[9.5px] font-semibold text-[#8A7A6B] flex items-center gap-1">
-                <span className="text-[#F09819]">{'★'.repeat(starCount)}</span>
-                <span>2.4k+ reviews</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TYPE 4: STANDARD / METRIC STATUS NODE */}
-        {type === 'standard' && (
-          <div className="flex items-center gap-3">
-            {icon && (
-              <div className={`flex items-center justify-center w-9.5 h-9.5 rounded-full border ${
-                active || isHovered 
-                  ? 'bg-[#F09819] text-white border-[#F09819] shadow-md scale-105' 
-                  : 'border-[#FFE7B0] bg-[#FFF3DC] text-[#F09819]'
-              } shrink-0 transition-all duration-300`}>
-                {icon}
-              </div>
-            )}
-            
-            <div className="flex flex-col text-left">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-[8.5px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">{label}</span>
-                {badge && (
-                  <span className="text-[7.5px] font-bold text-[#F09819] bg-[#F09819]/10 px-1 py-0.2 rounded-full border border-[#F09819]/20 font-mono">
-                    {badge}
-                  </span>
-                )}
-              </div>
-
-              {value && (
-                <div className="text-[15px] font-black text-[#1A1311] leading-tight mb-0.5">
-                  {animatedValue}
+            <div className="flex items-center gap-3.5 mb-3.5">
+              <motion.div 
+                animate={{ 
+                  scale: isReceivingEnergy ? [1, 1.25, 1] : isHovered ? 1.05 : 1, 
+                  rotate: isReceivingEnergy ? [-8, 8, 0] : isHovered ? -5 : 0 
+                }}
+                transition={{ duration: 0.35, type: "spring", stiffness: 300, damping: 15 }}
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+              >
+                <div className="scale-90">{icon}</div>
+              </motion.div>
+              <div className="flex flex-col">
+                <motion.div 
+                  animate={{ 
+                    scale: isReceivingEnergy ? [1, 1.12, 1] : 1,
+                    color: isReceivingEnergy ? ['#1A1311', '#F09819', '#1A1311'] : '#1A1311'
+                  }}
+                  transition={{ duration: 0.35 }}
+                  className="text-[20px] font-black leading-none mb-1 tracking-tight origin-left"
+                >
+                  {value}
+                </motion.div>
+                <div className="flex -space-x-2 pt-1">
+                  {[1, 2, 3].map((i) => (
+                    <motion.div 
+                      key={i} 
+                      animate={isHovered || isReceivingEnergy ? { x: (i - 1) * 3, scale: isReceivingEnergy ? 1.1 : 1 } : { x: 0, scale: 1 }}
+                      transition={{ delay: i * 0.04, duration: 0.25 }}
+                      className="relative rounded-full border-[1.5px] border-[#FDFBF7] shadow-sm z-[3] hover:z-[10] transition-transform"
+                      style={{ zIndex: 3 - i }}
+                    >
+                      <img src={`https://i.pravatar.cc/100?img=${i+20}`} className="w-[20px] h-[20px] rounded-full object-cover" alt="User" />
+                    </motion.div>
+                  ))}
                 </div>
-              )}
-              {detail && <div className="text-[10px] font-semibold text-[#8A7A6B] leading-none">{detail}</div>}
+              </div>
+            </div>
+
+            <div className="text-[10px] font-bold text-[#8A7A6B] pt-2.5 flex justify-between items-center relative">
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#8A7A6B]/15 to-transparent" />
+              <span>120+ Outlets</span>
+            </div>
+          </div>
+        )}
+
+        {/* TYPE 2: TIME SAVED */}
+        {type === 'time' && (
+          <div className="flex flex-col text-left relative z-10">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+                {label}
+              </span>
+              <motion.span 
+                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#F09819', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(240,152,25,0.1)', color: '#F09819' }}
+                transition={{ duration: 0.3 }}
+                className="text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-[1px] rounded-sm transition-colors"
+              >
+                {badge}
+              </motion.span>
+            </div>
+            
+            <div className="flex items-center gap-3.5 mb-2.5">
+              <motion.div 
+                animate={{ 
+                  scale: isReceivingEnergy ? [1, 1.25, 1] : isHovered ? 1.05 : 1, 
+                  rotate: isReceivingEnergy ? [0, 15, 0] : isHovered ? 10 : 0 
+                }}
+                transition={{ duration: 0.35, type: "spring", stiffness: 300 }}
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+              >
+                <div className="scale-90">{icon}</div>
+              </motion.div>
+              <div className="flex flex-col">
+                <motion.div 
+                  animate={isReceivingEnergy ? { scale: [1, 1.12, 1], color: ['#1A1311', '#F09819', '#1A1311'] } : { scale: 1, color: '#1A1311' }}
+                  transition={{ duration: 0.35 }}
+                  className="text-[20px] font-black leading-none mb-1 tracking-tight origin-left"
+                >
+                  {timeValue}
+                </motion.div>
+                <div className="text-[11px] font-bold text-[#8A7A6B]">
+                  {detail}
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full mt-2.5 relative h-[20px]">
+              <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 100 24" preserveAspectRatio="none">
+                <motion.path 
+                  d="M 0 20 Q 25 15, 50 18 T 100 4" 
+                  fill="none" 
+                  stroke="rgba(240,152,25,0.3)" 
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  className="blur-sm"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: isEngaged ? 1 : 0.3 }}
+                  transition={{ pathLength: { duration: 1.5, delay, ease: "easeOut" }, opacity: { duration: 0.4 } }}
+                />
+                <motion.path 
+                  d="M 0 20 Q 25 15, 50 18 T 100 4" 
+                  fill="none" 
+                  stroke="#F09819" 
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0, opacity: 0.3 }}
+                  animate={{ pathLength: 1, opacity: isEngaged ? 1 : 0.5 }}
+                  transition={{ pathLength: { duration: 1.5, delay, ease: "easeOut" }, opacity: { duration: 0.4 } }}
+                />
+              </svg>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0 }}
+                animate={isReceivingEnergy ? { opacity: 1, scale: 1.6, boxShadow: '0 0 14px rgba(240,152,25,1)' } : { opacity: isEngaged ? 1 : 0.5, scale: 1, boxShadow: '0 0 8px rgba(240,152,25,0.8)' }}
+                transition={{ duration: 0.25 }}
+                className="absolute right-0 top-0 w-[5px] h-[5px] bg-white rounded-full border-2 border-[#F09819]"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* TYPE 3: ORDER READY */}
+        {type === 'ready' && (
+          <div className="flex flex-col text-left relative z-10">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+                {label}
+              </span>
+              <motion.span 
+                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#F09819', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(240,152,25,0.1)', color: '#F09819' }}
+                transition={{ duration: 0.3 }}
+                className="text-[8px] font-extrabold uppercase px-1.5 py-[1px] rounded-sm transition-colors"
+              >
+                {badge}
+              </motion.span>
+            </div>
+            
+            <div className="flex items-center gap-3.5 mb-3.5">
+              <motion.div 
+                animate={{ 
+                  y: isReceivingEnergy ? [-2, -8, 0] : isHovered ? -3 : 0, 
+                  scale: isReceivingEnergy ? [1, 1.25, 1] : isHovered ? 1.05 : 1 
+                }}
+                transition={{ duration: 0.35, type: "spring", stiffness: 300, damping: 15 }}
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+              >
+                <div className="scale-90">{icon}</div>
+              </motion.div>
+              <div className="flex flex-col">
+                <motion.div 
+                  animate={{ 
+                    scale: isReceivingEnergy ? [1, 1.08, 1] : 1,
+                    color: isReceivingEnergy ? ['#1A1311', '#F09819', '#1A1311'] : '#1A1311'
+                  }}
+                  transition={{ duration: 0.35 }}
+                  className="text-[18px] font-black leading-none mb-1 whitespace-nowrap tracking-tight origin-left"
+                >
+                  {value}
+                </motion.div>
+                <div className="text-[11px] font-bold text-[#8A7A6B]">
+                  {detail}
+                </div>
+              </div>
+            </div>
+
+            <motion.div 
+              animate={isReceivingEnergy ? { backgroundColor: 'rgba(16,185,129,0.25)', scale: [1, 1.05, 1] } : { backgroundColor: 'rgba(16,185,129,0.1)', scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full border border-[#10B981]/20 w-fit shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)] transition-colors"
+            >
+              <motion.span 
+                animate={isReceivingEnergy ? { boxShadow: '0 0 12px rgba(16,185,129,1)', scale: 1.3 } : { scale: 1 }}
+                className="w-[5px] h-[5px] rounded-full bg-[#10B981] shadow-[0_0_5px_rgba(16,185,129,0.8)] animate-[pulse_2s_ease-in-out_infinite]" 
+              />
+              <span className="text-[8px] font-bold text-[#10B981] uppercase tracking-wider">LIVE</span>
+            </motion.div>
+          </div>
+        )}
+
+        {/* TYPE 4: RATED BY YOU */}
+        {type === 'rating' && (
+          <div className="flex flex-col text-left relative z-10">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+                {label}
+              </span>
+              <motion.span 
+                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#F09819', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(240,152,25,0.1)', color: '#F09819' }}
+                transition={{ duration: 0.3 }}
+                className="text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-[1px] rounded-sm transition-colors"
+              >
+                {badge}
+              </motion.span>
+            </div>
+            
+            <div className="flex items-center gap-3.5 mb-3.5">
+              <motion.div 
+                animate={{ 
+                  scale: isReceivingEnergy ? [1, 1.25, 1] : isHovered ? 1.05 : 1, 
+                  rotate: isReceivingEnergy ? [0, 15, 0] : isHovered ? 15 : 0 
+                }}
+                transition={{ duration: 0.35, type: "spring", stiffness: 300 }}
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+              >
+                <div className="scale-90">{icon}</div>
+              </motion.div>
+              <div className="flex flex-col">
+                <motion.div 
+                  animate={{ 
+                    scale: isReceivingEnergy ? [1, 1.12, 1] : 1,
+                    color: isReceivingEnergy ? ['#1A1311', '#F09819', '#1A1311'] : '#1A1311'
+                  }}
+                  transition={{ duration: 0.35 }}
+                  className="text-[20px] font-black leading-none mb-1 tracking-tight origin-left"
+                >
+                  {value}
+                </motion.div>
+                <div className="text-[11px] font-bold text-[#8A7A6B]">
+                  {detail}
+                </div>
+              </div>
+            </div>
+            
+            <div className="pt-1">
+              <div className="flex gap-1 text-[#F09819] text-[15px]">
+                {[...Array(5)].map((_, i) => (
+                  <motion.span 
+                    key={i}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: isReceivingEnergy ? [1, 1.4, 1] : isHovered ? [1, 1.2, 1] : 1, 
+                      textShadow: isReceivingEnergy ? '0 0 16px rgba(240,152,25,1)' : isHovered ? '0 0 10px rgba(240,152,25,0.6)' : '0 2px 3px rgba(240,152,25,0.2)' 
+                    }}
+                    transition={{ delay: i * 0.05, duration: 0.35 }}
+                    className="drop-shadow-sm"
+                  >
+                    ★
+                  </motion.span>
+                ))}
+              </div>
             </div>
           </div>
         )}

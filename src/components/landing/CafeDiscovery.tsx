@@ -66,20 +66,14 @@ export default function CafeDiscovery() {
               className="group bg-[#FDFBF7] rounded-[24px] border border-[#EBE4D8] shadow-[0_4px_24px_rgba(26,19,17,0.04)] overflow-hidden flex flex-col cursor-pointer hover:shadow-[0_24px_48px_rgba(26,19,17,0.12)] hover:-translate-y-2 transition-all duration-300"
             >
               {/* Image Banner */}
-              <div className="relative h-[240px] w-full overflow-hidden bg-[#1A1311]">
-                <img
-                  src={cafe.image}
-                  alt={cafe.name}
-                  className="w-full h-full object-cover opacity-90 group-hover:scale-110 group-hover:opacity-100 transition-all duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1311]/80 via-transparent to-[#1A1311]/20 group-hover:from-[#1A1311]/90 transition-colors" />
-                
-                {/* Rating Badge */}
-                <div className="absolute top-4 left-4 bg-[#FDFBF7]/90 backdrop-blur-md text-[#1A1311] text-[12px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
+              <div className="relative h-[240px] w-full overflow-hidden">
+                <img src={cafe.image} alt={cafe.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-[0.16,1,0.3,1]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1311]/80 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute top-4 left-4 bg-[rgba(253,251,247,0.95)] text-[#1A1311] text-[12px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
                   <MS name="star" size={14} color="#F09819" /> {cafe.rating}
                 </div>
 
-                <div className="absolute bottom-5 left-5 right-5 text-white">
+                <div className="absolute bottom-5 left-5 right-5 text-white z-10">
                   <span className="text-[10px] font-black tracking-widest text-[#F09819] uppercase block mb-1">{cafe.tag}</span>
                   <h3 className="text-[24px] font-black leading-tight">{cafe.name}</h3>
                 </div>

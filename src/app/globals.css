@@ -63,8 +63,9 @@
   --color-nonveg: #c8102e;
   --color-wa-green: #25d366;
 
-  /* Fonts — Marigold brand: Baloo 2 (display) + Satoshi (UI) + Mukta (Devanagari) */
-  --font-headline: var(--font-display), var(--font-deva), system-ui, sans-serif;
+  /* Fonts — Marigold brand: Baloo 2 (display) + Poppins (UI) + Mukta (Devanagari) */
+  --font-sans: var(--font-ui), var(--font-deva), system-ui, sans-serif;
+  --font-headline: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --font-body: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --font-label: var(--font-ui), var(--font-deva), system-ui, sans-serif;
 }
@@ -160,7 +161,7 @@
 
   /* ---- Type ---- */
   --font: var(--font-ui), var(--font-deva), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-heading: var(--font-display), var(--font-deva), system-ui, sans-serif;
+  --font-heading: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --mono: 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
 
   /* ---- Motion ---- */
@@ -195,6 +196,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   margin: 0;
+  letter-spacing: 0.03em;
   min-height: max(884px, 100dvh);
 }
 
@@ -222,15 +224,15 @@ button {
 }
 
 /* ---- Type utilities ---- */
-.t-display   { font-size: 34px; font-weight: 800; line-height: 1.04; letter-spacing: -0.022em; }
-.t-headline  { font-size: 28px; font-weight: 700; line-height: 1.1;  letter-spacing: -0.015em; }
-.t-title     { font-size: 22px; font-weight: 700; line-height: 1.18; letter-spacing: -0.01em; }
+.t-display   { font-size: 34px; font-weight: 800; line-height: 1.04; letter-spacing: 0.015em; }
+.t-headline  { font-size: 28px; font-weight: 700; line-height: 1.1;  letter-spacing: 0.01em; }
+.t-title     { font-size: 22px; font-weight: 700; line-height: 1.18; letter-spacing: 0.01em; }
 .t-subtitle  { font-size: 20px; font-weight: 600; line-height: 1.3; }
-.t-headline-card { font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+.t-headline-card { font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; }
 .t-body      { font-size: 15px; font-weight: 400; line-height: 1.5; }
 .t-label     { font-size: 14px; font-weight: 600; line-height: 1.25; }
 .t-caption   { font-size: 13px; font-weight: 400; line-height: 1.35; color: var(--muted); }
-.t-price     { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.t-price     { font-size: 17px; font-weight: 600; letter-spacing: 0.01em; }
 .tabular     { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 
 /* ---- Line clamps ---- */
@@ -329,6 +331,31 @@ button {
   font-family: var(--gb-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth inertia scrolling & no-scrollbar utility */
+.noscroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.noscroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* GPU hardware acceleration helper */
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
 .gb-app .gb-serif { font-family: var(--gb-serif); }
 
 /* Material Symbols Rounded glyph */

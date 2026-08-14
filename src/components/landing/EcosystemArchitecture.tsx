@@ -178,7 +178,7 @@ export default function EcosystemArchitecture() {
         {/* ========================================================= */}
         {/* INTERACTIVE ARCHITECTURE NODE DIAGRAM CONTAINER */}
         {/* ========================================================= */}
-        <div className="relative w-full max-w-5xl mx-auto bg-[#0F142E]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden">
+        <div className="relative w-full max-w-5xl mx-auto bg-[#0F142E] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden">
           
           {/* SVG CONNECTOR LINES SYSTEM */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden lg:block opacity-60">
