@@ -1,169 +1,126 @@
-// grabbit/src/components/landing/PartnerPitch.tsx
 'use client';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import Link from 'next/link';
-import { motion, useScroll, useTransform, useMotionTemplate, useReducedMotion, type MotionValue } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
 
-// Each card: front = a third of the cafe image, back = the benefit. Scroll splits the image, then flips the panels into the cards.
-// Native replication of the Framer "3D Image Split → Flip" effect (Framer projects aren't importable as code).
-const SPLIT_IMG = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1600&q=80';
-
-const BENEFITS = [
-  { icon: 'point_of_sale', title: 'Your own POS', body: 'Grabbit orders land in your Omega POS at the counter, next to your walk-in orders.', tint: { bg: '#efe9df', fg: '#241612', sub: 'rgba(36,22,18,.62)', icon: '#241612' } },
-  { icon: 'savings', title: 'Keep your margin', body: 'A direct pre-order channel, not a commission-heavy aggregator listing.', tint: { bg: 'linear-gradient(160deg,#FFC24B,#FFB100)', fg: '#241612', sub: 'rgba(36,22,18,.72)', icon: '#241612' } },
-  { icon: 'notifications_active', title: 'Never miss an order', body: 'A tablet at the counter alerts you the moment a pickup order comes in.', tint: { bg: '#171310', fg: '#ffffff', sub: 'rgba(255,255,255,.66)', icon: 'var(--gb-primary)' } },
-];
-
-const T = {
-  bg: 'linear-gradient(180deg, #FFF7EC 0%, #FDEED6 100%)',
-  label: '#E08A1E',
-  text: '#241612',
-  body: 'rgba(36,22,18,.66)',
-  cardBorder: 'rgba(36,22,18,.10)',
-  ctaBg: 'var(--gb-ink)',
-  ctaText: '#fff',
-};
-
-const N = 3;
-
-function FlipCard({ i, b, bg, progress, vertical = false }: { i: number; b: (typeof BENEFITS)[number]; bg: string; progress: MotionValue<number>; vertical?: boolean }) {
-  const dir = i === 0 ? -1 : i === N - 1 ? 1 : 0;
-  const split = useTransform(progress, [0.16, 0.44], [0, dir * (vertical ? 40 : 64)]); // part into three
-  const flip = useTransform(progress, [0.48, 0.84], [0, 180]);                          // flip to cards
-  const tilt = useTransform(progress, [0.48, 0.95], [0, vertical ? 0 : dir * 4]);       // gentle fan (desktop only)
-  // Inner edges start square (seamless whole), round out as the panels part; outer edges stay round.
-  const r = useTransform(progress, [0.16, 0.44], [2, 20]);
-  const brL = useMotionTemplate`20px ${r}px ${r}px 20px`;   // desktop first (round left)
-  const brR = useMotionTemplate`${r}px 20px 20px ${r}px`;   // desktop last  (round right)
-  const brT = useMotionTemplate`20px 20px ${r}px ${r}px`;   // mobile first  (round top)
-  const brB = useMotionTemplate`${r}px ${r}px 20px 20px`;   // mobile last   (round bottom)
-  const brM = useMotionTemplate`${r}px ${r}px ${r}px ${r}px`;
-  const br = vertical ? (dir < 0 ? brT : dir > 0 ? brB : brM) : (dir < 0 ? brL : dir > 0 ? brR : brM);
-  const face: CSSProperties = { position: 'absolute', inset: 0, overflow: 'hidden', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' };
-  const shape = vertical
-    ? { width: '100%', maxWidth: 380, aspectRatio: '2 / 1', y: split, rotateX: flip }
-    : { width: `${100 / N}%`, maxWidth: 300, flex: 'none', aspectRatio: '4 / 5', x: split, rotateY: flip, rotateZ: tilt };
-  const slice = vertical
-    ? { backgroundSize: `100% ${N * 100}%`, backgroundPositionY: `${(i / (N - 1)) * 100}%` }
-    : { backgroundSize: `${N * 100}% 100%`, backgroundPositionX: `${(i / (N - 1)) * 100}%` };
-  return (
-    <motion.div style={{ position: 'relative', transformStyle: 'preserve-3d', transformOrigin: 'center', ...shape }}>
-      {/* front — image slice */}
-      <motion.div style={{ ...face, borderRadius: br, backgroundImage: `url("${bg}")`, backgroundRepeat: 'no-repeat', ...slice }} />
-      {/* back — benefit card: icon top, headline centred, body at bottom */}
-      <motion.div style={{ ...face, borderRadius: br, transform: vertical ? 'rotateX(180deg)' : 'rotateY(180deg)', background: b.tint.bg, padding: vertical ? '16px 20px' : '24px 22px', display: 'flex', flexDirection: 'column', boxShadow: '0 30px 60px -30px rgba(0,0,0,.5)' }}>
-        <MS name={b.icon} size={24} fill color={b.tint.icon} />
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-          <h3 className="gb-serif" style={{ fontSize: vertical ? 22 : 27, fontWeight: 600, lineHeight: 1.14, color: b.tint.fg, margin: 0 }}>{b.title}</h3>
-        </div>
-        <p style={{ fontSize: vertical ? 13.5 : 15, lineHeight: 1.45, color: b.tint.sub, margin: 0 }}>{b.body}</p>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-const DECK_W = 980;   // design width of the card row
-const DECK_EXTENT = 1140; // width the parted + fanned deck needs; used to scale-to-fit
-
-function FlipDeck() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
-  const bg = `/_next/image?url=${encodeURIComponent(SPLIT_IMG)}&w=1920&q=80`;
-  const hint = useTransform(scrollYProgress, [0, 0.12, 0.42, 0.55], [1, 1, 0, 0]);
-  // Whole image starts full-bleed, then zooms out / back as it splits.
-  const zoom = useTransform(scrollYProgress, [0, 0.44], [1.12, 0.94]);
-
-  // Scale the whole deck down to fit narrow viewports so the parted/fanned cards never clip.
-  const [vw, setVw] = useState(1280);
-  useEffect(() => {
-    const on = () => setVw(window.innerWidth);
-    on();
-    window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
-  }, []);
-  const fit = Math.min(1, (vw - 32) / DECK_EXTENT);
-
-  return (
-    <div ref={ref} style={{ position: 'relative', height: '260vh' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: DECK_W, transform: `scale(${fit})`, transformOrigin: 'center' }}>
-          <motion.div style={{ display: 'flex', gap: 0, justifyContent: 'center', perspective: 1600, scale: zoom, transformOrigin: 'center' }}>
-            {BENEFITS.map((b, i) => <FlipCard key={i} i={i} b={b} bg={bg} progress={scrollYProgress} />)}
-          </motion.div>
-          <motion.p style={{ opacity: hint, textAlign: 'center', marginTop: 22, fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(36,22,18,.4)' }}>
-            Scroll to flip
-          </motion.p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileFlipDeck() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
-  const bg = `/_next/image?url=${encodeURIComponent(SPLIT_IMG)}&w=1200&q=80`;
-  const hint = useTransform(scrollYProgress, [0, 0.12, 0.42, 0.55], [1, 1, 0, 0]);
-  return (
-    <div ref={ref} style={{ position: 'relative', height: '260vh' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: '100%', maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, perspective: 1400 }}>
-          {BENEFITS.map((b, i) => <FlipCard key={i} i={i} b={b} bg={bg} progress={scrollYProgress} vertical />)}
-        </div>
-        <motion.p style={{ opacity: hint, marginTop: 20, fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(36,22,18,.4)' }}>
-          Scroll to flip
-        </motion.p>
-      </div>
-    </div>
-  );
-}
-
-function StackedCards() {
-  return (
-    <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr' }} className="gb-partner-grid">
-      {BENEFITS.map((b) => (
-        <motion.div key={b.title}
-          whileHover={{ y: -6, scale: 1.02, borderColor: 'rgba(255,177,0,.55)', boxShadow: '0 22px 48px -18px rgba(120,70,0,.2)' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-          style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 'var(--gb-r-card)', padding: 24, cursor: 'pointer' }}>
-          <MS name={b.icon} size={28} fill color="var(--gb-primary)" />
-          <h3 className="gb-serif" style={{ fontSize: 19, fontWeight: 600, margin: '14px 0 6px', color: T.text }}>{b.title}</h3>
-          <p style={{ fontSize: 14, lineHeight: 1.5, color: T.body, margin: 0 }}>{b.body}</p>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
 export default function PartnerPitch() {
-  const reduced = !!useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const on = () => setIsMobile(window.matchMedia('(max-width: 720px)').matches);
-    on();
-    window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
-  }, []);
-
   return (
-    <section style={{ background: T.bg, color: T.text, padding: '88px 22px' }}>
-      <div style={{ maxWidth: 1120, margin: '0 auto' }}>
-        <div style={{ maxWidth: 560 }}>
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: T.label }}>For cafés</span>
-          <h2 className="gb-serif" style={{ fontSize: 'clamp(30px, 5vw, 48px)', fontWeight: 600, lineHeight: 1.1, margin: '12px 0 16px' }}>
-            Run a café? Own your orders.
+    <section className="py-32 bg-[#FDFBF7] text-[#1A1311] relative overflow-hidden">
+      <div className="max-w-[1280px] mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+        
+        {/* LEFT: Copy & CTA */}
+        <div className="w-full lg:w-5/12 order-2 lg:order-1">
+          <span className="inline-flex items-center gap-2 bg-[#EBE4D8]/50 text-[#8A7A6B] text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
+            For Café Owners
+          </span>
+          <h2 className="text-[42px] md:text-[56px] font-black tracking-tighter leading-[1.05] mb-6">
+            Grow your revenue, <br />
+            <span className="text-[#8A7A6B] font-serif italic font-medium">not your queue.</span>
           </h2>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: T.body, margin: '0 0 32px' }}>
-            Take pre-orders from customers before they arrive, and manage them right at your counter.
+          <p className="text-[18px] text-[#8A7A6B] font-semibold leading-relaxed mb-10 max-w-md">
+            Grabbit isn't a food delivery app taking 30% margins. We are a direct pre-order channel built to increase your morning volume without overwhelming your counter staff.
           </p>
+          
+          <ul className="space-y-4 mb-10">
+            {[
+              'Keep your margins. No predatory delivery fees.',
+              'Orders land directly on your custom Grabbit tablet.',
+              'Eliminate counter congestion and customer frustration.'
+            ].map((item, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#1A1311] flex items-center justify-center shrink-0 mt-0.5">
+                  <MS name="check" size={14} color="#FDFBF7" />
+                </div>
+                <span className="text-[16px] font-bold text-[#1A1311]">{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="group inline-flex items-center justify-center gap-2 bg-[#1A1311] hover:bg-[#F09819] text-white hover:text-[#1A1311] px-8 py-4 rounded-[16px] font-bold text-[16px] cursor-pointer transition-all duration-300 shadow-md">
+            Partner with us
+            <MS name="arrow_forward" size={18} className="transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
 
-        {reduced ? <StackedCards /> : isMobile ? <MobileFlipDeck /> : <FlipDeck />}
+        {/* RIGHT: B2B Dashboard Mockup */}
+        <div className="w-full lg:w-7/12 order-1 lg:order-2">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, rotateY: 10 }}
+            whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+            className="w-full aspect-[4/3] bg-white rounded-[24px] shadow-[0_32px_64px_rgba(26,19,17,0.1)] border border-[#EBE4D8] overflow-hidden flex flex-col perspective-1000"
+          >
+            {/* Dashboard Header */}
+            <div className="h-16 border-b border-gray-100 flex items-center justify-between px-6 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <img src="/transparent-image.svg" alt="Grabbit" className="h-8 w-auto" />
+                <span className="font-bold text-[#1A1311] border-l border-gray-200 pl-3">Blue Tokai Dashboard</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Accepting Orders</span>
+                </div>
+              </div>
+            </div>
 
-        <div style={{ marginTop: 36 }}>
-          <Link href="/partner" className="gb-hover-btn" style={{ display: 'inline-block', background: T.ctaBg, color: T.ctaText, fontSize: 16, fontWeight: 800, padding: '15px 28px', borderRadius: 999 }}>Partner with us</Link>
+            {/* Dashboard Content */}
+            <div className="p-6 flex-1 bg-[#FDFBF7]/30 flex flex-col gap-6">
+              
+              {/* Top Metrics Grid */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Today's Orders</div>
+                  <div className="text-[28px] font-black text-[#1A1311]">142</div>
+                  <div className="text-[12px] font-bold text-green-500 mt-1">↑ 12% vs yesterday</div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Avg Prep Time</div>
+                  <div className="text-[28px] font-black text-[#1A1311]">4m 12s</div>
+                  <div className="text-[12px] font-bold text-green-500 mt-1">On target</div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pending</div>
+                  <div className="text-[28px] font-black text-[#F09819]">8</div>
+                  <div className="text-[12px] font-bold text-gray-400 mt-1">In kitchen</div>
+                </div>
+              </div>
+
+              {/* Active Orders List */}
+              <div className="flex-1 bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                  <span className="font-bold text-[14px]">Live Queue</span>
+                  <span className="text-[12px] text-[#F09819] font-bold bg-[#F09819]/10 px-2 py-1 rounded">Auto-accepting</span>
+                </div>
+                <div className="p-5 flex flex-col gap-3">
+                  {[
+                    { id: '#4092', items: '2x Iced Americano, 1x Croissant', time: '02:45', status: 'PREPARING', color: 'bg-[#F09819]', text: 'text-[#1A1311]' },
+                    { id: '#4091', items: '1x Flat White (Oat Milk)', time: '00:00', status: 'READY', color: 'bg-green-500', text: 'text-white' },
+                    { id: '#4090', items: '1x Matcha Latte', time: '00:00', status: 'READY', color: 'bg-green-500', text: 'text-white' },
+                  ].map((order, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center font-bold text-[#1A1311]">{order.id}</div>
+                        <div>
+                          <div className="font-bold text-[#1A1311] text-[14px]">{order.items}</div>
+                          <div className="text-[12px] text-gray-500 mt-0.5">Pickup at {(new Date()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {order.time !== '00:00' && <span className="font-mono font-bold text-[#1A1311]">{order.time}</span>}
+                        <div className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wider ${order.color} ${order.text}`}>
+                          {order.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </motion.div>
         </div>
+
       </div>
     </section>
   );

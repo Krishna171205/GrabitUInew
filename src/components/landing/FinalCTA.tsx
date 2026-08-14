@@ -1,18 +1,67 @@
-// grabbit/src/components/landing/FinalCTA.tsx
 'use client';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { MS } from '@/components/gb/kit';
 
 export default function FinalCTA() {
   return (
-    <section style={{ background: 'var(--gb-surface)', padding: '88px 22px', textAlign: 'center' }}>
-      <div style={{ maxWidth: 640, margin: '0 auto' }}>
-        <h2 className="gb-serif" style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 600, letterSpacing: '-.015em', margin: '0 0 24px', color: 'var(--gb-text-strong)' }}>
-          Your coffee, ready when you are.
-        </h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-          <Link href="/home" className="gb-hover-btn" style={{ background: 'var(--gb-primary)', color: '#fff', fontSize: 16, fontWeight: 800, padding: '15px 28px', borderRadius: 999 }}>Start ordering</Link>
-          <Link href="/partner" className="gb-hover-btn" style={{ background: 'var(--gb-card)', color: 'var(--gb-text)', border: '1px solid var(--gb-line-3)', fontSize: 16, fontWeight: 700, padding: '15px 28px', borderRadius: 999 }}>Partner with us</Link>
-        </div>
+    <section className="py-28 bg-[#1A1311] text-[#FDFBF7] relative overflow-hidden text-center border-t border-white/10">
+      {/* Background Radial Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FFB100]/15 rounded-full blur-[160px] pointer-events-none" />
+
+      <div className="max-w-[800px] mx-auto px-6 relative z-10">
+        <motion.span
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#FFFDF8] text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-8"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#FFB100] animate-pulse" />
+          Ready To Experience Grabbit?
+        </motion.span>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight"
+        >
+          Your coffee, <br />
+          <span className="text-[#FFB100] italic font-medium">ready when you are.</span>
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="text-[#FDFBF7]/80 text-lg md:text-xl max-w-lg mx-auto mb-10"
+        >
+          Skip queues at Delhi’s finest cafés. Pre-order coffee & snacks on your terms.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <Link
+            href="/home"
+            className="group bg-[#FFB100] text-[#1A1311] text-base font-bold px-9 py-4 rounded-full transition-all hover:shadow-[0_12px_32px_rgba(255,177,0,0.4)] hover:-translate-y-1 flex items-center justify-center gap-2 w-full sm:w-auto"
+          >
+            <span>Start ordering</span>
+            <MS name="arrow_forward" size={18} />
+          </Link>
+          <Link
+            href="/partner"
+            className="bg-white/10 text-white border border-white/20 text-base font-semibold px-9 py-4 rounded-full transition-all hover:bg-white/20 hover:-translate-y-1 w-full sm:w-auto"
+          >
+            Partner with us
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

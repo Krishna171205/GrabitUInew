@@ -100,10 +100,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/grabbit-logo.svg', sizes: 'any', type: 'image/svg+xml' },
-      { url: '/grabbit-logo.svg', rel: 'mask-icon', color: '#241612' },
+      { url: '/new-logo.svg', sizes: 'any', type: 'image/svg+xml' },
+      { url: '/new-logo.svg', rel: 'mask-icon', color: '#241612' },
     ],
-    apple: [{ url: '/grabbit-logo.svg', sizes: '180x180' }],
+    apple: [{ url: '/new-logo.svg', sizes: '180x180' }],
   },
   themeColor: '#FFFDF8',
   category: 'Food & Dining',

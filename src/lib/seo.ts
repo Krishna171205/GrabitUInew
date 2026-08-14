@@ -66,7 +66,7 @@ export const organizationSchema: SeoSchema = {
   name: 'Grabbit',
   alternateName: ['LetsGrabbit', 'Lets Grabbit', 'Grabit', 'Grabbit Coffee'],
   url: SITE_URL,
-  logo: `${SITE_URL}/grabbit-logo.svg`,
+  logo: `${SITE_URL}/new-logo.svg`,
   brand: { '@type': 'Brand', name: 'Grabbit', alternateName: ['LetsGrabbit', 'Lets Grabit', 'Grabit'] },
   description: DESCRIPTION,
   keywords: BRAND_KEYWORDS.join(', '),

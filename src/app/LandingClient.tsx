@@ -1,34 +1,36 @@
-// grabbit/src/app/LandingClient.tsx
 'use client';
 import LandingNav from '@/components/landing/LandingNav';
 import Hero from '@/components/landing/Hero';
 import TrustBand from '@/components/landing/TrustBand';
 import HowItWorks from '@/components/landing/HowItWorks';
-import WhyGrabbit from '@/components/landing/WhyGrabbit';
+import TimeSaved from '@/components/landing/TimeSaved';
+import CafeDiscovery from '@/components/landing/CafeDiscovery';
 import ProductPreview from '@/components/landing/ProductPreview';
+import TestimonialsCarousel from '@/components/landing/TestimonialsCarousel';
 import PartnerPitch from '@/components/landing/PartnerPitch';
-import FinalCTA from '@/components/landing/FinalCTA';
 import FAQSection from '@/components/landing/FAQSection';
-import { TestimonialsSection } from '@/components/ui/testimonials-columns';
+import FinalCTA from '@/components/landing/FinalCTA';
+import LandingFooter from '@/components/landing/LandingFooter';
 import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
 
 export default function LandingClient() {
   return (
-        <div className="gb-app" style={{ background: 'var(--gb-surface)', color: 'var(--gb-text-strong)' }}>
+    <div className="gb-app bg-[#FDFBF7] text-[#1A1311] font-sans antialiased min-h-screen">
       <LandingNav />
       <main data-landing-root>
         <Hero />
         <TrustBand />
         <HowItWorks />
-        <WhyGrabbit />
+        <TimeSaved />
+        <CafeDiscovery />
         <ProductPreview />
-        <TestimonialsSection />
-        <FAQSection />
+        <TestimonialsCarousel />
         <PartnerPitch />
+        <FAQSection />
         <FinalCTA />
       </main>
-      {/* ReadyToJoinRitual is a full-height curtain footer, must be the last element.
-          It carries the policy links (Contact / Terms / Refunds / Privacy) in its bottom bar. */}
+      <LandingFooter />
+      {/* ReadyToJoinRitual carries policy links & footer curtain */}
       <ReadyToJoinRitual />
     </div>
   );

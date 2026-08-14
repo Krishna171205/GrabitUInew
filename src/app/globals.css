@@ -13,11 +13,18 @@
   --color-primary: #FFB100;            /* Marigold */
   --color-primary-pressed: #E09A00;
   --color-primary-container: #FFCA45;
-  --color-on-primary: #241612;         /* INK on gold — never white */
+  --color-on-primary: #1F1511;         /* INK on gold — never white */
   --color-primary-tint: #FFF3DC;
   --color-primary-tint-strong: #FFE7B0;
   --color-inverse-primary: #FFD98A;
 
+  /* New premium tokens */
+  --color-espresso: #1A1311;
+  --color-cream: #FDFBF7;
+  --color-warm-neutral: #F7F4EF;
+  --color-amber: #F09819;
+  --color-charcoal: #362C28;
+  --color-beige: #EBE4D8;
   /* Surfaces / text */
   --color-surface: #FFFDF8;            /* Paper */
   --color-surface-card: #ffffff;
@@ -114,6 +121,14 @@
   /* veg / non-veg */
   --veg: #1f9d57;
   --nonveg: #c8102e;
+
+  /* ---- New premium tokens ---- */
+  --gb-espresso: #1A1311;
+  --gb-cream: #FDFBF7;
+  --gb-warm-neutral: #F7F4EF;
+  --gb-amber: #F09819;
+  --gb-charcoal: #362C28;
+  --gb-beige: #EBE4D8;
 
   /* ---- Frosted nav ---- */
   --glass-bg: rgba(255, 255, 255, 0.82);
