@@ -1,169 +1,292 @@
-// grabbit/src/components/landing/PartnerPitch.tsx
 'use client';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import Link from 'next/link';
-import { motion, useScroll, useTransform, useMotionTemplate, useReducedMotion, type MotionValue } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
 
-// Each card: front = a third of the cafe image, back = the benefit. Scroll splits the image, then flips the panels into the cards.
-// Native replication of the Framer "3D Image Split → Flip" effect (Framer projects aren't importable as code).
-const SPLIT_IMG = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1600&q=80';
-
-const BENEFITS = [
-  { icon: 'point_of_sale', title: 'Your own POS', body: 'Grabbit orders land in your Omega POS at the counter, next to your walk-in orders.', tint: { bg: '#efe9df', fg: '#241612', sub: 'rgba(36,22,18,.62)', icon: '#241612' } },
-  { icon: 'savings', title: 'Keep your margin', body: 'A direct pre-order channel, not a commission-heavy aggregator listing.', tint: { bg: 'linear-gradient(160deg,#FFC24B,#FFB100)', fg: '#241612', sub: 'rgba(36,22,18,.72)', icon: '#241612' } },
-  { icon: 'notifications_active', title: 'Never miss an order', body: 'A tablet at the counter alerts you the moment a pickup order comes in.', tint: { bg: '#171310', fg: '#ffffff', sub: 'rgba(255,255,255,.66)', icon: 'var(--gb-primary)' } },
-];
-
-const T = {
-  bg: 'linear-gradient(180deg, #FFF7EC 0%, #FDEED6 100%)',
-  label: '#E08A1E',
-  text: '#241612',
-  body: 'rgba(36,22,18,.66)',
-  cardBorder: 'rgba(36,22,18,.10)',
-  ctaBg: 'var(--gb-ink)',
-  ctaText: '#fff',
-};
-
-const N = 3;
-
-function FlipCard({ i, b, bg, progress, vertical = false }: { i: number; b: (typeof BENEFITS)[number]; bg: string; progress: MotionValue<number>; vertical?: boolean }) {
-  const dir = i === 0 ? -1 : i === N - 1 ? 1 : 0;
-  const split = useTransform(progress, [0.16, 0.44], [0, dir * (vertical ? 40 : 64)]); // part into three
-  const flip = useTransform(progress, [0.48, 0.84], [0, 180]);                          // flip to cards
-  const tilt = useTransform(progress, [0.48, 0.95], [0, vertical ? 0 : dir * 4]);       // gentle fan (desktop only)
-  // Inner edges start square (seamless whole), round out as the panels part; outer edges stay round.
-  const r = useTransform(progress, [0.16, 0.44], [2, 20]);
-  const brL = useMotionTemplate`20px ${r}px ${r}px 20px`;   // desktop first (round left)
-  const brR = useMotionTemplate`${r}px 20px 20px ${r}px`;   // desktop last  (round right)
-  const brT = useMotionTemplate`20px 20px ${r}px ${r}px`;   // mobile first  (round top)
-  const brB = useMotionTemplate`${r}px ${r}px 20px 20px`;   // mobile last   (round bottom)
-  const brM = useMotionTemplate`${r}px ${r}px ${r}px ${r}px`;
-  const br = vertical ? (dir < 0 ? brT : dir > 0 ? brB : brM) : (dir < 0 ? brL : dir > 0 ? brR : brM);
-  const face: CSSProperties = { position: 'absolute', inset: 0, overflow: 'hidden', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' };
-  const shape = vertical
-    ? { width: '100%', maxWidth: 380, aspectRatio: '2 / 1', y: split, rotateX: flip }
-    : { width: `${100 / N}%`, maxWidth: 300, flex: 'none', aspectRatio: '4 / 5', x: split, rotateY: flip, rotateZ: tilt };
-  const slice = vertical
-    ? { backgroundSize: `100% ${N * 100}%`, backgroundPositionY: `${(i / (N - 1)) * 100}%` }
-    : { backgroundSize: `${N * 100}% 100%`, backgroundPositionX: `${(i / (N - 1)) * 100}%` };
-  return (
-    <motion.div style={{ position: 'relative', transformStyle: 'preserve-3d', transformOrigin: 'center', ...shape }}>
-      {/* front — image slice */}
-      <motion.div style={{ ...face, borderRadius: br, backgroundImage: `url("${bg}")`, backgroundRepeat: 'no-repeat', ...slice }} />
-      {/* back — benefit card: icon top, headline centred, body at bottom */}
-      <motion.div style={{ ...face, borderRadius: br, transform: vertical ? 'rotateX(180deg)' : 'rotateY(180deg)', background: b.tint.bg, padding: vertical ? '16px 20px' : '24px 22px', display: 'flex', flexDirection: 'column', boxShadow: '0 30px 60px -30px rgba(0,0,0,.5)' }}>
-        <MS name={b.icon} size={24} fill color={b.tint.icon} />
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-          <h3 className="gb-serif" style={{ fontSize: vertical ? 22 : 27, fontWeight: 600, lineHeight: 1.14, color: b.tint.fg, margin: 0 }}>{b.title}</h3>
-        </div>
-        <p style={{ fontSize: vertical ? 13.5 : 15, lineHeight: 1.45, color: b.tint.sub, margin: 0 }}>{b.body}</p>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-const DECK_W = 980;   // design width of the card row
-const DECK_EXTENT = 1140; // width the parted + fanned deck needs; used to scale-to-fit
-
-function FlipDeck() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
-  const bg = `/_next/image?url=${encodeURIComponent(SPLIT_IMG)}&w=1920&q=80`;
-  const hint = useTransform(scrollYProgress, [0, 0.12, 0.42, 0.55], [1, 1, 0, 0]);
-  // Whole image starts full-bleed, then zooms out / back as it splits.
-  const zoom = useTransform(scrollYProgress, [0, 0.44], [1.12, 0.94]);
-
-  // Scale the whole deck down to fit narrow viewports so the parted/fanned cards never clip.
-  const [vw, setVw] = useState(1280);
-  useEffect(() => {
-    const on = () => setVw(window.innerWidth);
-    on();
-    window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
-  }, []);
-  const fit = Math.min(1, (vw - 32) / DECK_EXTENT);
-
-  return (
-    <div ref={ref} style={{ position: 'relative', height: '260vh' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: DECK_W, transform: `scale(${fit})`, transformOrigin: 'center' }}>
-          <motion.div style={{ display: 'flex', gap: 0, justifyContent: 'center', perspective: 1600, scale: zoom, transformOrigin: 'center' }}>
-            {BENEFITS.map((b, i) => <FlipCard key={i} i={i} b={b} bg={bg} progress={scrollYProgress} />)}
-          </motion.div>
-          <motion.p style={{ opacity: hint, textAlign: 'center', marginTop: 22, fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(36,22,18,.4)' }}>
-            Scroll to flip
-          </motion.p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileFlipDeck() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
-  const bg = `/_next/image?url=${encodeURIComponent(SPLIT_IMG)}&w=1200&q=80`;
-  const hint = useTransform(scrollYProgress, [0, 0.12, 0.42, 0.55], [1, 1, 0, 0]);
-  return (
-    <div ref={ref} style={{ position: 'relative', height: '260vh' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: '100%', maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, perspective: 1400 }}>
-          {BENEFITS.map((b, i) => <FlipCard key={i} i={i} b={b} bg={bg} progress={scrollYProgress} vertical />)}
-        </div>
-        <motion.p style={{ opacity: hint, marginTop: 20, fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(36,22,18,.4)' }}>
-          Scroll to flip
-        </motion.p>
-      </div>
-    </div>
-  );
-}
-
-function StackedCards() {
-  return (
-    <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr' }} className="gb-partner-grid">
-      {BENEFITS.map((b) => (
-        <motion.div key={b.title}
-          whileHover={{ y: -6, scale: 1.02, borderColor: 'rgba(255,177,0,.55)', boxShadow: '0 22px 48px -18px rgba(120,70,0,.2)' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-          style={{ background: '#fff', border: `1px solid ${T.cardBorder}`, borderRadius: 'var(--gb-r-card)', padding: 24, cursor: 'pointer' }}>
-          <MS name={b.icon} size={28} fill color="var(--gb-primary)" />
-          <h3 className="gb-serif" style={{ fontSize: 19, fontWeight: 600, margin: '14px 0 6px', color: T.text }}>{b.title}</h3>
-          <p style={{ fontSize: 14, lineHeight: 1.5, color: T.body, margin: 0 }}>{b.body}</p>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
 export default function PartnerPitch() {
-  const reduced = !!useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const on = () => setIsMobile(window.matchMedia('(max-width: 720px)').matches);
-    on();
-    window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
-  }, []);
+  // 3D rotation logic
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseXSpring = useSpring(x, { stiffness: 100, damping: 30 });
+  const mouseYSpring = useSpring(y, { stiffness: 100, damping: 30 });
+  
+  // Apple-like subtle isometric tilt
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    x.set(mouseX / width - 0.5);
+    y.set(mouseY / height - 0.5);
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
+  // Common transition for infinite 10s loop (11 keyframes = 10 equal 1s intervals)
+  const loopTransition = { repeat: Infinity, duration: 10, ease: "easeInOut" };
 
   return (
-    <section style={{ background: T.bg, color: T.text, padding: '88px 22px' }}>
-      <div style={{ maxWidth: 1120, margin: '0 auto' }}>
-        <div style={{ maxWidth: 560 }}>
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: T.label }}>For cafés</span>
-          <h2 className="gb-serif" style={{ fontSize: 'clamp(30px, 5vw, 48px)', fontWeight: 600, lineHeight: 1.1, margin: '12px 0 16px' }}>
-            Run a café? Own your orders.
+    <section className="py-32 bg-[#FDFBF7] text-[#1A1311] relative overflow-hidden">
+      {/* Ambient glowing mesh (Stripe-style) */}
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-[#F09819]/15 via-transparent to-blue-500/10 blur-[80px] rounded-full pointer-events-none z-0" />
+
+      <div className="max-w-[1280px] mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+        
+        {/* LEFT: Copy */}
+        <div className="w-full lg:w-5/12 order-2 lg:order-1 relative z-20">
+          <span className="inline-flex items-center gap-2 bg-[#EBE4D8]/50 text-[#8A7A6B] text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
+            For Café Partners
+          </span>
+          <h2 className="text-[42px] md:text-[56px] font-black tracking-tighter leading-[1.05] mb-6">
+            Connecting customers <br />
+            <span className="text-[#8A7A6B] font-serif italic font-medium">directly to your kitchen.</span>
           </h2>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: T.body, margin: '0 0 32px' }}>
-            Take pre-orders from customers before they arrive, and manage them right at your counter.
+          <p className="text-[18px] text-[#8A7A6B] font-semibold leading-relaxed mb-10 max-w-md">
+            Watch how a pre-order flows from a customer's phone instantly to your Café Dashboard. No manual entry, no missed tickets, no angry queues.
           </p>
+          <ul className="space-y-4 mb-10">
+            {['Zero hardware integration costs.', 'Real-time sync with customers.', 'Automated prep-time calculations.'].map((item, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#1A1311] flex items-center justify-center shrink-0 mt-0.5">
+                  <MS name="check" size={14} color="#FDFBF7" />
+                </div>
+                <span className="text-[16px] font-bold text-[#1A1311]">{item}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="group inline-flex items-center justify-center gap-2 bg-[#1A1311] hover:bg-[#F09819] text-white hover:text-[#1A1311] px-8 py-4 rounded-[16px] font-bold text-[16px] cursor-pointer transition-all duration-300 shadow-md">
+            Partner with us
+            <MS name="arrow_forward" size={18} className="transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
 
-        {reduced ? <StackedCards /> : isMobile ? <MobileFlipDeck /> : <FlipDeck />}
+        {/* RIGHT: Live Business Mockup (Phone + Tablet) */}
+        <div 
+          className="w-full lg:w-7/12 order-1 lg:order-2 flex justify-center items-center"
+          style={{ perspective: 1400 }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          <motion.div 
+            style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-[640px] h-[500px]"
+          >
+            {/* Smooth floating wrapper */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+              className="w-full h-full relative"
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              
+              {/* --- TABLET KDS (BACK / RIGHT) --- */}
+              <div 
+                className="absolute right-0 top-12 w-[440px] h-[340px] bg-white/95 backdrop-blur-md rounded-[24px] shadow-[0_40px_80px_rgba(26,19,17,0.1)] border border-[#EBE4D8] overflow-hidden flex flex-col z-10"
+                style={{ transform: 'translateZ(-40px) translateX(40px)' }}
+              >
+                {/* Header */}
+                <div className="h-12 border-b border-gray-100 flex items-center justify-between px-5 bg-gray-50/50">
+                  <div className="flex items-center gap-2">
+                    <img src="/transparent-image.svg" alt="Grabbit" className="h-5 w-auto opacity-80" />
+                    <span className="font-bold text-[#1A1311] text-[13px] border-l border-gray-200 pl-2">Dashboard</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-green-50 px-2.5 py-1 rounded-full border border-green-100">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[9px] font-bold text-green-700 uppercase tracking-wider">Online</span>
+                  </div>
+                </div>
+                
+                {/* Body */}
+                <div className="p-5 flex-1 bg-[#FDFBF7]/30 flex flex-col gap-3 relative overflow-hidden">
+                  <div className="flex justify-between items-end">
+                    <h3 className="font-bold text-[14px]">Live Queue</h3>
+                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Auto-accepting</div>
+                  </div>
+                  
+                  <div className="relative mt-2">
+                    {/* The new incoming order #4093 */}
+                    <motion.div
+                      animate={{ 
+                        y: [-20, -20, -20, 0, 0, 0, 0, 0, 0, -20, -20],
+                        opacity: [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                        scale: [0.95, 0.95, 0.95, 1, 1, 1, 1, 1, 1, 0.95, 0.95]
+                      }}
+                      transition={loopTransition}
+                      className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-3.5 rounded-xl border border-blue-200 bg-blue-50/80 backdrop-blur-sm shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center font-bold text-[13px] text-blue-700 border border-blue-200">#4093</div>
+                        <div>
+                          <div className="font-bold text-[#1A1311] text-[14px]">1x Iced Latte</div>
+                          <div className="text-[12px] text-gray-500 font-medium">Oat Milk</div>
+                        </div>
+                      </div>
+                      
+                      {/* Status Pill Animation */}
+                      <div className="relative w-[85px] h-[28px]">
+                        {/* PENDING -> 3s to 4s */}
+                        <motion.div 
+                          animate={{ opacity: [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1] }}
+                          transition={loopTransition}
+                          className="absolute inset-0 bg-[#F09819]/10 text-[#F09819] border border-[#F09819]/20 rounded-md flex items-center justify-center text-[10px] font-bold"
+                        >
+                          PENDING
+                        </motion.div>
+                        {/* PREPARING -> 4s to 6s */}
+                        <motion.div 
+                          animate={{ opacity: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0] }}
+                          transition={loopTransition}
+                          className="absolute inset-0 bg-blue-100 text-blue-700 border border-blue-200 rounded-md flex items-center justify-center text-[10px] font-bold"
+                        >
+                          PREPARING
+                        </motion.div>
+                        {/* READY -> 6s to 9s */}
+                        <motion.div 
+                          animate={{ opacity: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0] }}
+                          transition={loopTransition}
+                          className="absolute inset-0 bg-green-100 text-green-700 border border-green-200 rounded-md flex items-center justify-center text-[10px] font-bold"
+                        >
+                          READY
+                        </motion.div>
+                      </div>
+                    </motion.div>
 
-        <div style={{ marginTop: 36 }}>
-          <Link href="/partner" className="gb-hover-btn" style={{ display: 'inline-block', background: T.ctaBg, color: T.ctaText, fontSize: 16, fontWeight: 800, padding: '15px 28px', borderRadius: 999 }}>Partner with us</Link>
+                    {/* Existing static orders that shift down */}
+                    <motion.div
+                      animate={{ y: [0, 0, 0, 75, 75, 75, 75, 75, 75, 0, 0] }}
+                      transition={loopTransition}
+                      className="flex flex-col gap-3 relative z-10"
+                    >
+                      {[
+                        { id: '#4092', items: '2x Americano', status: 'PREPARING', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+                        { id: '#4091', items: '1x Flat White', status: 'READY', color: 'bg-green-100 text-green-700 border-green-200' },
+                      ].map((order, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-white shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center font-bold text-[13px] text-gray-600 border border-gray-100">{order.id}</div>
+                            <div className="font-bold text-[#1A1311] text-[14px]">{order.items}</div>
+                          </div>
+                          <div className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold border ${order.color}`}>
+                            {order.status}
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- CUSTOMER PHONE (FRONT / LEFT) --- */}
+              <div 
+                className="absolute left-0 bottom-6 w-[260px] h-[460px] bg-white rounded-[36px] shadow-[0_40px_80px_rgba(0,0,0,0.2)] border-[8px] border-[#1A1311] overflow-hidden flex flex-col z-30"
+                style={{ transform: 'translateZ(60px)' }}
+              >
+                {/* Dynamic Island Area */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
+                  <div className="w-[80px] h-[24px] bg-[#1A1311] rounded-full z-10" />
+                  
+                  {/* Phone Ready Notification Toast */}
+                  <motion.div
+                    animate={{ 
+                      y: [-100, -100, -100, -100, -100, -100, -100, 10, 10, -100, -100],
+                      opacity: [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+                    }}
+                    transition={loopTransition}
+                    className="absolute top-0 bg-white/95 backdrop-blur-xl rounded-[20px] shadow-2xl border border-gray-100 p-3 w-[220px] flex items-start gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(74,222,128,0.4)]">
+                      <MS name="check" size={16} color="#fff" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-bold text-[#1A1311] leading-tight mb-0.5">Order Ready!</div>
+                      <div className="text-[11px] text-gray-500 font-medium leading-tight">Pick up at Counter 04</div>
+                    </div>
+                  </motion.div>
+                </div>
+
+                <div className="h-48 bg-gray-100 relative shrink-0">
+                  <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-5 text-white">
+                    <div className="text-[22px] font-black">Iced Latte</div>
+                    <div className="text-[14px] font-bold text-[#F09819]">₹220</div>
+                  </div>
+                </div>
+                
+                <div className="p-5 flex flex-col flex-1 bg-[#FDFBF7]">
+                  <div className="space-y-4 flex-1">
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-3">
+                      <div className="text-[13px] font-bold text-[#1A1311]">Milk</div>
+                      <div className="text-[11px] font-semibold bg-[#F09819]/10 text-[#F09819] px-2 py-1 rounded">Oat Milk</div>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-3">
+                      <div className="text-[13px] font-bold text-[#1A1311]">Total</div>
+                      <div className="text-[15px] font-black text-[#1A1311]">₹220</div>
+                    </div>
+                  </div>
+                  
+                  {/* Place Order Button */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 0.95, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                      backgroundColor: ['#1A1311', '#1A1311', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#1A1311', '#1A1311']
+                    }}
+                    transition={loopTransition}
+                    className="w-full h-[48px] rounded-[14px] text-white flex items-center justify-center font-bold text-[14px] shadow-lg relative overflow-hidden"
+                  >
+                    <motion.div 
+                      animate={{ opacity: [1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1] }} 
+                      transition={loopTransition}
+                      className="absolute"
+                    >
+                      Pay ₹220
+                    </motion.div>
+                    <motion.div 
+                      animate={{ opacity: [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0] }} 
+                      transition={loopTransition}
+                      className="absolute flex items-center gap-1.5"
+                    >
+                      <MS name="check_circle" size={16} /> Sent to Café
+                    </motion.div>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* --- DATA TRANSMISSION EFFECT (The "Magic" Link) --- */}
+              {/* Particle zipping from phone to tablet */}
+              <motion.div
+                animate={{
+                  x: [120, 120, 200, 360, 360, 360, 360, 360, 360, 360, 120],
+                  y: [360, 360, 240, 120, 120, 120, 120, 120, 120, 120, 360],
+                  opacity: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                  scale: [0.5, 0.5, 1.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+                }}
+                transition={loopTransition}
+                className="absolute w-5 h-5 bg-[#F09819] rounded-full shadow-[0_0_30px_rgba(240,152,25,0.8)] z-20 pointer-events-none"
+              />
+
+              {/* Return Particle (Ready Signal) */}
+              <motion.div
+                animate={{
+                  x: [360, 360, 360, 360, 360, 360, 360, 200, 120, 120, 360],
+                  y: [120, 120, 120, 120, 120, 120, 120, 60, 30, 30, 120],
+                  opacity: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                  scale: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 0.5, 0.5, 0.5]
+                }}
+                transition={loopTransition}
+                className="absolute w-5 h-5 bg-green-400 rounded-full shadow-[0_0_30px_rgba(74,222,128,0.8)] z-40 pointer-events-none"
+              />
+
+            </motion.div>
+          </motion.div>
         </div>
+
       </div>
     </section>
   );
