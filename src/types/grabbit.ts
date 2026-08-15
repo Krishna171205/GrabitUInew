@@ -105,6 +105,8 @@ export interface GrabbitOrder {
   suggested_prep_minutes?: number | null; // chef-time estimate, staff accept from it
   created_at: string;
   updated_at: string;
+  cafe_gstin?: string | null; // null = not GST-registered, not missing data
+  cafe_fssai_number?: string | null;
 }
 
 export interface GrabbitOrderItem {

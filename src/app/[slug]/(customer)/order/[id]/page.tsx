@@ -5,6 +5,7 @@ import type { GrabbitOrderWithItems, GrabbitOrderStatus } from '@gradient365/gra
 import { useCart } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
+import { downloadReceipt } from '@/components/gb/receipt';
 
 function stepIndex(s: GrabbitOrderStatus): number {
   const map: Record<GrabbitOrderStatus, number> = {
@@ -111,10 +112,22 @@ export default function OrderPage() {
     // Reconciliation remains the source of correctness after reconnects/deploys.
     const poll = setInterval(() => refresh(true), 60000);
 
+    // Mobile browsers throttle/suspend timers and the SSE connection while the tab
+    // is backgrounded (screen locked, app-switched away) - exactly the window during
+    // which the order is most likely to actually complete. Without this, a customer
+    // reopening the tab keeps looking at whatever state it froze on until the next
+    // tick fires, which may be a long time after they're already looking at the
+    // screen. Force a reconcile the moment the page is visible again.
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(true); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', onVisible);
+
     return () => {
       eventTypes.forEach(type => stream.removeEventListener(type, onEvent));
       stream.close();
       clearInterval(poll);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onVisible);
     };
   }, [id, slug, router, token]);
 
@@ -265,8 +278,16 @@ export default function OrderPage() {
         </div>
       </div>
 
+      {/* receipt */}
+      <button
+        onClick={() => downloadReceipt(order, cafeName)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: 'calc(100% - 32px)', margin: '12px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 14.5, fontWeight: 700, padding: 13, borderRadius: 14, cursor: 'pointer' }}
+      >
+        <MS name="receipt_long" size={18} />Download receipt
+      </button>
+
       {/* back to home */}
-      <button onClick={() => router.replace('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
+      <button onClick={() => router.replace('/home')} style={{ width: 'calc(100% - 32px)', margin: '12px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
         Back to home
       </button>
     </div>
