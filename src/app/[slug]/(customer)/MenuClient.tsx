@@ -500,8 +500,9 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
                           before this cafe's menu ever adds a non-veg item, or this mark lies. */}
                       <div style={{ position: 'absolute', top: 8, left: 8 }}><Veg veg={true} /></div>
                       {item.is_bestseller && (
-                        <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 10.5, fontWeight: 800, padding: '3px 8px', borderRadius: 999, letterSpacing: 0.2 }}>
-                          Bestseller
+                        <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(30,22,14,.72)', backdropFilter: 'blur(3px)', color: '#FFD27A', fontSize: 10, fontWeight: 800, padding: '4px 8px 4px 6px', borderRadius: 999, letterSpacing: 0.3 }}>
+                          <MS name="local_fire_department" size={12} fill color="#FFD27A" />
+                          BESTSELLER
                         </div>
                       )}
                       {isLoggedIn && (
