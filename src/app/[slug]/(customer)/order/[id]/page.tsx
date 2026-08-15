@@ -144,7 +144,7 @@ export default function OrderPage() {
           <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 3 }}>No charge was made · your order wasn&apos;t placed</div>
         </div>
         <button
-          onClick={() => router.push(`/${slug}/cart`)}
+          onClick={() => router.replace(`/${slug}/cart`)}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: 'calc(100% - 32px)', margin: '16px 16px 0', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14.5, fontWeight: 800, padding: 13, borderRadius: 13, cursor: 'pointer', boxShadow: '0 10px 20px -10px rgba(177,90,50,.6)' }}
         >
           Retry payment<MS name="arrow_forward" size={17} />
@@ -188,7 +188,7 @@ export default function OrderPage() {
                   No
                 </button>
                 <button
-                  onClick={() => router.push(`/${slug}/cart?cancelled=1`)}
+                  onClick={() => router.replace(`/${slug}/cart?cancelled=1`)}
                   style={{ flex: 1, border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14, fontWeight: 700, padding: 11, borderRadius: 11, cursor: 'pointer' }}
                 >
                   Yes
@@ -266,7 +266,7 @@ export default function OrderPage() {
       </div>
 
       {/* back to home */}
-      <button onClick={() => router.push('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
+      <button onClick={() => router.replace('/home')} style={{ width: 'calc(100% - 32px)', margin: '20px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
         Back to home
       </button>
     </div>
