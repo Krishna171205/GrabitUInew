@@ -72,54 +72,109 @@ function discountFor(offer: GrabbitOffer, cartValue: number): number {
   return discount > cartValue ? cartValue : discount;
 }
 
-const pad2 = (n: number) => String(n).padStart(2, '0');
+const fmtSlot = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-// Nearest available slot to a picked wall-clock time, since the native time
-// picker's step doesn't know which slots are sold out.
-function nearestAvailableSlotIndex(slots: GrabbitAvailableSlot[], hh: number, mm: number): number {
-  const targetMinutes = hh * 60 + mm;
-  let bestIdx = -1;
+// Nearest-to-now available slot, for opening the picker centered on something
+// meaningful instead of always index 0 (which is the day's first slot, not "now").
+function nearestAvailableSlotIndexToNow(slots: GrabbitAvailableSlot[]): number {
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  let bestIdx = 0;
   let bestDiff = Infinity;
   slots.forEach((s, i) => {
     if (s.available_count === 0) return;
     const d = new Date(s.slot_start);
-    const diff = Math.abs(d.getHours() * 60 + d.getMinutes() - targetMinutes);
+    const diff = Math.abs(d.getHours() * 60 + d.getMinutes() - nowMinutes);
     if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
   });
   return bestIdx;
 }
 
-// Native <input type="time"> so mobile browsers render their own scroll-wheel
-// time picker (matches the OS alarm-picker feel) instead of a hand-rolled
-// +/- stepper that clipped off-screen in a narrow card.
-function TimeStepper({ slots, index, onChange }: { slots: GrabbitAvailableSlot[]; index: number; onChange: (i: number) => void }) {
-  const current = new Date(slots[index].slot_start);
-  const first = new Date(slots[0].slot_start);
-  const last = new Date(slots[slots.length - 1].slot_start);
-  const toHHMM = (d: Date) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const WHEEL_ITEM_H = 44;
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const [hh, mm] = e.target.value.split(':').map(Number);
-    if (Number.isNaN(hh) || Number.isNaN(mm)) return;
-    const idx = nearestAvailableSlotIndex(slots, hh, mm);
-    if (idx >= 0) onChange(idx);
+/**
+ * Custom scroll-snap wheel (not the native <input type="time">): a native picker
+ * gives zero access to inject content into its sheet, so there's no way to show
+ * a live "in N min" readout while scrolling it - the whole reason this is
+ * hand-built. Scrolls through the cafe's real 5-min slots directly (not an
+ * arbitrary time value), so every reachable position is already valid - no
+ * separate snap-to-nearest-available step needed.
+ */
+function TimeWheelSheet({
+  slots, initialIndex, onConfirm, onClose,
+}: {
+  slots: GrabbitAvailableSlot[]; initialIndex: number;
+  onConfirm: (index: number) => void; onClose: () => void;
+}) {
+  const available = useMemo(() => slots.map((s, i) => ({ s, i })).filter(({ s }) => s.available_count > 0), [slots]);
+  const startPos = Math.max(0, available.findIndex(({ i }) => i === initialIndex));
+  const [centeredPos, setCenteredPos] = useState(startPos);
+  const listRef = useRef<HTMLDivElement>(null);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    // Direct assignment, not scrollTo({behavior:'instant'}) - 'instant' isn't part of the
+    // standard ScrollBehavior type and isn't reliably honored; this always lands synchronously.
+    if (listRef.current) listRef.current.scrollTop = startPos * WHEEL_ITEM_H;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleScroll() {
+    const el = listRef.current;
+    if (!el) return;
+    const pos = Math.round(el.scrollTop / WHEEL_ITEM_H);
+    setCenteredPos(Math.min(Math.max(pos, 0), available.length - 1));
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    // Snap-correct only after scrolling settles, so mid-scroll positions still update the label live.
+    scrollTimer.current = setTimeout(() => {
+      el.scrollTo({ top: pos * WHEEL_ITEM_H, behavior: 'smooth' });
+    }, 120);
   }
 
+  const centered = available[centeredPos];
+  const centeredDate = centered ? new Date(centered.s.slot_start) : null;
+  const minsFromNow = centeredDate ? Math.round((centeredDate.getTime() - Date.now()) / 60000) : 0;
+
   return (
-    <input
-      type="time"
-      step={300}
-      min={toHHMM(first)}
-      max={toHHMM(last)}
-      value={toHHMM(current)}
-      onChange={handleChange}
-      className="gb-serif"
-      style={{
-        background: '#fff', border: '1.5px solid #EEE4D6', borderRadius: 14,
-        padding: '9px 12px', fontSize: 17, fontWeight: 600, color: 'var(--gb-text)',
-        width: 132, flex: 'none',
-      }}
-    />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(0,0,0,.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+      <div style={{ background: '#fff', width: '100%', maxWidth: 448, borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={onClose} aria-label="Cancel" style={{ border: 'none', background: 'transparent', color: 'var(--gb-muted)', fontSize: 14, fontWeight: 700, padding: 6, cursor: 'pointer' }}>Cancel</button>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--gb-primary)' }}>
+            {minsFromNow <= 0 ? 'ASAP' : `In ${minsFromNow} min`}
+          </div>
+          <button
+            onClick={() => { if (centered) onConfirm(centered.i); }}
+            aria-label="Confirm time"
+            style={{ width: 34, height: 34, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+          >
+            <MS name="check" size={19} />
+          </button>
+        </div>
+
+        <div style={{ position: 'relative', height: WHEEL_ITEM_H * 3, marginTop: 10 }}>
+          <div style={{ position: 'absolute', top: WHEEL_ITEM_H, left: 0, right: 0, height: WHEEL_ITEM_H, background: 'var(--gb-primary-pale)', borderRadius: 12, pointerEvents: 'none' }} />
+          <div
+            ref={listRef}
+            onScroll={handleScroll}
+            className="gb-scroll"
+            style={{ height: '100%', overflowY: 'auto', scrollSnapType: 'y mandatory', padding: `${WHEEL_ITEM_H}px 0` }}
+          >
+            {available.map(({ s, i }, pos) => (
+              <div
+                key={s.slot_start}
+                style={{
+                  height: WHEEL_ITEM_H, scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: pos === centeredPos ? 19 : 15.5, fontWeight: pos === centeredPos ? 700 : 500,
+                  color: pos === centeredPos ? 'var(--gb-ink)' : 'var(--gb-muted-2)', transition: 'font-size .1s, color .1s',
+                }}
+              >
+                {fmtSlot(new Date(s.slot_start))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -210,8 +265,9 @@ export default function CartPage() {
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [showCustomTime, setShowCustomTime] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
-  const [customIndex, setCustomIndex] = useState(0);
+  const [customIndex, setCustomIndex] = useState<number | null>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const [shakeSlot, setShakeSlot] = useState(false);
   // Order placement state (moved here from the deleted /checkout page)
@@ -762,16 +818,22 @@ export default function CartPage() {
           <MS name="schedule" size={18} fill color="var(--gb-primary)" />
           <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500, flex: 1 }}>Pickup time</div>
           {slotsData && slotsData.slots.length > 0 && (
-            <button
-              onClick={() => setShowCustomTime((v) => !v)}
-              style={{
-                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
-                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
-                fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer',
-              }}
-            >
-              Custom +
-            </button>
+            showCustomTime && customIndex != null ? (
+              <button
+                onClick={() => setPickerOpen(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 'none', border: '1.5px solid var(--gb-primary)', background: 'var(--gb-primary-pale)', color: 'var(--gb-primary)', fontSize: 12.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
+              >
+                {fmtSlot(new Date(slotsData.slots[customIndex].slot_start))}
+                <MS name="schedule" size={15} />
+              </button>
+            ) : (
+              <button
+                onClick={() => { setCustomIndex(nearestAvailableSlotIndexToNow(slotsData.slots)); setPickerOpen(true); }}
+                style={{ flex: 'none', border: '1.5px solid #EEE4D6', background: '#fff', color: '#5A4E42', fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
+              >
+                Custom +
+              </button>
+            )
           )}
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>
@@ -802,17 +864,20 @@ export default function CartPage() {
             );
           })}
         </div>
-        {showCustomTime && slotsData && slotsData.slots.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-            <TimeStepper
-              slots={slotsData.slots}
-              index={customIndex}
-              onChange={(i) => { setCustomIndex(i); setSelectedSlot(slotsData.slots[i].slot_start); }}
-            />
-            <span style={{ fontSize: 12, color: 'var(--gb-muted)', minWidth: 0 }}>Pick any 5-min pickup time</span>
-          </div>
-        )}
       </div>
+      )}
+      {pickerOpen && slotsData && slotsData.slots.length > 0 && (
+        <TimeWheelSheet
+          slots={slotsData.slots}
+          initialIndex={customIndex ?? nearestAvailableSlotIndexToNow(slotsData.slots)}
+          onConfirm={(i) => {
+            setCustomIndex(i);
+            setSelectedSlot(slotsData.slots[i].slot_start);
+            setShowCustomTime(true);
+            setPickerOpen(false);
+          }}
+          onClose={() => setPickerOpen(false)}
+        />
       )}
 
       {/* complete your meal — recommendations */}
