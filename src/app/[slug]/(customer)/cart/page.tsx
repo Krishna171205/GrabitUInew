@@ -72,8 +72,6 @@ function discountFor(offer: GrabbitOffer, cartValue: number): number {
   return discount > cartValue ? cartValue : discount;
 }
 
-const pad2 = (n: number) => String(n).padStart(2, '0');
-
 // Nearest-to-now available slot, for opening the picker centered on something
 // meaningful instead of always index 0 (which is the day's first slot, not "now").
 function nearestAvailableSlotIndexToNow(slots: GrabbitAvailableSlot[]): number {
@@ -89,12 +87,14 @@ function nearestAvailableSlotIndexToNow(slots: GrabbitAvailableSlot[]): number {
   return bestIdx;
 }
 
-// Nearest available slot to a picked wall-clock time - the picker itself moves
-// a real minute at a time (step=60), independent of the cafe's slot cadence;
-// this snaps whatever the customer lands on to the nearest slot that's actually
-// bookable (skipping full ones).
-function nearestAvailableSlotIndex(slots: GrabbitAvailableSlot[], hh: number, mm: number): number {
-  const targetMinutes = hh * 60 + mm;
+const fmtTick = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+const WHEEL_ITEM_H = 44;
+
+// Nearest available slot to a picked wall-clock time - independent columns can
+// land on an hour/minute/AM-PM combo that isn't itself a bookable slot (e.g.
+// outside the cafe's open hours); this snaps to whichever real slot is closest.
+function nearestAvailableSlotIndex(slots: GrabbitAvailableSlot[], hh24: number, mm: number): number {
+  const targetMinutes = hh24 * 60 + mm;
   let bestIdx = -1;
   let bestDiff = Infinity;
   slots.forEach((s, i) => {
@@ -106,38 +106,137 @@ function nearestAvailableSlotIndex(slots: GrabbitAvailableSlot[], hh: number, mm
   return bestIdx;
 }
 
-// Native <input type="time"> so mobile browsers render their own OS-native
-// picker sheet (proper bottom-sheet feel on iOS, no custom UI to get wrong) -
-// step=60 moves a full real minute at a time, like an actual clock, not
-// constrained to the cafe's 5-min slot cadence.
-function TimeStepper({ slots, index, onChange }: { slots: GrabbitAvailableSlot[]; index: number; onChange: (i: number) => void }) {
-  const current = new Date(slots[index].slot_start);
-  const first = new Date(slots[0].slot_start);
-  const last = new Date(slots[slots.length - 1].slot_start);
-  const toHHMM = (d: Date) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+/**
+ * One column of a 3-column wheel (hour / minute / AM-PM), each scrolling
+ * completely independently - matches the native iOS "Edit Alarm" reference,
+ * where hour/minute/period are three separate wheels, not one combined list.
+ *
+ * Root cause of an earlier single-column attempt's "blank" centered row: a
+ * decorative position:absolute highlight div sitting over an overflow:auto
+ * sibling scroller composited unpredictably in real browsers, independent of
+ * DOM order. Fixed by putting the highlight on the centered item itself
+ * instead of a separate overlay - nothing left to mis-layer. Same approach
+ * used here.
+ */
+function WheelColumn({
+  items, initialIndex, onChange, width,
+}: {
+  items: string[]; initialIndex: number; onChange: (index: number) => void; width: number;
+}) {
+  const [centeredPos, setCenteredPos] = useState(initialIndex);
+  const listRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const [hh, mm] = e.target.value.split(':').map(Number);
-    if (Number.isNaN(hh) || Number.isNaN(mm)) return;
-    const idx = nearestAvailableSlotIndex(slots, hh, mm);
-    if (idx >= 0) onChange(idx);
+  useEffect(() => {
+    itemRefs.current[initialIndex]?.scrollIntoView({ block: 'center', behavior: 'auto' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const root = listRef.current;
+    if (!root) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const pos = Number((entry.target as HTMLElement).dataset.pos);
+            if (!Number.isNaN(pos)) { setCenteredPos(pos); onChange(pos); }
+          }
+        }
+      },
+      { root, rootMargin: '-49% 0px -49% 0px', threshold: 0 },
+    );
+    itemRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
+
+  return (
+    <div
+      ref={listRef}
+      className="gb-scroll"
+      style={{ width, height: '100%', overflowY: 'auto', scrollSnapType: 'y mandatory', padding: `${WHEEL_ITEM_H}px 0` }}
+    >
+      {items.map((label, pos) => (
+        <div
+          key={label + pos}
+          ref={(el) => { itemRefs.current[pos] = el; }}
+          data-pos={pos}
+          style={{
+            height: WHEEL_ITEM_H, scrollSnapAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: pos === centeredPos ? 'var(--gb-primary-pale)' : 'transparent',
+            borderRadius: pos === centeredPos ? 12 : 0,
+            fontSize: pos === centeredPos ? 19 : 15.5, fontWeight: pos === centeredPos ? 700 : 500,
+            color: pos === centeredPos ? 'var(--gb-ink)' : 'var(--gb-muted-2)',
+          }}
+        >
+          {label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const MINUTES_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const AMPM = ['AM', 'PM'];
+
+function TimeWheelSheet({
+  slots, initialIndex, onConfirm, onClose,
+}: {
+  slots: GrabbitAvailableSlot[]; initialIndex: number;
+  onConfirm: (index: number) => void; onClose: () => void;
+}) {
+  const initialDate = new Date(slots[initialIndex].slot_start);
+  const initialH24 = initialDate.getHours();
+  const initialHourPos = (initialH24 % 12 === 0 ? 12 : initialH24 % 12) - 1;
+  const initialMinPos = initialDate.getMinutes();
+  const initialAmpmPos = initialH24 < 12 ? 0 : 1;
+
+  const [hourPos, setHourPos] = useState(initialHourPos);
+  const [minPos, setMinPos] = useState(initialMinPos);
+  const [ampmPos, setAmpmPos] = useState(initialAmpmPos);
+
+  const hh24 = ((hourPos + 1) % 12) + (ampmPos === 1 ? 12 : 0);
+  const combined = new Date();
+  combined.setHours(hh24, minPos, 0, 0);
+  const minsFromNow = Math.round((combined.getTime() - Date.now()) / 60000);
+
+  function handleConfirm() {
+    const idx = nearestAvailableSlotIndex(slots, hh24, minPos);
+    onConfirm(idx >= 0 ? idx : initialIndex);
   }
 
   return (
-    <input
-      type="time"
-      step={60}
-      min={toHHMM(first)}
-      max={toHHMM(last)}
-      value={toHHMM(current)}
-      onChange={handleChange}
-      className="gb-serif"
-      style={{
-        background: '#fff', border: '1.5px solid #EEE4D6', borderRadius: 14,
-        padding: '9px 12px', fontSize: 17, fontWeight: 600, color: 'var(--gb-text)',
-        width: 132, flex: 'none',
-      }}
-    />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(0,0,0,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ background: '#fff', width: '100%', maxWidth: 400, borderRadius: 20, padding: '18px 20px 20px' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{ border: 'none', background: 'transparent', color: 'var(--gb-muted)', padding: 6, cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+          >
+            <MS name="close" size={20} />
+          </button>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--gb-primary)' }}>
+            {minsFromNow <= 0 ? 'ASAP' : `In ${minsFromNow} min`}
+          </div>
+          <button
+            onClick={handleConfirm}
+            aria-label="Confirm time"
+            style={{ width: 34, height: 34, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+          >
+            <MS name="check" size={19} />
+          </button>
+        </div>
+
+        <div style={{ position: 'relative', height: WHEEL_ITEM_H * 3, marginTop: 10, display: 'flex', justifyContent: 'center', gap: 4 }}>
+          <WheelColumn key="h" items={HOURS_12} initialIndex={initialHourPos} onChange={setHourPos} width={70} />
+          <WheelColumn key="m" items={MINUTES_60} initialIndex={initialMinPos} onChange={setMinPos} width={70} />
+          <WheelColumn key="a" items={AMPM} initialIndex={initialAmpmPos} onChange={setAmpmPos} width={70} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -228,6 +327,7 @@ export default function CartPage() {
   const [dineInTable, setDineInTable] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [showCustomTime, setShowCustomTime] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [customIndex, setCustomIndex] = useState(0);
   const slotRef = useRef<HTMLDivElement>(null);
@@ -780,16 +880,22 @@ export default function CartPage() {
           <MS name="schedule" size={18} fill color="var(--gb-primary)" />
           <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500, flex: 1 }}>Pickup time</div>
           {slotsData && slotsData.slots.length > 0 && (
-            <button
-              onClick={() => { if (!showCustomTime) setCustomIndex(nearestAvailableSlotIndexToNow(slotsData.slots)); setShowCustomTime((v) => !v); }}
-              style={{
-                flex: 'none', border: `1.5px solid ${showCustomTime ? 'var(--gb-primary)' : '#EEE4D6'}`,
-                background: showCustomTime ? 'var(--gb-primary-pale)' : '#fff', color: showCustomTime ? 'var(--gb-primary)' : '#5A4E42',
-                fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer',
-              }}
-            >
-              Custom +
-            </button>
+            showCustomTime ? (
+              <button
+                onClick={() => setPickerOpen(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 'none', border: '1.5px solid var(--gb-primary)', background: 'var(--gb-primary-pale)', color: 'var(--gb-primary)', fontSize: 12.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
+              >
+                {fmtTick(new Date(slotsData.slots[customIndex].slot_start))}
+                <MS name="schedule" size={15} />
+              </button>
+            ) : (
+              <button
+                onClick={() => { setCustomIndex(nearestAvailableSlotIndexToNow(slotsData.slots)); setPickerOpen(true); }}
+                style={{ flex: 'none', border: '1.5px solid #EEE4D6', background: '#fff', color: '#5A4E42', fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
+              >
+                Custom +
+              </button>
+            )
           )}
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>
@@ -820,17 +926,20 @@ export default function CartPage() {
             );
           })}
         </div>
-        {showCustomTime && slotsData && slotsData.slots.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-            <TimeStepper
-              slots={slotsData.slots}
-              index={customIndex}
-              onChange={(i) => { setCustomIndex(i); setSelectedSlot(slotsData.slots[i].slot_start); }}
-            />
-            <span style={{ fontSize: 12, color: 'var(--gb-muted)', minWidth: 0 }}>Pick your exact pickup time</span>
-          </div>
-        )}
       </div>
+      )}
+      {pickerOpen && slotsData && slotsData.slots.length > 0 && (
+        <TimeWheelSheet
+          slots={slotsData.slots}
+          initialIndex={customIndex}
+          onConfirm={(i) => {
+            setCustomIndex(i);
+            setSelectedSlot(slotsData.slots[i].slot_start);
+            setShowCustomTime(true);
+            setPickerOpen(false);
+          }}
+          onClose={() => setPickerOpen(false)}
+        />
       )}
 
       {/* complete your meal — recommendations */}
@@ -855,6 +964,12 @@ export default function CartPage() {
               <div key={r.id} style={{ flex: 'none', width: 116, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 15, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
                 <div style={{ position: 'relative', height: 84 }}>
                   <Image src={r.image_url || ph('photo-1541167760496-1628856ab772')} alt={r.name} fill sizes="116px" style={{ objectFit: 'cover' }} />
+                  {r.is_bestseller && (
+                    <div style={{ position: 'absolute', top: 6, left: 6, display: 'flex', alignItems: 'center', gap: 2, background: 'rgba(30,22,14,.72)', backdropFilter: 'blur(3px)', color: '#FFD27A', fontSize: 8.5, fontWeight: 800, padding: '3px 6px 3px 5px', borderRadius: 999, letterSpacing: 0.3 }}>
+                      <MS name="local_fire_department" size={10} fill color="#FFD27A" />
+                      BESTSELLER
+                    </div>
+                  )}
                   <button
                     onClick={() => addItem({ menu_item_id: r.id, name: r.name, price: r.price, quantity: 1, image_url: r.image_url, is_veg: r.is_veg }, slug)}
                     aria-label={`Add ${r.name}`}
