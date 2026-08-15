@@ -32,6 +32,7 @@ export interface GrabbitMenuItem {
   sort_order: number;
   prep_time_minutes?: number;
   is_veg?: boolean | null; // null/undefined = unknown; render no veg mark
+  is_bestseller?: boolean;
 }
 
 export interface GrabbitMenuSubcategory {

@@ -498,6 +498,11 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
                           the mark is accurate today; add the real column + Omega sync mapping
                           before this cafe's menu ever adds a non-veg item, or this mark lies. */}
                       <div style={{ position: 'absolute', top: 8, left: 8 }}><Veg veg={true} /></div>
+                      {item.is_bestseller && (
+                        <div style={{ position: 'absolute', bottom: 8, left: 8, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 10.5, fontWeight: 800, padding: '3px 8px', borderRadius: 999, letterSpacing: 0.2 }}>
+                          Bestseller
+                        </div>
+                      )}
                       {isLoggedIn && (
                         <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
                           <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
