@@ -72,23 +72,54 @@ function discountFor(offer: GrabbitOffer, cartValue: number): number {
   return discount > cartValue ? cartValue : discount;
 }
 
-// Custom time is a stepper over the same server-computed slots, not a raw
-// date picker - so it can never land on a full slot or outside pickup hours,
-// and matches the app's own controls instead of the OS's native time UI.
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+// Nearest available slot to a picked wall-clock time, since the native time
+// picker's step doesn't know which slots are sold out.
+function nearestAvailableSlotIndex(slots: GrabbitAvailableSlot[], hh: number, mm: number): number {
+  const targetMinutes = hh * 60 + mm;
+  let bestIdx = -1;
+  let bestDiff = Infinity;
+  slots.forEach((s, i) => {
+    if (s.available_count === 0) return;
+    const d = new Date(s.slot_start);
+    const diff = Math.abs(d.getHours() * 60 + d.getMinutes() - targetMinutes);
+    if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+  });
+  return bestIdx;
+}
+
+// Native <input type="time"> so mobile browsers render their own scroll-wheel
+// time picker (matches the OS alarm-picker feel) instead of a hand-rolled
+// +/- stepper that clipped off-screen in a narrow card.
 function TimeStepper({ slots, index, onChange }: { slots: GrabbitAvailableSlot[]; index: number; onChange: (i: number) => void }) {
-  const step = (dir: 1 | -1) => {
-    let next = index + dir;
-    while (next >= 0 && next < slots.length && slots[next].available_count === 0) next += dir;
-    if (next >= 0 && next < slots.length) onChange(next);
-  };
-  const time = new Date(slots[index].slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-  const cell = { width: 40, height: 40, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', flex: 'none' } as const;
+  const current = new Date(slots[index].slot_start);
+  const first = new Date(slots[0].slot_start);
+  const last = new Date(slots[slots.length - 1].slot_start);
+  const toHHMM = (d: Date) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const [hh, mm] = e.target.value.split(':').map(Number);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return;
+    const idx = nearestAvailableSlotIndex(slots, hh, mm);
+    if (idx >= 0) onChange(idx);
+  }
+
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', background: '#fff', border: '1.5px solid #EEE4D6', borderRadius: 14, overflow: 'hidden' }}>
-      <button style={cell} disabled={index === 0} onClick={() => step(-1)}><MS name="remove" size={20} /></button>
-      <span className="gb-serif" style={{ minWidth: 92, textAlign: 'center', fontSize: 17, fontWeight: 600, color: 'var(--gb-text)' }}>{time}</span>
-      <button style={cell} disabled={index === slots.length - 1} onClick={() => step(1)}><MS name="add" size={20} /></button>
-    </div>
+    <input
+      type="time"
+      step={300}
+      min={toHHMM(first)}
+      max={toHHMM(last)}
+      value={toHHMM(current)}
+      onChange={handleChange}
+      className="gb-serif"
+      style={{
+        background: '#fff', border: '1.5px solid #EEE4D6', borderRadius: 14,
+        padding: '9px 12px', fontSize: 17, fontWeight: 600, color: 'var(--gb-text)',
+        width: 132, flex: 'none',
+      }}
+    />
   );
 }
 
@@ -624,7 +655,7 @@ export default function CartPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--gb-text)' }}>Special offer for you</div>
             <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 1 }}>
-              {bestOffer.offer.free_item_name ?? 'A free item'} worth {inr(bestOffer.offer.free_item_price ?? 0)}
+              Free {bestOffer.offer.free_item_name ?? 'item'} worth {inr(bestOffer.offer.free_item_price ?? 0)}
             </div>
           </div>
           {items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id) ? (
@@ -772,13 +803,13 @@ export default function CartPage() {
           })}
         </div>
         {showCustomTime && slotsData && slotsData.slots.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
             <TimeStepper
               slots={slotsData.slots}
               index={customIndex}
               onChange={(i) => { setCustomIndex(i); setSelectedSlot(slotsData.slots[i].slot_start); }}
             />
-            <span style={{ fontSize: 12, color: 'var(--gb-muted)' }}>Step through 5-min pickup times</span>
+            <span style={{ fontSize: 12, color: 'var(--gb-muted)', minWidth: 0 }}>Pick any 5-min pickup time</span>
           </div>
         )}
       </div>
