@@ -62,9 +62,9 @@ export default function PartnerPitch() {
           </div>
         </div>
 
-        {/* RIGHT: Live Business Mockup (Phone + Tablet) */}
+        {/* RIGHT: Dashboard + Widget Mockup (Stripe-style) */}
         <div 
-          className="w-full lg:w-7/12 order-1 lg:order-2 flex justify-center items-center"
+          className="w-full lg:w-7/12 order-1 lg:order-2 flex justify-center items-center relative mt-12 lg:mt-0"
           style={{ perspective: 1400 }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
@@ -75,213 +75,168 @@ export default function PartnerPitch() {
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[640px] h-[500px]"
+            className="relative w-full max-w-[720px] aspect-[4/3] sm:aspect-[16/10] md:h-[480px]"
           >
             {/* Smooth floating wrapper */}
             <motion.div
-              animate={{ y: [0, -10, 0] }}
+              animate={{ y: [0, -8, 0] }}
               transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
               className="w-full h-full relative"
               style={{ transformStyle: 'preserve-3d' }}
             >
               
-              {/* --- TABLET KDS (BACK / RIGHT) --- */}
+              {/* --- BACKGROUND: Dashboard Window --- */}
               <div 
-                className="absolute right-0 top-12 w-[440px] h-[340px] bg-white/95 backdrop-blur-md rounded-[24px] shadow-[0_40px_80px_rgba(26,19,17,0.1)] border border-[#EBE4D8] overflow-hidden flex flex-col z-10"
-                style={{ transform: 'translateZ(-40px) translateX(40px)' }}
+                className="absolute right-0 lg:right-[-40px] top-4 w-[100%] sm:w-[95%] h-[90%] bg-white rounded-[16px] shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden flex flex-col z-10"
+                style={{ transform: 'translateZ(-30px)' }}
               >
-                {/* Header */}
-                <div className="h-12 border-b border-gray-100 flex items-center justify-between px-5 bg-gray-50/50">
-                  <div className="flex items-center gap-2">
-                    <img src="/transparent-image.svg" alt="Grabbit" className="h-5 w-auto opacity-80" />
-                    <span className="font-bold text-[#1A1311] text-[13px] border-l border-gray-200 pl-2">Dashboard</span>
+                {/* Browser-like Header */}
+                <div className="h-12 border-b border-gray-100 flex items-center px-4 bg-gray-50/80 backdrop-blur-sm gap-4">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
                   </div>
-                  <div className="flex items-center gap-1.5 bg-green-50 px-2.5 py-1 rounded-full border border-green-100">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[9px] font-bold text-green-700 uppercase tracking-wider">Online</span>
+                  <div className="flex-1 flex justify-center">
+                    <div className="bg-white border border-gray-200 rounded-md px-3 py-1 text-[11px] font-medium text-gray-500 flex items-center gap-2 shadow-sm w-48 sm:w-64 justify-center">
+                      <MS name="lock" size={12} className="text-gray-400" />
+                      dashboard.letsgrabbit.com
+                    </div>
                   </div>
                 </div>
                 
-                {/* Body */}
-                <div className="p-5 flex-1 bg-[#FDFBF7]/30 flex flex-col gap-3 relative overflow-hidden">
-                  <div className="flex justify-between items-end">
-                    <h3 className="font-bold text-[14px]">Live Queue</h3>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Auto-accepting</div>
-                  </div>
-                  
-                  <div className="relative mt-2">
-                    {/* The new incoming order #4093 */}
-                    <motion.div
-                      animate={{ 
-                        y: [-20, -20, -20, 0, 0, 0, 0, 0, 0, -20, -20],
-                        opacity: [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                        scale: [0.95, 0.95, 0.95, 1, 1, 1, 1, 1, 1, 0.95, 0.95]
-                      }}
-                      transition={loopTransition}
-                      className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-3.5 rounded-xl border border-blue-200 bg-blue-50/80 backdrop-blur-sm shadow-sm"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center font-bold text-[13px] text-blue-700 border border-blue-200">#4093</div>
-                        <div>
-                          <div className="font-bold text-[#1A1311] text-[14px]">1x Iced Latte</div>
-                          <div className="text-[12px] text-gray-500 font-medium">Oat Milk</div>
-                        </div>
-                      </div>
-                      
-                      {/* Status Pill Animation */}
-                      <div className="relative w-[85px] h-[28px]">
-                        {/* PENDING -> 3s to 4s */}
-                        <motion.div 
-                          animate={{ opacity: [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1] }}
-                          transition={loopTransition}
-                          className="absolute inset-0 bg-[#F09819]/10 text-[#F09819] border border-[#F09819]/20 rounded-md flex items-center justify-center text-[10px] font-bold"
-                        >
-                          PENDING
-                        </motion.div>
-                        {/* PREPARING -> 4s to 6s */}
-                        <motion.div 
-                          animate={{ opacity: [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0] }}
-                          transition={loopTransition}
-                          className="absolute inset-0 bg-blue-100 text-blue-700 border border-blue-200 rounded-md flex items-center justify-center text-[10px] font-bold"
-                        >
-                          PREPARING
-                        </motion.div>
-                        {/* READY -> 6s to 9s */}
-                        <motion.div 
-                          animate={{ opacity: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0] }}
-                          transition={loopTransition}
-                          className="absolute inset-0 bg-green-100 text-green-700 border border-green-200 rounded-md flex items-center justify-center text-[10px] font-bold"
-                        >
-                          READY
-                        </motion.div>
-                      </div>
-                    </motion.div>
-
-                    {/* Existing static orders that shift down */}
-                    <motion.div
-                      animate={{ y: [0, 0, 0, 75, 75, 75, 75, 75, 75, 0, 0] }}
-                      transition={loopTransition}
-                      className="flex flex-col gap-3 relative z-10"
-                    >
-                      {[
-                        { id: '#4092', items: '2x Americano', status: 'PREPARING', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-                        { id: '#4091', items: '1x Flat White', status: 'READY', color: 'bg-green-100 text-green-700 border-green-200' },
-                      ].map((order, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-white shadow-sm">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center font-bold text-[13px] text-gray-600 border border-gray-100">{order.id}</div>
-                            <div className="font-bold text-[#1A1311] text-[14px]">{order.items}</div>
-                          </div>
-                          <div className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold border ${order.color}`}>
-                            {order.status}
-                          </div>
+                {/* Dashboard Content */}
+                <div className="flex-1 flex bg-[#FAFAFA]">
+                  {/* Sidebar (Subtle) */}
+                  <div className="w-48 bg-white border-r border-gray-100 flex-col hidden sm:flex">
+                    <div className="p-4 flex items-center gap-2 border-b border-gray-100 mb-2">
+                      <div className="w-6 h-6 bg-[#1A1311] rounded text-white flex items-center justify-center font-bold text-[12px] shrink-0">G</div>
+                      <span className="font-bold text-[#1A1311] text-[13px] truncate">Grabbit Partner</span>
+                    </div>
+                    <div className="p-3 space-y-1">
+                      {['Overview', 'Live Queue', 'Menu', 'Settings'].map((item, i) => (
+                        <div key={item} className={`px-3 py-2 rounded-lg text-[13px] font-medium ${i === 1 ? 'bg-gray-100 text-[#1A1311]' : 'text-gray-500'}`}>
+                          {item}
                         </div>
                       ))}
-                    </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Main Content Area */}
+                  <div className="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden">
+                    <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1A1311] mb-4 sm:mb-6">Live Queue</h3>
+                    
+                    {/* Table */}
+                    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden flex-1 shadow-sm flex flex-col">
+                      <div className="grid grid-cols-12 gap-2 sm:gap-4 px-4 sm:px-5 py-3 border-b border-gray-100 text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                        <div className="col-span-3 sm:col-span-2">Order</div>
+                        <div className="col-span-5 sm:col-span-5">Items</div>
+                        <div className="hidden sm:block sm:col-span-3">Status</div>
+                        <div className="col-span-4 sm:col-span-2 text-right">Amount</div>
+                      </div>
+                      <div className="flex flex-col">
+                        {[
+                          { id: '#4092', items: '2x Iced Latte, 1x Croissant', status: 'PREPARING', amount: '₹680' },
+                          { id: '#4091', items: '1x Americano', status: 'READY', amount: '₹150' },
+                          { id: '#4090', items: '3x Flat White', status: 'PICKED UP', amount: '₹840' },
+                          { id: '#4089', items: '1x Matcha Latte', status: 'PICKED UP', amount: '₹320' },
+                        ].map((row, i) => (
+                          <div key={i} className="grid grid-cols-12 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-50 last:border-0 items-center text-[12px] sm:text-[13px]">
+                            <div className="col-span-3 sm:col-span-2 font-bold text-gray-500">{row.id}</div>
+                            <div className="col-span-5 sm:col-span-5 font-medium text-[#1A1311] truncate pr-2">{row.items}</div>
+                            <div className="hidden sm:block sm:col-span-3">
+                              <span className={`px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-bold ${
+                                row.status === 'READY' ? 'bg-green-100 text-green-700' : 
+                                row.status === 'PREPARING' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {row.status}
+                              </span>
+                            </div>
+                            <div className="col-span-4 sm:col-span-2 text-right font-bold text-[#1A1311]">{row.amount}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* --- CUSTOMER PHONE (FRONT / LEFT) --- */}
+              {/* --- FOREGROUND: Customer Widget (Stripe-style card) --- */}
               <div 
-                className="absolute left-0 bottom-6 w-[260px] h-[460px] bg-white rounded-[36px] shadow-[0_40px_80px_rgba(0,0,0,0.2)] border-[8px] border-[#1A1311] overflow-hidden flex flex-col z-30"
-                style={{ transform: 'translateZ(60px)' }}
+                className="absolute left-0 sm:left-[-30px] top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] bg-white rounded-[24px] shadow-[0_40px_80px_rgba(26,19,17,0.12)] border border-gray-100 overflow-hidden flex flex-col z-30"
+                style={{ transform: 'translateZ(50px)' }}
               >
-                {/* Dynamic Island Area */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
-                  <div className="w-[80px] h-[24px] bg-[#1A1311] rounded-full z-10" />
-                  
-                  {/* Phone Ready Notification Toast */}
-                  <motion.div
-                    animate={{ 
-                      y: [-100, -100, -100, -100, -100, -100, -100, 10, 10, -100, -100],
-                      opacity: [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
-                    }}
-                    transition={loopTransition}
-                    className="absolute top-0 bg-white/95 backdrop-blur-xl rounded-[20px] shadow-2xl border border-gray-100 p-3 w-[220px] flex items-start gap-3"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(74,222,128,0.4)]">
-                      <MS name="check" size={16} color="#fff" />
+                {/* Header (Cafe Info) */}
+                <div className="p-5 sm:p-6 border-b border-gray-50 bg-white">
+                  <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-50 flex items-center justify-center text-[20px] sm:text-[24px] shadow-inner border border-orange-100">
+                      ☕
                     </div>
                     <div>
-                      <div className="text-[11px] font-bold text-[#1A1311] leading-tight mb-0.5">Order Ready!</div>
-                      <div className="text-[11px] text-gray-500 font-medium leading-tight">Pick up at Counter 04</div>
+                      <div className="font-bold text-[#1A1311] text-[15px] sm:text-[16px]">Blue Tokai</div>
+                      <div className="text-[12px] sm:text-[13px] text-gray-500 font-medium">Connaught Place</div>
                     </div>
-                  </motion.div>
-                </div>
-
-                <div className="h-48 bg-gray-100 relative shrink-0">
-                  <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-4 left-5 text-white">
-                    <div className="text-[22px] font-black">Iced Latte</div>
-                    <div className="text-[14px] font-bold text-[#F09819]">₹220</div>
+                  </div>
+                  
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="text-[12px] sm:text-[13px] font-bold text-[#1A1311]">Order Summary</div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-[13px] sm:text-[14px] font-medium text-gray-600">Iced Latte (Oat)</div>
+                      <div className="text-[13px] sm:text-[14px] font-medium text-[#1A1311]">₹260</div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-[13px] sm:text-[14px] font-medium text-gray-600">Almond Croissant</div>
+                      <div className="text-[13px] sm:text-[14px] font-medium text-[#1A1311]">₹220</div>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="p-5 flex flex-col flex-1 bg-[#FDFBF7]">
-                  <div className="space-y-4 flex-1">
-                    <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-                      <div className="text-[13px] font-bold text-[#1A1311]">Milk</div>
-                      <div className="text-[11px] font-semibold bg-[#F09819]/10 text-[#F09819] px-2 py-1 rounded">Oat Milk</div>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-                      <div className="text-[13px] font-bold text-[#1A1311]">Total</div>
-                      <div className="text-[15px] font-black text-[#1A1311]">₹220</div>
-                    </div>
+                {/* Footer (Payment) */}
+                <div className="p-5 sm:p-6 bg-gray-50/50 flex flex-col gap-4 sm:gap-5">
+                  <div className="flex justify-between items-center">
+                    <div className="text-[13px] sm:text-[14px] font-bold text-[#1A1311]">Total</div>
+                    <div className="text-[18px] sm:text-[20px] font-black text-[#1A1311]">₹480</div>
                   </div>
                   
-                  {/* Place Order Button */}
+                  <div className="space-y-2.5 sm:space-y-3">
+                    <div className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-widest">Payment Method</div>
+                    <div className="flex items-center justify-between p-3 sm:p-3.5 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-blue-400 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-9 h-6 sm:w-10 bg-[#1434CB] rounded flex items-center justify-center overflow-hidden">
+                          <span className="text-[9px] sm:text-[10px] font-black italic text-white">VISA</span>
+                        </div>
+                        <span className="text-[13px] sm:text-[14px] font-semibold text-[#1A1311]">•••• 4242</span>
+                      </div>
+                      <MS name="chevron_right" size={18} className="text-gray-400" />
+                    </div>
+                  </div>
+
                   <motion.div
                     animate={{
-                      scale: [1, 0.95, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                      backgroundColor: ['#1A1311', '#1A1311', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#1A1311', '#1A1311']
+                      scale: [1, 0.98, 1, 1, 1, 1, 1],
+                      backgroundColor: ['#10B981', '#10B981', '#059669', '#10B981', '#10B981', '#10B981', '#10B981']
                     }}
-                    transition={loopTransition}
-                    className="w-full h-[48px] rounded-[14px] text-white flex items-center justify-center font-bold text-[14px] shadow-lg relative overflow-hidden"
+                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                    className="w-full h-[48px] sm:h-[52px] rounded-xl text-white flex items-center justify-center font-bold text-[15px] sm:text-[16px] shadow-lg shadow-green-500/20 relative overflow-hidden mt-1 sm:mt-2 cursor-pointer"
                   >
                     <motion.div 
-                      animate={{ opacity: [1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1] }} 
-                      transition={loopTransition}
+                      animate={{ opacity: [1, 1, 0, 0, 0, 1, 1] }} 
+                      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                       className="absolute"
                     >
-                      Pay ₹220
+                      Pay ₹480
                     </motion.div>
                     <motion.div 
-                      animate={{ opacity: [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0] }} 
-                      transition={loopTransition}
-                      className="absolute flex items-center gap-1.5"
+                      animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }} 
+                      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                      className="absolute flex items-center gap-2"
                     >
-                      <MS name="check_circle" size={16} /> Sent to Café
+                      <MS name="check_circle" size={18} /> Sent to kitchen
                     </motion.div>
                   </motion.div>
                 </div>
               </div>
-
-              {/* --- DATA TRANSMISSION EFFECT (The "Magic" Link) --- */}
-              {/* Particle zipping from phone to tablet */}
-              <motion.div
-                animate={{
-                  x: [120, 120, 200, 360, 360, 360, 360, 360, 360, 360, 120],
-                  y: [360, 360, 240, 120, 120, 120, 120, 120, 120, 120, 360],
-                  opacity: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                  scale: [0.5, 0.5, 1.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-                }}
-                transition={loopTransition}
-                className="absolute w-5 h-5 bg-[#F09819] rounded-full shadow-[0_0_30px_rgba(240,152,25,0.8)] z-20 pointer-events-none"
-              />
-
-              {/* Return Particle (Ready Signal) */}
-              <motion.div
-                animate={{
-                  x: [360, 360, 360, 360, 360, 360, 360, 200, 120, 120, 360],
-                  y: [120, 120, 120, 120, 120, 120, 120, 60, 30, 30, 120],
-                  opacity: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                  scale: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 0.5, 0.5, 0.5]
-                }}
-                transition={loopTransition}
-                className="absolute w-5 h-5 bg-green-400 rounded-full shadow-[0_0_30px_rgba(74,222,128,0.8)] z-40 pointer-events-none"
-              />
 
             </motion.div>
           </motion.div>
