@@ -319,15 +319,25 @@ export default function CartPage() {
   // here?) that only the server knows - never auto-apply one here, since a
   // discount the checkout silently declines is worse than showing none.
   const applicableOffers = offers.filter((o) => o.offer_type !== 'FIRST_ORDER');
+  // A FREE_ITEM offer's own granted item is a line in `subtotal` too, so it must
+  // never count toward earning itself: mirrors the server-side fix in
+  // OfferService.applyToOrder (eligibilitySubtotal) - dropping real items below
+  // min_order_value must drop the free item too, not have the free item's own
+  // price prop the subtotal back above the line.
+  function eligibilitySubtotal(offer: GrabbitOffer): number {
+    if (offer.offer_type !== 'FREE_ITEM') return subtotal;
+    const freeLine = items.find(i => i.menu_item_id === offer.free_item_menu_item_id);
+    return freeLine ? subtotal - freeLine.price : subtotal;
+  }
   const bestOffer = applicableOffers
-    .map((o) => ({ offer: o, discount: discountFor(o, subtotal) }))
+    .map((o) => ({ offer: o, discount: discountFor(o, eligibilitySubtotal(o)) }))
     .filter((x) => x.discount > 0)
     .sort((a, b) => b.discount - a.discount)[0];
   // Nearest offer the cart just misses, so we can nudge "add ₹X more" instead
   // of saying nothing.
   const nearMissOffer = !bestOffer
     ? applicableOffers
-        .filter((o) => o.min_order_value != null && subtotal < o.min_order_value)
+        .filter((o) => o.min_order_value != null && eligibilitySubtotal(o) < o.min_order_value)
         .sort((a, b) => a.min_order_value! - b.min_order_value!)[0]
     : undefined;
 
@@ -797,7 +807,7 @@ export default function CartPage() {
         )}
         {!offersLoading && !bestOffer && nearMissOffer && (
           <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}>
-            Add {inr(nearMissOffer.min_order_value! - subtotal)} more to unlock {nearMissOffer.description || nearMissOffer.title}
+            Add {inr(nearMissOffer.min_order_value! - eligibilitySubtotal(nearMissOffer))} more to unlock {nearMissOffer.description || nearMissOffer.title}
           </div>
         )}
         <div style={{ height: 1, background: 'var(--gb-line)', margin: '8px 0' }} />
