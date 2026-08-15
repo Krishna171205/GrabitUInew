@@ -90,20 +90,34 @@ function nearestAvailableSlotIndexToNow(slots: GrabbitAvailableSlot[]): number {
 const fmtTick = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
 const WHEEL_ITEM_H = 44;
 
-// Nearest available slot to a picked wall-clock time - independent columns can
-// land on an hour/minute/AM-PM combo that isn't itself a bookable slot (e.g.
-// outside the cafe's open hours); this snaps to whichever real slot is closest.
-function nearestAvailableSlotIndex(slots: GrabbitAvailableSlot[], hh24: number, mm: number): number {
-  const targetMinutes = hh24 * 60 + mm;
-  let bestIdx = -1;
-  let bestDiff = Infinity;
-  slots.forEach((s, i) => {
-    if (s.available_count === 0) return;
-    const d = new Date(s.slot_start);
-    const diff = Math.abs(d.getHours() * 60 + d.getMinutes() - targetMinutes);
-    if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
-  });
-  return bestIdx;
+// Backend never validates pickup_slot against the bookable-slot list (see
+// OrderService.createOrder - it only checks for non-null and stores it
+// verbatim), so the custom picker doesn't need to snap to a real slot at all.
+// It just stamps the dialed wall-clock time onto the cafe's own timezone.
+//
+// slot_start comes back as a bare UTC timestamp ("...Z"), not "+05:30" -
+// there's no offset to read off the string. Grabbit is India-only, so the
+// cafe's wall-clock offset is hardcoded IST rather than parsed. Deliberately
+// NOT using Date.getHours()/setHours() anywhere here either: those read the
+// *browser's* local timezone, which happens to be IST on a real user's
+// device but isn't guaranteed everywhere this code runs (a CI runner, a
+// differently-timezoned dev machine) - going through this fixed offset keeps
+// the picker correct regardless of the viewing device's own timezone.
+const IST_OFFSET_MIN = 330;
+function wallClockOf(iso: string) {
+  const local = new Date(new Date(iso).getTime() + IST_OFFSET_MIN * 60000);
+  return { y: local.getUTCFullYear(), mo: local.getUTCMonth() + 1, d: local.getUTCDate(), h: local.getUTCHours(), mnt: local.getUTCMinutes() };
+}
+function buildUtcSlotIso(y: number, mo: number, d: number, h: number, mnt: number): string {
+  return new Date(Date.UTC(y, mo - 1, d, h, mnt, 0) - IST_OFFSET_MIN * 60000).toISOString();
+}
+function epochOf(y: number, mo: number, d: number, h: number, mnt: number): number {
+  return Date.UTC(y, mo - 1, d, h, mnt, 0) - IST_OFFSET_MIN * 60000;
+}
+function fmtWallClock(iso: string): string {
+  const { h, mnt } = wallClockOf(iso);
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(mnt).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
 }
 
 /**
@@ -182,29 +196,26 @@ const MINUTES_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0
 const AMPM = ['AM', 'PM'];
 
 function TimeWheelSheet({
-  slots, initialIndex, onConfirm, onClose,
+  initialIso, onConfirm, onClose,
 }: {
-  slots: GrabbitAvailableSlot[]; initialIndex: number;
-  onConfirm: (index: number) => void; onClose: () => void;
+  initialIso: string;
+  onConfirm: (iso: string) => void; onClose: () => void;
 }) {
-  const initialDate = new Date(slots[initialIndex].slot_start);
-  const initialH24 = initialDate.getHours();
-  const initialHourPos = (initialH24 % 12 === 0 ? 12 : initialH24 % 12) - 1;
-  const initialMinPos = initialDate.getMinutes();
-  const initialAmpmPos = initialH24 < 12 ? 0 : 1;
+  const wc = useMemo(() => wallClockOf(initialIso), [initialIso]);
+  const initialHourPos = (wc.h % 12 === 0 ? 12 : wc.h % 12) - 1;
+  const initialMinPos = wc.mnt;
+  const initialAmpmPos = wc.h < 12 ? 0 : 1;
 
   const [hourPos, setHourPos] = useState(initialHourPos);
   const [minPos, setMinPos] = useState(initialMinPos);
   const [ampmPos, setAmpmPos] = useState(initialAmpmPos);
 
   const hh24 = ((hourPos + 1) % 12) + (ampmPos === 1 ? 12 : 0);
-  const combined = new Date();
-  combined.setHours(hh24, minPos, 0, 0);
-  const minsFromNow = Math.round((combined.getTime() - Date.now()) / 60000);
+  const targetEpoch = epochOf(wc.y, wc.mo, wc.d, hh24, minPos);
+  const minsFromNow = Math.round((targetEpoch - Date.now()) / 60000);
 
   function handleConfirm() {
-    const idx = nearestAvailableSlotIndex(slots, hh24, minPos);
-    onConfirm(idx >= 0 ? idx : initialIndex);
+    onConfirm(buildUtcSlotIso(wc.y, wc.mo, wc.d, hh24, minPos));
   }
 
   return (
@@ -329,7 +340,9 @@ export default function CartPage() {
   const [showCustomTime, setShowCustomTime] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
-  const [customIndex, setCustomIndex] = useState(0);
+  const [customTimeIso, setCustomTimeIso] = useState<string | null>(null);
+  const customTimeIsoRef = useRef<string | null>(null);
+  customTimeIsoRef.current = customTimeIso;
   const slotRef = useRef<HTMLDivElement>(null);
   const [shakeSlot, setShakeSlot] = useState(false);
   // Order placement state (moved here from the deleted /checkout page)
@@ -448,7 +461,7 @@ export default function CartPage() {
             })();
         if (cancelled) return;
         setSlotsData(fresh);
-        setSelectedSlot((prev) => prev != null && fresh.slots.some((s) => s.slot_start === prev) ? prev : null);
+        setSelectedSlot((prev) => prev != null && (prev === customTimeIsoRef.current || fresh.slots.some((s) => s.slot_start === prev)) ? prev : null);
       } catch {
         if (!cancelled) setSlotsData({ slots: [], label: null });
       } finally {
@@ -885,12 +898,12 @@ export default function CartPage() {
                 onClick={() => setPickerOpen(true)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 'none', border: '1.5px solid var(--gb-primary)', background: 'var(--gb-primary-pale)', color: 'var(--gb-primary)', fontSize: 12.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
               >
-                {fmtTick(new Date(slotsData.slots[customIndex].slot_start))}
+                {fmtWallClock(customTimeIso ?? slotsData.slots[0].slot_start)}
                 <MS name="schedule" size={15} />
               </button>
             ) : (
               <button
-                onClick={() => { setCustomIndex(nearestAvailableSlotIndexToNow(slotsData.slots)); setPickerOpen(true); }}
+                onClick={() => setPickerOpen(true)}
                 style={{ flex: 'none', border: '1.5px solid #EEE4D6', background: '#fff', color: '#5A4E42', fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
               >
                 Custom +
@@ -913,7 +926,7 @@ export default function CartPage() {
               <button
                 key={slot.slot_start}
                 disabled={full}
-                onClick={() => setSelectedSlot(slot.slot_start)}
+                onClick={() => { setSelectedSlot(slot.slot_start); setShowCustomTime(false); setCustomTimeIso(null); }}
                 style={{
                   flex: 'none', border: `1.5px solid ${sel ? 'var(--gb-primary)' : full ? 'var(--gb-line-4)' : '#EEE4D6'}`,
                   background: sel ? 'var(--gb-primary-pale)' : '#fff', color: sel ? 'var(--gb-primary)' : full ? 'var(--gb-muted-2)' : '#5A4E42',
@@ -930,11 +943,10 @@ export default function CartPage() {
       )}
       {pickerOpen && slotsData && slotsData.slots.length > 0 && (
         <TimeWheelSheet
-          slots={slotsData.slots}
-          initialIndex={customIndex}
-          onConfirm={(i) => {
-            setCustomIndex(i);
-            setSelectedSlot(slotsData.slots[i].slot_start);
+          initialIso={customTimeIso ?? slotsData.slots[nearestAvailableSlotIndexToNow(slotsData.slots)].slot_start}
+          onConfirm={(iso) => {
+            setCustomTimeIso(iso);
+            setSelectedSlot(iso);
             setShowCustomTime(true);
             setPickerOpen(false);
           }}
