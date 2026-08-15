@@ -341,7 +341,13 @@ export default function CartPage() {
         .sort((a, b) => a.min_order_value! - b.min_order_value!)[0]
     : undefined;
 
-  const toPay = Math.max(0, bestOffer ? subtotal - bestOffer.discount : subtotal);
+  // A FREE_ITEM discount only nets out once the item is actually claimed into the
+  // cart (see claimFreeItem) - it's opt-in now, so "eligible" and "in the cart"
+  // are different things. Showing the discount before the item is added
+  // undercharges the display relative to what's actually in the cart.
+  const freeItemClaimed = bestOffer?.offer.offer_type !== 'FREE_ITEM'
+    || items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id);
+  const toPay = Math.max(0, bestOffer && freeItemClaimed ? subtotal - bestOffer.discount : subtotal);
 
   // The customer claims the FREE_ITEM giveaway with an explicit tap (see claimFreeItem
   // below) rather than it being auto-added - not everyone wants the free item, and
