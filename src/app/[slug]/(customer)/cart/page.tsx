@@ -189,6 +189,11 @@ export default function CartPage() {
   // ever touch that one unit - never a line the customer added themselves.
   const ownedFreeItemRef = useRef<number | null>(null);
   const [showFreeItemCelebration, setShowFreeItemCelebration] = useState(false);
+  // Once per cart: claiming the free item after re-crossing min_order_value (added,
+  // removed, added again) should just unlock it quietly - the party-popper is a
+  // first-time moment, not something to replay every re-claim in the same cart.
+  // A plain ref is enough: it resets on remount, i.e. a fresh cart/page load.
+  const hasCelebratedRef = useRef(false);
   const [cafeId, setCafeId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
@@ -328,28 +333,16 @@ export default function CartPage() {
 
   const toPay = Math.max(0, bestOffer ? subtotal - bestOffer.discount : subtotal);
 
-  // Auto-add/remove the FREE_ITEM giveaway as a normal cart line (it's priced and
-  // discounted server-side just like everything else - see discountFor's comment).
-  // ownedFreeItemRef tracks the one unit *we* added, so a line the customer already
-  // had is never touched, and we only ever remove the unit we ourselves added.
+  // The customer claims the FREE_ITEM giveaway with an explicit tap (see claimFreeItem
+  // below) rather than it being auto-added - not everyone wants the free item, and
+  // silently dropping one into the cart surprised people. ownedFreeItemRef tracks the
+  // one unit *we* added on their behalf, so a line the customer already had is never
+  // touched, and we only ever remove the unit we ourselves added.
   useEffect(() => {
     const freeOffer = bestOffer?.offer.offer_type === 'FREE_ITEM' ? bestOffer.offer : null;
     const targetId = freeOffer?.free_item_menu_item_id ?? null;
 
-    if (targetId != null) {
-      if (ownedFreeItemRef.current == null && !items.some(i => i.menu_item_id === targetId)) {
-        addItem({
-          menu_item_id: targetId,
-          name: freeOffer!.free_item_name ?? 'Free item',
-          price: freeOffer!.free_item_price ?? 0,
-          quantity: 1,
-          image_url: null,
-          addons: [],
-        }, slug);
-        ownedFreeItemRef.current = targetId;
-        setShowFreeItemCelebration(true);
-      }
-    } else if (ownedFreeItemRef.current != null) {
+    if (targetId == null && ownedFreeItemRef.current != null) {
       const owned = ownedFreeItemRef.current;
       const line = items.find(i => i.menu_item_id === owned);
       if (line) {
@@ -358,7 +351,26 @@ export default function CartPage() {
       }
       ownedFreeItemRef.current = null;
     }
-  }, [bestOffer, items, addItem, removeItem, updateQty, slug]);
+  }, [bestOffer, items, removeItem, updateQty]);
+
+  function claimFreeItem() {
+    const freeOffer = bestOffer?.offer.offer_type === 'FREE_ITEM' ? bestOffer.offer : null;
+    const targetId = freeOffer?.free_item_menu_item_id ?? null;
+    if (targetId == null || items.some(i => i.menu_item_id === targetId)) return;
+    addItem({
+      menu_item_id: targetId,
+      name: freeOffer!.free_item_name ?? 'Free item',
+      price: freeOffer!.free_item_price ?? 0,
+      quantity: 1,
+      image_url: null,
+      addons: [],
+    }, slug);
+    ownedFreeItemRef.current = targetId;
+    if (!hasCelebratedRef.current) {
+      hasCelebratedRef.current = true;
+      setShowFreeItemCelebration(true);
+    }
+  }
 
   // Recommendations filtered by pill + already-in-cart (in case one was just added)
   const recCats = Array.from(new Set(recs.map(r => r.category)));
@@ -585,7 +597,11 @@ export default function CartPage() {
               {bestOffer.offer.free_item_name ?? 'A free item'} worth {inr(bestOffer.offer.free_item_price ?? 0)}
             </div>
           </div>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', borderRadius: 8, padding: '4px 9px', flex: 'none' }}>ADDED</span>
+          {items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id) ? (
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', borderRadius: 8, padding: '4px 9px', flex: 'none' }}>ADDED</span>
+          ) : (
+            <button onClick={claimFreeItem} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
+          )}
         </div>
       )}
 
@@ -769,7 +785,7 @@ export default function CartPage() {
       {/* bill */}
       <div style={{ margin: '12px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
-        {!dineInTable && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Pickup fee</span><span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span></div>}
+        {!dineInTable && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Platform fee</span><span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span></div>}
         {offersLoading && (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}><span>Checking for offers…</span></div>
         )}
