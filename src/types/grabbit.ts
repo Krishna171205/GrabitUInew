@@ -2,7 +2,7 @@ export type GrabbitOrderStatus = 'pending' | 'new_order' | 'confirmed' | 'preppi
 export type GrabbitPaymentMethod = 'online' | 'counter';
 export type GrabbitPaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 export type GrabbitStaffRole = 'owner' | 'manager' | 'staff';
-export type GrabbitMenuCategory = 'drinks' | 'food' | 'specials' | 'desserts';
+export type GrabbitMenuCategory = 'drinks' | 'food' | 'specials' | 'desserts' | 'addons';
 export type GrabbitCafeStatus = 'open' | 'partial' | 'closed';
 
 export interface GrabbitCafe {

@@ -10,9 +10,9 @@ import { VoiceSearch } from '@/components/gb/VoiceSearch';
 import { inr, cafeOpenNow, fmtTime12 } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
-const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts'];
+const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
 const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
-  drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts',
+  drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts', addons: 'Add-ons',
 };
 
 // Sort modes for the menu list (Zomato-style). Only real signals — price is the
@@ -32,6 +32,7 @@ const CATEGORY_PLACEHOLDER: Record<GrabbitMenuCategory, string> = {
   food: 'photo-1525351484163-7529414344d8',
   specials: 'photo-1495474472287-4d71bcdd2085',
   desserts: 'photo-1488477181946-6428a0291777',
+  addons: 'photo-1525351484163-7529414344d8',
 };
 const HOT_DRINK_PLACEHOLDER = 'photo-1541167760496-1628856ab772';
 
