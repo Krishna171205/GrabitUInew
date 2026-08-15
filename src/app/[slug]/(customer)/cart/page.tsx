@@ -388,6 +388,20 @@ export default function CartPage() {
     }
   }
 
+  // Lets the customer decline the free item after claiming it - only ever touches
+  // the one unit we ourselves added (ownedFreeItemRef), same invariant as the
+  // ineligibility auto-remove above.
+  function removeFreeItem() {
+    const owned = ownedFreeItemRef.current;
+    if (owned == null) return;
+    const line = items.find(i => i.menu_item_id === owned);
+    if (line) {
+      const key = cartLineKey(line);
+      if (line.quantity <= 1) removeItem(key); else updateQty(key, line.quantity - 1);
+    }
+    ownedFreeItemRef.current = null;
+  }
+
   // Recommendations filtered by pill + already-in-cart (in case one was just added)
   const recCats = Array.from(new Set(recs.map(r => r.category)));
   const activeRecCat = recCat !== 'all' && recCats.includes(recCat) ? recCat : 'all';
@@ -614,7 +628,13 @@ export default function CartPage() {
             </div>
           </div>
           {items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id) ? (
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', borderRadius: 8, padding: '4px 9px', flex: 'none' }}>ADDED</span>
+            <button
+              onClick={removeFreeItem}
+              aria-label="Remove free item"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}
+            >
+              ADDED<MS name="close" size={13} color="#fff" />
+            </button>
           ) : (
             <button onClick={claimFreeItem} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
           )}
@@ -652,7 +672,13 @@ export default function CartPage() {
                 )}
               </div>
               {isFreeGift ? (
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', borderRadius: 8, padding: '4px 9px', flex: 'none' }}>ADDED</span>
+                <button
+                  onClick={removeFreeItem}
+                  aria-label="Remove free item"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}
+                >
+                  ADDED<MS name="close" size={13} color="#fff" />
+                </button>
               ) : (
                 <Stepper qty={item.quantity} onChange={(v) => updateQty(lineKey, v)} />
               )}
