@@ -4,6 +4,14 @@ import path from 'path';
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// Identifies the deployed build. Baked into the client bundle and served by
+// /api/version, so a running app (a home-screen web clip can stay open for days)
+// can tell it is on an old build and reload itself. The timestamp fallback covers
+// local and non-git builds; it only needs to change per build, not be meaningful.
+const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12)
+  || process.env.VERCEL_DEPLOYMENT_ID
+  || `local-${Date.now()}`;
+
 const securityHeaders = [
   // XSS: only allow scripts from self + Cashfree SDK
   {
@@ -48,6 +56,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname),
+  generateBuildId: () => BUILD_ID,
+  env: { NEXT_PUBLIC_BUILD_ID: BUILD_ID },
   // Next 15 defaults the client router cache to 0s for dynamic routes, so tapping
   // back (or re-tapping a tab) refetches the whole RSC payload every time. 30s of
   // reuse makes back/forward and tab re-visits instant.
@@ -62,6 +72,15 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         headers: securityHeaders,
+      },
+      // The landing page is prerendered, and Next only sends s-maxage on it. With no
+      // directive aimed at the browser, WebKit caches the document heuristically, so a
+      // home-screen web clip launching here can keep booting an old build's HTML (and
+      // with it that build's chunk and RSC URLs) long after a deploy. Keep the CDN
+      // caching, make the browser revalidate.
+      {
+        source: '/',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=31536000, stale-while-revalidate=60' }],
       },
       // Defense-in-depth: prevent Google from indexing auth gates and app routes
       // even if a robots.txt entry is missed. Matches NOINDEX_ROUTES in src/lib/seo.ts

@@ -3,6 +3,7 @@ import { Baloo_2, Mukta } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
+import { UpdateOnResume } from '@/components/gb/UpdateOnResume';
 import { SITE_URL, SITE_NAME, DESCRIPTION } from '@/lib/seo';
 
 // Grabbit brand type, Marigold system.
@@ -132,7 +133,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* JSON-LD structured data: Organization + Website */}
         <SeoScripts names={['organization', 'website', 'breadcrumb']} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <UpdateOnResume />
+      </body>
     </html>
   );
 }
