@@ -7,7 +7,7 @@ import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddo
 import { useCart, cartLineKey } from '@/store/cart';
 import { MS, Veg } from '@/components/gb/kit';
 import { VoiceSearch } from '@/components/gb/VoiceSearch';
-import { inr, fmtTime12, todayHours, weekHoursSummary, type DayHours } from '@/components/gb/format';
+import { inr, fmtTime12, todayHours, type DayHours } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 import { OfferStrip } from '@/components/gb/OfferStrip';
 import type { GrabbitOffer } from '@/components/gb/offers';
@@ -207,7 +207,11 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       .map(i => i.subcategory_name)
       .filter((s): s is string => !!s)
   ));
-  const cover = cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
+  // The cafe's own storefront photo when it has supplied one, then whatever the menu
+  // payload already carried, then the stock fallback.
+  const cover = (cafe as { cover_url?: string | null }).cover_url
+    || cafe.image_url
+    || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
 
   // Real signals only — no fabricated ratings/distance (GrabbitCafe has no such fields).
   // Open or closed is the cafe's toggle in Omega and nothing else: staff close early or
@@ -221,7 +225,6 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     : cafe.opening_time && cafe.closing_time
       ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}`
       : 'Hours vary';
-  const weekSummary = weekHoursSummary(weekly);
 
   // What goes with what is already in the cart. Suppressed while the cafe is closed,
   // since nothing here can be added anyway.
@@ -355,17 +358,6 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       {/* offers, right under the info strip like the rest of the cafe's headline facts */}
       <OfferStrip offers={offers} />
 
-      {/* The week, spelled out. The pill above says whether orders are being taken right
-          now; this is what a customer plans tomorrow around. */}
-      {weekSummary.length > 0 && (
-        <div style={{ margin: '10px 16px 0', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {weekSummary.map((line) => (
-            <span key={line} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 999, padding: '5px 11px', fontSize: 11.5, fontWeight: 700, color: 'var(--gb-muted)' }}>
-              <MS name="schedule" size={14} color="var(--gb-muted-2)" />{line}
-            </span>
-          ))}
-        </div>
-      )}
       </div>
 
       {/* login nudge (guest) — full colour even when closed: logging in to see past
