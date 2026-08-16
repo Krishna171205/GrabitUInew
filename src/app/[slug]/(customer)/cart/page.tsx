@@ -14,6 +14,7 @@ import * as Sentry from '@sentry/nextjs';
 import { useCart, cartLineKey } from '@/store/cart';
 import type { GrabbitAvailableSlot, GrabbitMenuCategory, GrabbitMenuItem } from '@gradient365/gradient-commons';
 import { MS } from '@/components/gb/kit';
+import { LineNote } from '@/components/gb/LineNote';
 import { inr } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
@@ -326,7 +327,7 @@ function FreeItemCelebration({ offer, onDismiss }: { offer: GrabbitOffer; onDism
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { items, updateQty, removeItem, total, addItem } = useCart();
+  const { items, updateQty, removeItem, total, addItem, setLineNote } = useCart();
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -674,6 +675,7 @@ export default function CartPage() {
             menu_item_id: i.menu_item_id,
             quantity: i.quantity,
             addon_ids: (i.addons ?? []).map(a => a.id),
+            ...(i.notes ? { notes: i.notes } : {}),
           })),
         }),
       });
@@ -831,6 +833,15 @@ export default function CartPage() {
                   <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', marginTop: 3 }}>
                     + {item.addons.map(a => a.name).join(', ')}
                   </div>
+                )}
+                {/* Per-dish instruction. The free item is the offer's, not hers to change. */}
+                {!isFreeGift && (
+                  <LineNote
+                    note={item.notes}
+                    dish={item.name}
+                    category={item.category}
+                    onChange={(note) => setLineNote(lineKey, note)}
+                  />
                 )}
               </div>
               {isFreeGift ? (

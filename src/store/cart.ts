@@ -10,12 +10,24 @@ export function cartLineKey(item: Pick<GrabbitCartItem, 'menu_item_id' | 'addons
   return `${item.menu_item_id}:${addonIds.join(',')}`;
 }
 
+/**
+ * A cart line, plus the cooking instruction for that dish. Notes are deliberately not
+ * part of cartLineKey: adding the same dish again bumps the quantity and keeps the note,
+ * rather than splitting the line in two.
+ */
+export type GrabbitCartLine = GrabbitCartItem & {
+  notes?: string;
+  /** Menu category, recorded at add time so the cart can offer the right quick notes. */
+  category?: string;
+};
+
 interface CartState {
   cafeSlug: string | null;
-  items: GrabbitCartItem[];
-  addItem: (item: GrabbitCartItem, slug: string) => void;
+  items: GrabbitCartLine[];
+  addItem: (item: GrabbitCartLine, slug: string) => void;
   removeItem: (lineKey: string) => void;
   updateQty: (lineKey: string, quantity: number) => void;
+  setLineNote: (lineKey: string, notes: string) => void;
   clearCart: () => void;
   total: () => number;
 }
@@ -54,6 +66,12 @@ export const useCart = create<CartState>()(
               : state.items.map(i =>
                   cartLineKey(i) === lineKey ? { ...i, quantity: qty } : i
                 )
+        })),
+      setLineNote: (lineKey, notes) =>
+        set(state => ({
+          items: state.items.map(i =>
+            cartLineKey(i) === lineKey ? { ...i, notes: notes.trim() || undefined } : i
+          )
         })),
       clearCart: () => set({ items: [], cafeSlug: null }),
       total: () =>

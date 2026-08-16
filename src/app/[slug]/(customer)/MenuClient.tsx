@@ -184,7 +184,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   function addTop(item: TopItem) {
     const live = itemById.get(item.menu_item_id);
     if (!live?.is_available) return;
-    addItem({ menu_item_id: item.menu_item_id, name: live.name, price: live.price, quantity: 1, image_url: item.image_url }, slug);
+    addItem({ menu_item_id: item.menu_item_id, name: live.name, price: live.price, quantity: 1, image_url: item.image_url, category: live.category }, slug);
   }
 
   const favoriteItems = items.filter(i => favIds.has(i.id) && i.is_available);
@@ -238,7 +238,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   function handleAddClick(item: GrabbitMenuItem) {
     const available = addonsFor(item);
     if (available.length === 0) {
-      addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug);
+      addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg, category: item.category }, slug);
       return;
     }
     setSelectedAddonIds(new Set());
@@ -255,6 +255,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       quantity: 1,
       image_url: addonSheetItem.image_url,
       is_veg: addonSheetItem.is_veg,
+      category: addonSheetItem.category,
       addons: chosen.map(a => ({ id: a.id, name: a.name, price: a.price })),
     }, slug);
     setAddonSheetItem(null);
