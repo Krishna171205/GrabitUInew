@@ -5,10 +5,14 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddon } from '@gradient365/gradient-commons';
 import { useCart, cartLineKey } from '@/store/cart';
-import { MS } from '@/components/gb/kit';
+import { MS, Veg } from '@/components/gb/kit';
 import { VoiceSearch } from '@/components/gb/VoiceSearch';
 import { inr, fmtTime12, todayHours, weekHoursSummary, type DayHours } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
+import { OfferStrip } from '@/components/gb/OfferStrip';
+import type { GrabbitOffer } from '@/components/gb/offers';
+import { PairingSheet } from '@/components/gb/PairingSheet';
+import { pairingsFor } from '@/components/gb/pairings';
 
 const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
 const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
@@ -66,24 +70,14 @@ interface Props {
   customerName?: string | null;
   topItems?: TopItem[];
   favorites?: FavItem[];
+  offers?: GrabbitOffer[];
   isLoggedIn?: boolean;
   table?: string | null;
   initialQuery?: string | null;
   initialAcceptingOrders?: boolean;
 }
 
-/* veg mark (square outline + dot) — only rendered when veg status is known */
-function Veg({ veg }: { veg?: boolean | null }) {
-  if (veg == null) return null;
-  const c = veg ? '#3E8E4E' : '#9E2A2B';
-  return (
-    <span style={{ width: 14, height: 14, border: `1.5px solid ${c}`, borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: c }} />
-    </span>
-  );
-}
-
-export default function MenuClient({ slug, cafe, items, addons, customerName, topItems = [], favorites = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
+export default function MenuClient({ slug, cafe, items, addons, customerName, topItems = [], favorites = [], offers = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
   const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
 
   // Omega's store-status toggle, on top of the scheduled hours below. Seeded server-side
@@ -189,6 +183,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
 
   const favoriteItems = items.filter(i => favIds.has(i.id) && i.is_available);
 
+
   useEffect(() => {
     if (cafe?.id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cafe.id));
   }, [slug, cafe?.id]);
@@ -227,6 +222,10 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}`
       : 'Hours vary';
   const weekSummary = weekHoursSummary(weekly);
+
+  // What goes with what is already in the cart. Suppressed while the cafe is closed,
+  // since nothing here can be added anyway.
+  const pairings = open ? pairingsFor(items, cartItems.map(i => i.menu_item_id)) : [];
 
   const chip = (active: boolean) => ({
     flex: 'none' as const, display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -309,7 +308,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   };
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? 110 : 24 }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? (pairings.length > 0 ? 166 : 110) : 24 }}>
       {closedToast && (
         <div style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, background: 'var(--gb-ink)', color: '#fff', borderRadius: 14, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
           <MS name="storefront" size={18} color="#fff" />
@@ -353,6 +352,8 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           </div>
         )}
       </div>
+      {/* offers, right under the info strip like the rest of the cafe's headline facts */}
+      <OfferStrip offers={offers} />
 
       {/* The week, spelled out. The pill above says whether orders are being taken right
           now; this is what a customer plans tomorrow around. */}
@@ -571,6 +572,19 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           `transform`), so a sheet/dialog nested inside it pins to that div's box instead of
           the real viewport - it'd render off past the bottom of the screen once the cafe
           closes and the filter kicks in. */}
+      {/* Same reason as the sheets below: rendered outside the filtered block so the
+          strip and its sheet pin to the viewport, not to that div's box. */}
+      {cartCount > 0 && (
+        <PairingSheet
+          pairings={pairings}
+          qtyOf={qtyOf}
+          onAdd={(item) => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug))}
+          onQty={(id, qty) => guardedAdd(id, () => updateQty(plainLineKey(id), qty))}
+          placeholderFor={placeholderFor}
+          photoUrl={ph}
+        />
+      )}
+
       {showSubSheet && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>

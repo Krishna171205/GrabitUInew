@@ -131,3 +131,14 @@ export function Eyebrow({ children, style }: { children: ReactNode; style?: CSSP
     </div>
   );
 }
+
+/* ---------- Veg / non-veg mark (square outline + dot), only when the status is known ---------- */
+export function Veg({ veg }: { veg?: boolean | null }) {
+  if (veg == null) return null;
+  const c = veg ? '#3E8E4E' : '#9E2A2B';
+  return (
+    <span style={{ width: 14, height: 14, border: `1.5px solid ${c}`, borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: c }} />
+    </span>
+  );
+}

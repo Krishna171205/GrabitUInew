@@ -20,6 +20,16 @@ async function getCafeStatus(slug: string): Promise<boolean | undefined> {
   } catch { return undefined; }
 }
 
+// Public, and fresh rather than cached with the menu: an offer that just ended must
+// stop being advertised on the next load, not five minutes later.
+async function getOffers(slug: string) {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/offers/${slug}`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
+
 async function getTopItems(cafeId: number, token: string) {
   try {
     const res = await fetch(
@@ -70,9 +80,12 @@ export default async function HomePage(
     );
   }
 
-  const [profile, topItems, favorites, acceptingOrders] = token
-    ? await Promise.all([getCustomerProfile(token), getTopItems(cafe.id, token), getFavorites(cafe.id, token), getCafeStatus(slug)])
-    : [{ name: null, isProfileComplete: false }, [], [], await getCafeStatus(slug)];
+  const [[profile, topItems, favorites, acceptingOrders], offers] = await Promise.all([
+    token
+      ? Promise.all([getCustomerProfile(token), getTopItems(cafe.id, token), getFavorites(cafe.id, token), getCafeStatus(slug)])
+      : Promise.all([{ name: null, isProfileComplete: false }, [], [], getCafeStatus(slug)]),
+    getOffers(slug),
+  ]);
 
   return (
     <MenuClient
@@ -83,6 +96,7 @@ export default async function HomePage(
       customerName={profile.name}
       topItems={topItems}
       favorites={favorites}
+      offers={offers}
       isLoggedIn={!!token}
       table={table ?? null}
       initialQuery={craving ?? null}

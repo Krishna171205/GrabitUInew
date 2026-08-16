@@ -21,6 +21,9 @@ export function offerHeadline(o: GrabbitOffer): string {
     case 'PERCENT': return `${o.percent_off ?? 0}% off`;
     case 'FLAT': return `₹${o.flat_off ?? 0} off`;
     case 'FREE_ITEM': return `Free ${o.free_item_name ?? 'item'}`;
+    // FIRST_ORDER is a percent offer that only applies to a customer's first order
+    // at that cafe, so say both rather than falling back to the cafe's own title.
+    case 'FIRST_ORDER': return o.percent_off != null ? `${o.percent_off}% off your first order` : o.title;
     default: return o.title;
   }
 }
