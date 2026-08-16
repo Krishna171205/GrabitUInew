@@ -23,11 +23,36 @@ function minsUntil(isoSlot: string): number {
   return Math.round((new Date(isoSlot).getTime() - Date.now()) / 60000);
 }
 
+function minsSince(iso: string): number {
+  return Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+}
+
+/**
+ * An online order sits in `pending` until Cashfree confirms payment, and `pending`
+ * matches no kanban column, so until now these were invisible to staff. A customer
+ * whose payment did not confirm had no way to be seen except to complain.
+ *
+ * Shown from 3 minutes (below that they are simply still at the payment screen)
+ * until 45, past which the order has expired and reconciliation has settled it.
+ */
+const UNCONFIRMED_MIN_AGE_MINS = 3;
+const UNCONFIRMED_MAX_AGE_MINS = 45;
+
+function isAwaitingPayment(o: GrabbitOrderWithItems): boolean {
+  if (o.status !== 'pending' || o.payment_status !== 'pending') return false;
+  if (o.payment_method !== 'online') return false;
+  const age = minsSince(o.created_at);
+  return age >= UNCONFIRMED_MIN_AGE_MINS && age <= UNCONFIRMED_MAX_AGE_MINS;
+}
+
 export default function ManagePage() {
   const { slug } = useParams<{ slug: string }>();
   const cafeId = useCafeId();
   const [orders, setOrders] = useState<GrabbitOrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rechecking, setRechecking] = useState<number | null>(null);
+  const [recheckResult, setRecheckResult] = useState<{ orderId: number; status: string } | null>(null);
+  const [showUnconfirmed, setShowUnconfirmed] = useState(false);
 
   const loadOrders = useCallback(async (cid: number) => {
     const today = new Date().toISOString().split('T')[0];
@@ -88,6 +113,24 @@ export default function ManagePage() {
     if (cafeId) await loadOrders(cafeId);
   }, [cafeId, loadOrders]);
 
+  const recheckPayment = useCallback(async (orderId: number) => {
+    setRechecking(orderId);
+    try {
+      const r = await fetch(`/api/proxy/grabit/orders/${orderId}/recheck-payment`, { method: 'POST' });
+      const data = await r.json().catch(() => ({}));
+      // Whatever the gateway says is the answer. "still not paid" is as useful to
+      // staff as "now paid": it means the money genuinely has not arrived, rather
+      // than leaving them to judge a screenshot.
+      setRecheckResult({ orderId, status: data?.payment_status ?? 'unknown' });
+      if (cafeId) await loadOrders(cafeId);
+    } catch {
+      setRecheckResult({ orderId, status: 'error' });
+    } finally {
+      setRechecking(null);
+    }
+  }, [cafeId, loadOrders]);
+
+  const awaitingPayment = orders.filter(isAwaitingPayment);
   const newCount = orders.filter(o => o.status === 'new_order').length;
 
   return (
@@ -98,9 +141,21 @@ export default function ManagePage() {
       sub={`${orders.length} active`}
       newCount={newCount}
       right={
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, height: 32, padding: '0 12px', borderRadius: 'var(--r-pill)', background: 'var(--success-tint)', color: 'var(--success)', fontSize: 13, fontWeight: 700 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', animation: 'blink 1.5s ease-in-out infinite' }} />
-          Live
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          {awaitingPayment.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowUnconfirmed(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 12px', border: 'none', cursor: 'pointer', borderRadius: 'var(--r-pill)', background: 'var(--warning-tint, #fff7ed)', color: 'var(--warning, #b45309)', fontSize: 13, fontWeight: 700 }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warning, #b45309)' }} />
+              {awaitingPayment.length} unconfirmed
+            </button>
+          )}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, height: 32, padding: '0 12px', borderRadius: 'var(--r-pill)', background: 'var(--success-tint)', color: 'var(--success)', fontSize: 13, fontWeight: 700 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', animation: 'blink 1.5s ease-in-out infinite' }} />
+            Live
+          </span>
         </span>
       }
     >
@@ -118,6 +173,68 @@ export default function ManagePage() {
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--success-tint)', color: 'var(--success)', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>{Icon.check({ size: 28 })}</div>
           <p className="t-title" style={{ fontSize: 18 }}>All clear</p>
           <p className="t-caption" style={{ marginTop: 4 }}>No active orders right now</p>
+        </div>
+      )}
+
+      {showUnconfirmed && (
+        <div
+          onClick={() => setShowUnconfirmed(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.45)', display: 'grid', placeItems: 'center', padding: 16 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ width: 'min(560px, 100%)', maxHeight: '80dvh', overflowY: 'auto', background: 'var(--surface)', borderRadius: 'var(--r-lg)', border: '1px solid var(--hairline)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px', borderBottom: '1px solid var(--hairline)' }}>
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--warning, #b45309)' }} />
+              <span className="t-label" style={{ fontSize: 15 }}>Payment unconfirmed</span>
+              <span style={{ marginLeft: 'auto' }}>
+                <Button variant="dark" onClick={() => setShowUnconfirmed(false)}>Close</Button>
+              </span>
+            </div>
+
+            <p className="t-caption" style={{ padding: '10px 16px 0' }}>
+              These customers started paying but the gateway has not confirmed. Ask to see
+              their confirmation, then re-check. Their bank saying paid is not proof the
+              money reached us.
+            </p>
+
+            {awaitingPayment.length === 0 && (
+              <p className="t-caption" style={{ padding: '16px' }}>Nothing unconfirmed right now.</p>
+            )}
+
+            {awaitingPayment.map(order => {
+              const result = recheckResult?.orderId === order.id ? recheckResult.status : null;
+              return (
+                <div key={order.id} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderTop: '1px solid var(--hairline)' }}>
+                  <span className="tabular t-label" style={{ fontSize: 15 }}>#{order.id}</span>
+                  <span style={{ fontSize: 14 }}>{order.customer_name ?? 'Guest'}</span>
+                  <span className="tabular" style={{ fontSize: 14, fontWeight: 700 }}>₹{order.total_amount}</span>
+                  <span className="t-caption">waiting {minsSince(order.created_at)}m</span>
+
+                  {result && (
+                    <span className="t-caption" style={{ width: '100%', fontWeight: 700, color: result === 'paid' ? 'var(--success)' : 'var(--error)' }}>
+                      {result === 'paid'
+                        ? 'Payment confirmed, order released to the board'
+                        : result === 'error'
+                          ? 'Could not reach the payment gateway, try again'
+                          : 'Gateway still reports no payment received'}
+                    </span>
+                  )}
+
+                  <span style={{ marginLeft: 'auto' }}>
+                    <Button
+                      variant="primary"
+                      disabled={rechecking === order.id}
+                      onClick={() => recheckPayment(order.id)}
+                    >
+                      {rechecking === order.id ? 'Checking…' : 'Re-check payment'}
+                    </Button>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
