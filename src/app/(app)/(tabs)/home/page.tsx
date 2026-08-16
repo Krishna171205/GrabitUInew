@@ -52,7 +52,7 @@ const heroStyle = {
 
 function SearchBar() {
   return (
-    <Link href="/explore" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, background: '#fff', borderRadius: 14, padding: '13px 15px', boxShadow: '0 10px 24px -10px rgba(30,15,5,.5)' }}>
+    <Link href="/explore" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-2)' }}>
       <MS name="search" size={21} color="#9A8C7B" />
       <span style={{ fontSize: 14.5, color: '#9A8C7B', fontWeight: 500 }}>Search cafés, dishes, drinks</span>
     </Link>
@@ -79,7 +79,7 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
             <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>Welcome to</div>
             <div className="gb-serif" style={{ fontSize: 34, fontWeight: 600, letterSpacing: '-.01em', marginTop: 2 }}>Grabbit</div>
           </div>
-          <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: '#2E2019', padding: '9px 15px', borderRadius: 999, fontSize: 13.5, fontWeight: 800, boxShadow: '0 8px 18px -8px rgba(20,10,5,.5)' }}>
+          <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: '#2E2019', padding: '9px 15px', borderRadius: 999, fontSize: 13.5, fontWeight: 800, boxShadow: 'var(--gb-elev-2)' }}>
             <MS name="login" size={18} color="var(--gb-primary)" />Sign in
           </Link>
         </div>
@@ -91,15 +91,15 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
       </div>
 
       {/* sign-in nudge */}
-      <div style={{ margin: '-34px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, padding: 15, boxShadow: 'var(--gb-shadow-pop)', border: '1px solid #F3DFCB', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 13, background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <div style={{ margin: '-34px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 'var(--gb-r-lg)', padding: 15, boxShadow: 'var(--gb-elev-3)', border: '1px solid #F3DFCB', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ width: 46, height: 46, borderRadius: 'var(--gb-r-sm)', background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <MS name="account_circle" size={24} fill color="var(--gb-primary)" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="gb-serif" style={{ fontSize: 17, fontWeight: 500 }}>Sign in to unlock your Grabbit</div>
           <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', marginTop: 2, fontWeight: 600 }}>Reorder, save favourites & track pickups</div>
         </div>
-        <Link href="/login" style={{ background: 'var(--gb-ink)', color: '#fff', fontSize: 13, fontWeight: 700, padding: '11px 15px', borderRadius: 12, flex: 'none' }}>Sign in</Link>
+        <Link href="/login" style={{ background: 'var(--gb-ink)', color: '#fff', fontSize: 13, fontWeight: 700, padding: '11px 15px', borderRadius: 'var(--gb-r-sm)', flex: 'none' }}>Sign in</Link>
       </div>
 
       {/* popular near you */}

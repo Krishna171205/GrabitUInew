@@ -81,7 +81,7 @@ function OrderRow({ o, cafeName, cafeSlug, cafeLogo }: { o: Order; cafeName: str
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, marginBottom: 12, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)', position: 'relative' }}>
+    <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', marginBottom: 12, overflow: 'hidden', boxShadow: 'var(--gb-elev-2)', position: 'relative' }}>
       <Link href={cafeSlug ? `/${cafeSlug}/order/${o.id}` : '#'} style={{ display: 'block', padding: '14px 14px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           {cafeLogo ? (
@@ -90,7 +90,7 @@ function OrderRow({ o, cafeName, cafeSlug, cafeLogo }: { o: Order; cafeName: str
               <img src={cafeLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
           ) : (
-            <div style={{ width: 44, height: 44, borderRadius: 12, flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 'var(--gb-r-sm)', flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
               <span className="gb-serif" style={{ fontSize: 19, fontWeight: 600, color: 'rgba(255,255,255,.9)' }}>{initial}</span>
             </div>
           )}
@@ -140,7 +140,7 @@ function OrderRow({ o, cafeName, cafeSlug, cafeLogo }: { o: Order; cafeName: str
           {menuOpen && (
             <>
               <div onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 41, background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 12, boxShadow: 'var(--gb-shadow-pop)', overflow: 'hidden', minWidth: 168 }}>
+              <div style={{ position: 'absolute', top: 40, right: 12, zIndex: 41, background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-sm)', boxShadow: 'var(--gb-elev-3)', overflow: 'hidden', minWidth: 168 }}>
                 <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '11px 14px', border: 'none', background: 'transparent', fontSize: 13, fontWeight: 600, color: 'var(--gb-text)', cursor: 'pointer', textAlign: 'left' }}>
                   <MS name="share" size={17} />Share restaurant
                 </button>
@@ -209,7 +209,7 @@ export default function OrdersPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by restaurant or dish"
-            style={{ width: '100%', border: '1px solid var(--gb-line-2)', background: 'var(--gb-card)', borderRadius: 14, padding: '12px 14px 12px 42px', fontSize: 14, color: 'var(--gb-text)', outline: 'none' }}
+            style={{ width: '100%', border: '1px solid var(--gb-line-2)', background: 'var(--gb-card)', borderRadius: 'var(--gb-r-sm)', padding: '12px 14px 12px 42px', fontSize: 14, color: 'var(--gb-text)', outline: 'none' }}
           />
         </div>
       </div>

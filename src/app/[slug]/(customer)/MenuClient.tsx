@@ -264,18 +264,18 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     const qty = qtyOf(item.id);
     if (qty > 0) {
       return (
-        <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.5)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
           <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
           <span style={{ minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
-          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
+          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
         </div>
       );
     }
     return (
       <button
         onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
-        className={shakeId === item.id ? 'gb-shake' : undefined}
-        style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
+        className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`}
+        style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
       >
         Add<MS name="add" size={16} />
       </button>
@@ -289,18 +289,18 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     const qty = qtyOf(item.id);
     if (qty > 0) {
       return (
-        <div style={{ position: 'absolute', right: 10, bottom: 10, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 10, boxShadow: '0 4px 10px -4px rgba(60,40,25,.4)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', right: 10, bottom: 10, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
           <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
           <span style={{ minWidth: 16, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
-          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
         </div>
       );
     }
     return (
       <button
         onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
-        className={shakeId === item.id ? 'gb-shake' : undefined}
-        style={{ position: 'absolute', right: 10, bottom: 10, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 9, padding: '6px 16px', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: '0 3px 10px -4px rgba(60,40,25,.4)' }}
+        className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`}
+        style={{ position: 'absolute', right: 10, bottom: 10, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', padding: '6px 16px', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}
       >
         Add
       </button>
@@ -310,7 +310,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? (pairings.length > 0 ? 166 : 110) : 24 }}>
       {closedToast && (
-        <div style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, background: 'var(--gb-ink)', color: '#fff', borderRadius: 14, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
+        <div className="gb-glass-ink" style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, borderRadius: 'var(--gb-r-sm)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
           <MS name="storefront" size={18} color="#fff" />
           This cafe is closed now, please try again later
         </div>
@@ -324,7 +324,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <Image src={cover} alt={cafe.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
-        <button onClick={() => router.push('/home')} aria-label="Back" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
+        <button onClick={() => router.push('/home')} aria-label="Back" className="gb-glass gb-press" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <MS name="arrow_back" size={22} color="var(--gb-ink)" />
         </button>
         <div style={{ position: 'absolute', bottom: 18, left: 20, right: 20, color: '#fff' }}>
@@ -334,7 +334,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       </div>
 
       {/* info strip — real signals only */}
-      <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 18, border: '1px solid var(--gb-line-2)', boxShadow: '0 12px 26px -18px rgba(60,40,25,.4)', display: 'flex', padding: '14px 6px' }}>
+      <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 'var(--gb-r-md)', border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-elev-2)', display: 'flex', padding: '14px 6px' }}>
         <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14.5, fontWeight: 800, color: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)', flex: 'none' }} />{open ? 'Open now' : 'Closed'}
@@ -372,8 +372,8 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           orders/profile doesn't need the cafe to be open. */}
       {!isLoggedIn && (
         <div style={{ padding: '16px 16px 0' }}>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'var(--gb-primary-soft)', border: '1px solid #EAD6C4', borderRadius: 16, padding: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)', flex: 'none' }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'var(--gb-primary-soft)', border: '1px solid #EAD6C4', borderRadius: 'var(--gb-r-md)', padding: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 'var(--gb-r-sm)', background: '#fff', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)', flex: 'none' }}>
               <MS name="schedule" size={24} color="var(--gb-primary)" />
             </div>
             <div style={{ flex: 1 }}>
@@ -401,17 +401,17 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           </div>
           <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
             {liveTopItems.map(item => (
-              <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
+              <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
                   <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   {qtyOf(item.menu_item_id) > 0 ? (
-                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.menu_item_id)}</span>
-                      <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                      <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={`gb-press ${shakeId === item.menu_item_id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
                   ) : (
-                    <button onClick={() => guardedAdd(item.menu_item_id, () => addTop(item))} aria-label="Add" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                    <button onClick={() => guardedAdd(item.menu_item_id, () => addTop(item))} aria-label="Add" className={`gb-press ${shakeId === item.menu_item_id ? 'gb-shake' : ''}`} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
                       <MS name="add" size={17} />
                     </button>
                   )}
@@ -433,21 +433,21 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           </div>
           <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
             {favoriteItems.map(item => (
-              <div key={item.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
+              <div key={item.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
-                  <button onClick={() => toggleFavorite(item.id)} aria-label="Remove favourite" style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
+                  <button onClick={() => toggleFavorite(item.id)} aria-label="Remove favourite" style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
                     <MS name="favorite" size={15} fill color="#C0392B" />
                   </button>
                   {qtyOf(item.id) > 0 ? (
-                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(plainLineKey(item.id), qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.id)}</span>
-                      <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qtyOf(item.id) + 1))} aria-label="Add one" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
+                      <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qtyOf(item.id) + 1))} aria-label="Add one" className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
                   ) : (
-                    <button onClick={() => guardedAdd(item.id, () => handleAddClick(item))} aria-label="Add" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
+                    <button onClick={() => guardedAdd(item.id, () => handleAddClick(item))} aria-label="Add" className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
 
                       <MS name="add" size={17} />
                     </button>
@@ -465,7 +465,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
 
       {/* menu search */}
       <div style={{ padding: '18px 16px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '12px 14px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 'var(--gb-r-sm)', padding: '12px 14px', boxShadow: 'var(--gb-elev-1)' }}>
           <MS name="search" size={20} color="#B0A08C" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 16, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
           {query
@@ -516,7 +516,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
               <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, paddingBottom: 6 }}>
                 {catItems.map(item => (
-                  <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+                  <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)' }}>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
                       <Image src={item.image_url || ph(placeholderFor(item))} alt={item.name} fill sizes="(max-width: 480px) 50vw, 220px" style={{ objectFit: 'cover' }} />
                       {/* ponytail: grabit_menu_items has no is_veg column at all (items sync
@@ -526,13 +526,15 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
                           before this cafe's menu ever adds a non-veg item, or this mark lies. */}
                       <div style={{ position: 'absolute', top: 8, left: 8 }}><Veg veg={true} /></div>
                       {item.is_bestseller && (
-                        <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(30,22,14,.72)', backdropFilter: 'blur(3px)', color: '#FFD27A', fontSize: 10, fontWeight: 800, padding: '4px 8px 4px 6px', borderRadius: 999, letterSpacing: 0.3 }}>
+                        <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', alignItems: 'center', gap: 3, // Opaque, not blurred: this badge repeats once per card, and a backdrop-filter
+                            // inside a scrolling list forces a GPU repaint per frame on every one of them.
+                            background: 'rgba(30,22,14,.86)', color: '#FFD27A', fontSize: 10, fontWeight: 800, padding: '4px 8px 4px 6px', borderRadius: 999, letterSpacing: 0.3 }}>
                           <MS name="local_fire_department" size={12} fill color="#FFD27A" />
                           BESTSELLER
                         </div>
                       )}
                       {isLoggedIn && (
-                        <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(60,40,25,.25)' }}>
+                        <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
                           <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
                         </button>
                       )}
@@ -553,11 +555,18 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
 
       {/* floating cart bar */}
       {cartCount > 0 && (
-        <div style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, background: 'var(--gb-ink)', color: '#fff', borderRadius: 16, padding: '14px 14px 14px 18px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: 'var(--gb-shadow-bar)' }}>
+        <div className="gb-glass-ink gb-press" style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, borderRadius: 'var(--gb-r-md)', padding: '12px 12px 12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: '#fff', minWidth: 0 }}>
-            <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 9, padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
+            <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 'var(--gb-r-xs)', padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
             <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>Next<MS name="arrow_forward" size={19} /></span>
+            {/* The arrow gets its own well rather than floating beside the label: the
+                CTA reads as one machined part instead of text with an icon after it. */}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>
+              Next
+              <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', flex: 'none' }}>
+                <MS name="arrow_forward" size={18} color="var(--gb-peach)" />
+              </span>
+            </span>
           </Link>
           <button onClick={() => setShowClearConfirm(true)} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
             <MS name="close" size={16} />
@@ -586,8 +595,9 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       )}
 
       {showSubSheet && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
-          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
+          <div className="gb-glass-sheet gb-sheet-in" style={{ borderRadius: '22px 22px 0 0', padding: '14px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div className="gb-sheet-handle" />
             <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Filter by</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
               <button style={chip(activeSub === 'all')} onClick={() => { setActiveSub('all'); setShowSubSheet(false); }}>All</button>
@@ -600,8 +610,9 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       )}
 
       {showSortSheet && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSortSheet(false)}>
-          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '18px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 448, margin: '0 auto' }} onClick={(e) => e.stopPropagation()}>
+        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSortSheet(false)}>
+          <div className="gb-glass-sheet gb-sheet-in" style={{ borderRadius: '22px 22px 0 0', padding: '14px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 448, margin: '0 auto' }} onClick={(e) => e.stopPropagation()}>
+            <div className="gb-sheet-handle" />
             <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Sort & filter</div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {SORT_MODES.map(m => {
@@ -628,21 +639,22 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       )}
 
       {showClearConfirm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowClearConfirm(false)}>
-          <div style={{ background: '#fff', borderRadius: 18, padding: 22, width: '100%', maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
+        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowClearConfirm(false)}>
+          <div className="gb-glass-sheet gb-dialog-in" style={{ borderRadius: 'var(--gb-r-lg)', padding: 22, width: '100%', maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>Clear cart?</div>
             <div style={{ fontSize: 14, color: 'var(--gb-muted)', marginTop: 6, lineHeight: 1.4 }}>Your {cartCount} item{cartCount > 1 ? 's' : ''} will be removed.</div>
             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-              <button onClick={() => setShowClearConfirm(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: '1px solid var(--gb-line-2)', background: '#fff', color: 'var(--gb-text)', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>No</button>
-              <button onClick={() => { clearCart(); setShowClearConfirm(false); }} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>Yes</button>
+              <button onClick={() => setShowClearConfirm(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 'var(--gb-r-sm)', border: '1px solid var(--gb-line-2)', background: '#fff', color: 'var(--gb-text)', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>No</button>
+              <button onClick={() => { clearCart(); setShowClearConfirm(false); }} style={{ flex: 1, padding: '12px 0', borderRadius: 'var(--gb-r-sm)', border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>Yes</button>
             </div>
           </div>
         </div>
       )}
 
       {addonSheetItem && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setAddonSheetItem(null)}>
-          <div style={{ background: '#fff', borderRadius: '18px 18px 0 0', padding: 22, width: '100%', maxWidth: 448 }} onClick={(e) => e.stopPropagation()}>
+        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setAddonSheetItem(null)}>
+          <div className="gb-glass-sheet gb-sheet-in" style={{ borderRadius: '22px 22px 0 0', padding: '14px 22px calc(22px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 448 }} onClick={(e) => e.stopPropagation()}>
+            <div className="gb-sheet-handle" />
             <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>{addonSheetItem.name}</div>
             <div style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 4 }}>Add extras</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
@@ -664,7 +676,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
             </div>
             <button
               onClick={confirmAddonSheet}
-              style={{ width: '100%', marginTop: 20, padding: '13px 0', borderRadius: 12, border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+              style={{ width: '100%', marginTop: 20, padding: '13px 0', borderRadius: 'var(--gb-r-sm)', border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
             >
               Add to cart
             </button>

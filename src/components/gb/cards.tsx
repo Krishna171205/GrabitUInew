@@ -49,7 +49,7 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
   const initial = cafe.name.trim().charAt(0).toUpperCase();
   const area = cafe.city || cafe.address || null;
   return (
-    <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 22, overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-shadow-card)' }}>
+    <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-elev-2)' }}>
       {/* The cafe's own storefront photo when it has supplied one. Otherwise the branded
           placeholder: still no stock food photo standing in for a cafe we can't vouch for. */}
       <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden', filter: open ? 'none' : 'grayscale(1)' }}>
@@ -93,7 +93,7 @@ export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
   }
 
   return (
-    <div style={{ flex: 'none', width: 152, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
+    <div style={{ flex: 'none', width: 152, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
       <div style={{ position: 'relative', height: 104 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ph(item.photo)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -111,7 +111,7 @@ export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
           <button
             onClick={add}
             aria-label="Add"
-            style={{ width: 26, height: 26, borderRadius: 8, border: '1.5px solid #E7DCCC', background: inCart ? 'var(--gb-primary)' : '#fff', color: inCart ? '#fff' : 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ width: 26, height: 26, borderRadius: 'var(--gb-r-xs)', border: '1.5px solid #E7DCCC', background: inCart ? 'var(--gb-primary)' : '#fff', color: inCart ? '#fff' : 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <MS name={inCart ? 'check' : 'add'} size={17} />
           </button>
@@ -125,8 +125,8 @@ export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
 export function CategoryCircle({ cat }: { cat: GbCategory }) {
   return (
     <Link href={`/raydee?craving=${encodeURIComponent(cat.query)}`} style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 72, textDecoration: 'none' }}>
-      <div style={{ width: 66, height: 66, borderRadius: 20, overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(60,40,25,.4)', border: '1px solid #EFE7DB', position: 'relative' }}>
-        <Image src={cat.photo} alt={cat.label} fill sizes="66px" style={{ objectFit: 'cover', borderRadius: 20 }} />
+      <div style={{ width: 66, height: 66, borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)', border: '1px solid #EFE7DB', position: 'relative' }}>
+        <Image src={cat.photo} alt={cat.label} fill sizes="66px" style={{ objectFit: 'cover', borderRadius: 'var(--gb-r-lg)' }} />
       </div>
       <span style={{ fontSize: 12, fontWeight: 600, color: '#4A4038', textAlign: 'center', lineHeight: 1.1 }}>{cat.label}</span>
     </Link>

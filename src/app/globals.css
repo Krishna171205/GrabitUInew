@@ -310,10 +310,35 @@ button {
   --gb-shadow-soft: 0 10px 22px -14px rgba(60,40,25,.4);
   --gb-shadow-pop: 0 14px 30px -16px rgba(60,40,25,.4);
   --gb-shadow-bar: 0 16px 30px -12px rgba(46,32,25,.6);
-  --gb-r-card: 22px;
+  /* One radius and elevation scale, so surfaces stop being hand-tuned per component.
+     Four steps, far enough apart to read as deliberate: micro controls, controls,
+     nested surfaces, cards. Pills stay 999. */
+  --gb-r-xs: 10px;
+  --gb-r-sm: 12px;
+  --gb-r-md: 16px;
+  --gb-r-lg: 22px;
+  --gb-r-card: var(--gb-r-lg);
+  --gb-elev-1: 0 6px 16px -12px rgba(60,40,25,.4);
+  --gb-elev-2: 0 12px 28px -18px rgba(60,40,25,.45);
+  --gb-elev-3: 0 20px 44px -22px rgba(46,32,25,.5);
 
-  /* Card radius, systematized from the value already in use (CafeGate cover) */
-  --gb-r-card: 22px;
+  /* Glass chrome. Saturation is what stops a blur reading as grey fog: it pulls the
+     colour of whatever scrolls underneath back up through the panel. */
+  --gb-glass-filter: saturate(180%) blur(20px);
+  --gb-glass-light: rgba(255, 250, 240, .72);
+  --gb-glass-ink: rgba(36, 22, 18, .74);
+  --gb-glass-light-solid: #FFFBF3;
+  --gb-glass-ink-solid: #2B1A15;
+  --gb-glass-edge: rgba(255, 255, 255, .58);
+  --gb-glass-edge-ink: rgba(255, 255, 255, .16);
+  /* Inset top hairline + a long soft drop: the panel reads as lit from above and
+     lifted off the page, which is the whole difference between glass and opacity. */
+  --gb-glass-shadow: inset 0 1px 0 var(--gb-glass-edge), 0 18px 40px -22px rgba(46,32,25,.55);
+  --gb-glass-shadow-ink: inset 0 1px 0 var(--gb-glass-edge-ink), 0 20px 44px -20px rgba(20,12,8,.75);
+
+  /* Built-in easings are too soft to read as intentional. Enter fast and settle. */
+  --gb-ease-out: cubic-bezier(.23, 1, .32, 1);
+  --gb-ease-drawer: cubic-bezier(.32, .72, 0, 1);
 
   --gb-serif: var(--font-display), var(--font-deva), system-ui, sans-serif;
   --gb-sans: var(--font-ui), var(--font-deva), system-ui, -apple-system, sans-serif;
@@ -352,6 +377,86 @@ button {
    ============================================================ */
 .gb-shell { max-width: 480px; margin: 0 auto; min-height: 100dvh; position: relative; }
 
+/* ============================================================
+   Glass chrome: anything that floats over scrolling content.
+   .gb-glass sits on the cream ground, .gb-glass-ink is the dark
+   counterpart for the cart bar and toasts.
+   ============================================================ */
+.gb-app .gb-glass,
+.gb-app .gb-glass-ink {
+  backdrop-filter: var(--gb-glass-filter);
+  -webkit-backdrop-filter: var(--gb-glass-filter);
+}
+.gb-app .gb-glass {
+  background: var(--gb-glass-light);
+  border: 1px solid var(--gb-glass-edge);
+  box-shadow: var(--gb-glass-shadow);
+}
+.gb-app .gb-glass-ink {
+  background: var(--gb-glass-ink);
+  border: 1px solid var(--gb-glass-edge-ink);
+  box-shadow: var(--gb-glass-shadow-ink);
+  color: #fff;
+}
+
+/* Sheets sit on top of a dim scrim, so they carry more of their own colour than the
+   bars do: at bar opacity the scrim bleeds through and the panel reads muddy. */
+.gb-app .gb-glass-sheet {
+  background: rgba(255, 251, 243, .93);
+  backdrop-filter: saturate(160%) blur(28px);
+  -webkit-backdrop-filter: saturate(160%) blur(28px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 -20px 50px -24px rgba(46,32,25,.5);
+}
+
+/* Pressable chrome answers the finger. Transform only, so it stays on the GPU. */
+.gb-app .gb-press {
+  transition: transform 160ms var(--gb-ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.gb-app .gb-press:active { transform: scale(.97); }
+
+/* Sheets come up from the edge they live on, at drawer easing. The scrim fades
+   under them rather than with them, so the panel leads and the dim follows. */
+@keyframes gb-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes gb-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+.gb-app .gb-sheet-in { animation: gb-sheet-up 320ms var(--gb-ease-drawer) both; }
+/* A dialog is not anchored to an edge, so it scales from its centre. Never from
+   zero: things that are already there when you look are less startling. */
+@keyframes gb-dialog-in { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.gb-app .gb-dialog-in { animation: gb-dialog-in 200ms var(--gb-ease-out) both; }
+.gb-app .gb-scrim-in { animation: gb-scrim-in 200ms var(--gb-ease-out) both; }
+
+/* Grab handle: the affordance that says this panel is a physical thing. */
+.gb-app .gb-sheet-handle {
+  width: 38px; height: 4px; border-radius: 999px;
+  background: var(--gb-line-3);
+  margin: 0 auto 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-app .gb-press:active { transform: none; }
+  .gb-app .gb-sheet-in { animation: gb-scrim-in 160ms ease both; }
+}
+
+/* Translucency is a luxury, legibility is not. Anything that cannot blur, or any
+   reader who has asked for less transparency, gets the opaque panel instead. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .gb-app .gb-glass { background: var(--gb-glass-light-solid); }
+  .gb-app .gb-glass-ink { background: var(--gb-glass-ink-solid); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .gb-app .gb-glass {
+    background: var(--gb-glass-light-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .gb-app .gb-glass-ink {
+    background: var(--gb-glass-ink-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* Bottom tab bar — mobile default */
 .gb-bottomnav {
   display: flex;
@@ -360,6 +465,13 @@ button {
   z-index: 30;
   max-width: 480px;
   margin: 0 auto;
+}
+/* The nav spans the full width, so it takes the hairline on its top edge only:
+   a boxed border on a full-bleed bar reads as a stray rectangle. */
+.gb-app .gb-bottomnav.gb-glass {
+  border: none;
+  border-top: 1px solid var(--gb-glass-edge);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 -14px 34px -24px rgba(46,32,25,.5);
 }
 
 /* Desktop top nav — hidden until the breakpoint below turns it on */

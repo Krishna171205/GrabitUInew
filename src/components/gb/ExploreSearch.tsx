@@ -14,8 +14,8 @@ interface DishResult {
 
 function DishResultCard({ dish }: { dish: DishResult }) {
   return (
-    <Link href={`/${dish.cafe_slug}`} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 12, marginTop: 10 }}>
-      <div style={{ width: 52, height: 52, borderRadius: 12, flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
+    <Link href={`/${dish.cafe_slug}`} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', padding: 12, marginTop: 10 }}>
+      <div style={{ width: 52, height: 52, borderRadius: 'var(--gb-r-sm)', flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
         <span className="gb-serif" style={{ fontSize: 22, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>{dish.name.trim().charAt(0).toUpperCase()}</span>
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
@@ -51,7 +51,7 @@ export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '13px 15px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-1)' }}>
         <MS name="search" size={21} color="#B0A08C" />
         <input
           value={q}
