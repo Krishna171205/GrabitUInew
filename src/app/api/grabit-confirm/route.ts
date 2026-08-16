@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 // Server-side-only route, INTERNAL_SECRET is never exposed to the client.
 // This route sits between the frontend and the Express /recharge/confirm endpoint,
@@ -6,8 +7,19 @@ import { NextResponse, type NextRequest } from 'next/server';
 //
 // In production, real Cashfree webhooks should also hit this endpoint (or a
 // separate /api/cashfree-webhook route) so the secret is always injected server-side.
+//
+// Requires a signed-in customer: this route lends the caller the trusted internal
+// secret, so leaving it open made it a confused deputy that anyone on the internet
+// could point at any recharge id. The backend independently verifies the payment
+// with Cashfree before crediting (WalletService.confirmRecharge) - this is the
+// outer gate, not the only one.
 
 export async function POST(req: NextRequest) {
+  const cookieStore = await cookies();
+  if (!cookieStore.get('grabbit_customer_token')?.value) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => null);
 
   if (!body?.rechargeId || !body?.cashfreeOrderId) {
