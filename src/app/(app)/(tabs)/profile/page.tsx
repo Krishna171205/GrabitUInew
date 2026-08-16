@@ -5,19 +5,31 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
+import { isRealOrder } from '@/components/gb/orders';
 import type { RealCafe } from '@/components/gb/cards';
 
 interface Me { customerId: number; name: string | null; email: string | null; phone: string; avatar_url: string | null; }
-interface OrderView { status: string; payment_status: string; total_amount: number; created_at: string; }
+interface OrderView { status: string; payment_method: string; payment_status: string; total_amount: number; created_at: string; }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Index of the local calendar week (Monday to Sunday) a timestamp falls in.
+ * The old version bucketed on floor(epoch / 7 days), which is a Thursday-to-Wednesday
+ * UTC window, so "this week" rarely matched the week the customer is living in.
+ */
+function weekIndex(ms: number): number {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // back up to Monday
+  return Math.round(d.getTime() / WEEK_MS);
+}
+
+/** Consecutive weeks with at least one order, counting back from this week. */
 function computeWeeklyStreak(dates: string[]): number {
-  const weeks = new Set(dates.map((d) => {
-    const t = new Date(d).getTime();
-    return Math.floor(t / (7 * 24 * 60 * 60 * 1000));
-  }));
-  const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  const weeks = new Set(dates.map((d) => weekIndex(new Date(d).getTime())));
   let streak = 0;
-  for (let w = currentWeek; weeks.has(w); w--) streak++;
+  for (let w = weekIndex(Date.now()); weeks.has(w); w--) streak++;
   return streak;
 }
 
@@ -65,17 +77,22 @@ export default function ProfilePage() {
       if (meData) { setMe(meData); setName(meData.name ?? ''); setEmail(meData.email ?? ''); }
       const cafe = cafes[0];
       setPrimaryCafe(cafe);
-      if (meData?.customerId && cafe) {
-        fetch(`/api/proxy/grabit/favorites?cafeId=${cafe.id}`)
-          .then((r) => (r.ok ? r.json() : []))
-          .then((favs: unknown[]) => setFavouritesCount(favs.length))
+      if (meData?.customerId) {
+        // Everything saved, across every cafe. The old per-cafe call only ever
+        // counted the first cafe in the list.
+        fetch('/api/proxy/grabit/favorites/mine')
+          .then((r) => (r.ok ? r.json() : { items: [], cafes: [] }))
+          .then((favs: { items: unknown[]; cafes: unknown[] }) =>
+            setFavouritesCount((favs.items?.length ?? 0) + (favs.cafes?.length ?? 0)))
           .catch(() => setFavouritesCount(0));
       }
       if (meData?.customerId) {
         fetch('/api/proxy/grabit/orders/mine')
           .then((r) => (r.ok ? r.json() : []))
           .then((orders: OrderView[]) => {
-            const real = orders.filter((o) => o.status !== 'cancelled');
+            // Same rule as the Orders tab: an abandoned or failed online checkout is
+            // not an order. Counting those kept the streak alive without any order.
+            const real = orders.filter(isRealOrder);
             setOrdersCount(real.length);
             setOrderStreak(computeWeeklyStreak(real.map((o) => o.created_at)));
           })
@@ -286,7 +303,7 @@ export default function ProfilePage() {
       {/* menu list */}
       <div style={{ margin: '20px 16px 16px', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden' }}>
         <MenuRow icon="receipt_long" label="Your orders" href="/orders" />
-        <MenuRow icon="favorite" label="Favourites" />
+        <MenuRow icon="favorite" label="Favourites" href="/favourites" />
         <MenuRow icon="local_offer" label="Offers & rewards" badge="Coming soon" />
         <MenuRow icon="help" label="Help & support" href="/support" last />
       </div>

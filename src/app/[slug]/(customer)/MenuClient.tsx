@@ -106,11 +106,14 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       return next;
     });
     try {
-      await fetch('/api/proxy/grabit/favorites/toggle', {
+      // The API runs Jackson SNAKE_CASE: a camelCase body binds to nulls and 400s,
+      // which is how favourites silently stopped saving. Check the status too.
+      const res = await fetch('/api/proxy/grabit/favorites/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cafeId: cafe.id, menuItemId }),
+        body: JSON.stringify({ cafe_id: cafe.id, menu_item_id: menuItemId }),
       });
+      if (!res.ok) throw new Error(`favorite toggle failed: ${res.status}`);
     } catch {
       setFavIds(prev => {
         const next = new Set(prev);
