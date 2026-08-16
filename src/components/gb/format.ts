@@ -30,3 +30,38 @@ export const cafeOpenNow = (opening?: string | null, closing?: string | null) =>
   const now = new Date().getHours() * 60 + new Date().getMinutes();
   return now >= toMin(opening) && now < toMin(closing);
 };
+
+/** One day of a cafe's weekly schedule, as the API sends it. day_of_week is ISO: 1 = Mon. */
+export interface DayHours { day_of_week: number; opens: string; closes: string }
+
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/** Today's hours from a weekly schedule, or null when the cafe has not set one. */
+export function todayHours(hours?: DayHours[] | null): DayHours | null {
+  if (!hours?.length) return null;
+  // JS getDay() is 0 = Sunday; the API is ISO, 1 = Monday ... 7 = Sunday.
+  const iso = new Date().getDay() === 0 ? 7 : new Date().getDay();
+  return hours.find((h) => h.day_of_week === iso) ?? null;
+}
+
+/**
+ * The week as a customer would say it: consecutive days sharing hours collapse into one
+ * range, so seven rows read as "Mon-Fri 9 AM - 9 PM · Sat-Sun 11 AM - 8 PM".
+ */
+export function weekHoursSummary(hours?: DayHours[] | null): string[] {
+  if (!hours?.length) return [];
+  const byDay = [...hours].sort((a, b) => a.day_of_week - b.day_of_week);
+  const groups: { from: number; to: number; opens: string; closes: string }[] = [];
+  for (const h of byDay) {
+    const last = groups[groups.length - 1];
+    if (last && last.to === h.day_of_week - 1 && last.opens === h.opens && last.closes === h.closes) {
+      last.to = h.day_of_week;
+    } else {
+      groups.push({ from: h.day_of_week, to: h.day_of_week, opens: h.opens, closes: h.closes });
+    }
+  }
+  return groups.map((g) => {
+    const days = g.from === g.to ? DAY_LABELS[g.from - 1] : `${DAY_LABELS[g.from - 1]}-${DAY_LABELS[g.to - 1]}`;
+    return `${days} ${fmtTime12(g.opens)} – ${fmtTime12(g.closes)}`;
+  });
+}

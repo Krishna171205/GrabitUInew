@@ -7,7 +7,7 @@ import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddo
 import { useCart, cartLineKey } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { VoiceSearch } from '@/components/gb/VoiceSearch';
-import { inr, cafeOpenNow, fmtTime12 } from '@/components/gb/format';
+import { inr, fmtTime12, todayHours, weekHoursSummary, type DayHours } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
 
 const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
@@ -215,9 +215,18 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   const cover = cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
 
   // Real signals only — no fabricated ratings/distance (GrabbitCafe has no such fields).
-  const hasHours = Boolean(cafe.opening_time && cafe.closing_time);
-  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time) && acceptingOrders;
-  const hours = hasHours ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : 'Hours vary';
+  // Open or closed is the cafe's toggle in Omega and nothing else: staff close early or
+  // stay open late, and the schedule below is what the customer plans around, not a
+  // second opinion on whether orders are being taken right now.
+  const open = acceptingOrders;
+  const weekly = (cafe as { hours?: DayHours[] | null }).hours ?? null;
+  const today = todayHours(weekly);
+  const hours = today
+    ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}`
+    : cafe.opening_time && cafe.closing_time
+      ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}`
+      : 'Hours vary';
+  const weekSummary = weekHoursSummary(weekly);
 
   const chip = (active: boolean) => ({
     flex: 'none' as const, display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -330,7 +339,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14.5, fontWeight: 800, color: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)', flex: 'none' }} />{open ? 'Open now' : 'Closed'}
           </div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>{hours}</div>
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>{today ? `Today ${hours}` : hours}</div>
         </div>
         <div style={{ flex: 1, textAlign: 'center', ...(cafe.city ? { borderRight: '1px solid var(--gb-line-2)' } : {}) }}>
           <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-ink)' }}>Order ahead</div>
@@ -343,6 +352,18 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           </div>
         )}
       </div>
+
+      {/* The week, spelled out. The pill above says whether orders are being taken right
+          now; this is what a customer plans tomorrow around. */}
+      {weekSummary.length > 0 && (
+        <div style={{ margin: '10px 16px 0', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {weekSummary.map((line) => (
+            <span key={line} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 999, padding: '5px 11px', fontSize: 11.5, fontWeight: 700, color: 'var(--gb-muted)' }}>
+              <MS name="schedule" size={14} color="var(--gb-muted-2)" />{line}
+            </span>
+          ))}
+        </div>
+      )}
       </div>
 
       {/* login nudge (guest) — full colour even when closed: logging in to see past

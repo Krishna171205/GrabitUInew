@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { MS } from './kit';
 import { inr } from './format';
 import { ph, type GbItem, type GbCategory } from './data';
-import { cafeOpenNow, fmtTime12 } from './format';
+import { fmtTime12, todayHours, type DayHours } from './format';
 import { useFavoriteCafe } from './favorites';
 import { useCart } from '@/store/cart';
 
@@ -15,6 +15,12 @@ export interface RealCafe {
   id: number; name: string; slug: string;
   address?: string | null; city?: string | null;
   opening_time?: string | null; closing_time?: string | null;
+  /** Brand mark on the assets CDN. Null for cafes that have not supplied one. */
+  logo_url?: string | null;
+  /** Storefront photo for the card cover. Null falls back to the branded placeholder. */
+  cover_url?: string | null;
+  /** Weekly schedule, Monday first. Shown to the customer; it does not decide open/closed. */
+  hours?: DayHours[] | null;
   /** Server-fetched Omega store-status, so the card renders correct on first paint (no flash). */
   acceptingOrders?: boolean;
 }
@@ -32,15 +38,31 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
       .then(d => { if (d) setAcceptingOrders(d.acceptingOrders !== false); })
       .catch(() => {});
   }, [cafe.slug, cafe.acceptingOrders]);
-  const open = cafeOpenNow(cafe.opening_time, cafe.closing_time) && acceptingOrders;
-  const hours = cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
+  // Open or closed is the cafe's own toggle in Omega, nothing else. Scheduled hours are
+  // information for the customer: staff close early, open late, and the toggle is the
+  // only thing that knows. Unknown status stays open (fail-open), as before.
+  const open = acceptingOrders;
+  const today = todayHours(cafe.hours);
+  const hours = today
+    ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}`
+    : cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
   const initial = cafe.name.trim().charAt(0).toUpperCase();
   const area = cafe.city || cafe.address || null;
   return (
     <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 22, overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-shadow-card)' }}>
-      {/* branded placeholder cover — we don't show a stock food photo we can't stand behind */}
+      {/* The cafe's own storefront photo when it has supplied one. Otherwise the branded
+          placeholder: still no stock food photo standing in for a cafe we can't vouch for. */}
       <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden', filter: open ? 'none' : 'grayscale(1)' }}>
-        <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
+        {cafe.cover_url ? (
+          <>
+            <Image src={cafe.cover_url} alt="" fill sizes="(max-width: 480px) 100vw, 448px" style={{ objectFit: 'cover' }} />
+            {/* The status pill and bookmark sit on top of an unknown photo, so the corners
+                they live in get darkened rather than trusting the image to be quiet there. */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,12,6,.42) 0%, rgba(20,12,6,0) 45%)' }} />
+          </>
+        ) : (
+          <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
+        )}
         <div style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.94)', padding: '5px 10px', borderRadius: 999 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }} />
           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-ink)' }}>{open ? 'Open now' : 'Closed'}</span>

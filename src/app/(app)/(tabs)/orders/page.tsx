@@ -43,13 +43,20 @@ function fmtWhen(iso: string) {
     + ', ' + new Date(iso).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-function OrderRow({ o, cafeName, cafeSlug }: { o: Order; cafeName: string; cafeSlug?: string }) {
+function OrderRow({ o, cafeName, cafeSlug, cafeLogo }: { o: Order; cafeName: string; cafeSlug?: string; cafeLogo?: string | null }) {
   const router = useRouter();
   const { addItem } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const s = statusLabel(o);
   const initial = cafeName.trim().charAt(0).toUpperCase() || '?';
   const canReorder = cafeSlug && o.items.length > 0;
+
+  // Nested inside the card's Link, so this has to be a button: the card opens the
+  // order, this opens the cafe's menu, which is what the label always claimed.
+  function viewMenu(e: React.MouseEvent) {
+    e.preventDefault(); e.stopPropagation();
+    if (cafeSlug) router.push(`/${cafeSlug}`);
+  }
 
   function reorder(e: React.MouseEvent) {
     e.preventDefault(); e.stopPropagation();
@@ -77,14 +84,20 @@ function OrderRow({ o, cafeName, cafeSlug }: { o: Order; cafeName: string; cafeS
     <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, marginBottom: 12, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)', position: 'relative' }}>
       <Link href={cafeSlug ? `/${cafeSlug}/order/${o.id}` : '#'} style={{ display: 'block', padding: '14px 14px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
-            <span className="gb-serif" style={{ fontSize: 19, fontWeight: 600, color: 'rgba(255,255,255,.9)' }}>{initial}</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{cafeName}</div>
-              {cafeSlug && <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-primary)', flex: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>View menu<MS name="chevron_right" size={14} /></span>}
+          {cafeLogo ? (
+            <div style={{ width: 44, height: 44, borderRadius: '50%', flex: 'none', background: '#fff', border: '1px solid var(--gb-line-2)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cafeLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
+          ) : (
+            <div style={{ width: 44, height: 44, borderRadius: 12, flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
+              <span className="gb-serif" style={{ fontSize: 19, fontWeight: 600, color: 'rgba(255,255,255,.9)' }}>{initial}</span>
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* The kebab is positioned absolutely at the top right of the card, so this
+                row keeps its 28px (plus the 12px inset) clear of anything. */}
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)', paddingRight: cafeSlug ? 30 : 0 }}>{cafeName}</div>
             <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {o.items.map((i) => i.quantity > 1 ? `${i.menu_item_name} ×${i.quantity}` : i.menu_item_name).join(', ')}
             </div>
@@ -100,11 +113,18 @@ function OrderRow({ o, cafeName, cafeSlug }: { o: Order; cafeName: string; cafeS
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 700, color: s.color, background: s.bg, padding: '4px 9px', borderRadius: 999 }}>
             <MS name={s.icon} size={13} fill />{s.text}
           </span>
-          {canReorder && (
-            <button onClick={reorder} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--gb-line-3)', background: '#fff', color: 'var(--gb-primary)', fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 999, cursor: 'pointer' }}>
-              <MS name="replay" size={14} />Reorder
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {cafeSlug && (
+              <button onClick={viewMenu} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontSize: 12, fontWeight: 700, padding: '6px 2px', cursor: 'pointer' }}>
+                View menu<MS name="chevron_right" size={14} />
+              </button>
+            )}
+            {canReorder && (
+              <button onClick={reorder} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--gb-line-3)', background: '#fff', color: 'var(--gb-primary)', fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 999, cursor: 'pointer' }}>
+                <MS name="replay" size={14} />Reorder
+              </button>
+            )}
+          </div>
         </div>
       </Link>
 
@@ -208,7 +228,7 @@ export default function OrdersPage() {
           </div>
         ) : (
           shown.map((o) => (
-            <OrderRow key={o.id} o={o} cafeName={cafeById.get(o.cafe_id)?.name ?? 'Grabbit'} cafeSlug={cafeById.get(o.cafe_id)?.slug} />
+            <OrderRow key={o.id} o={o} cafeName={cafeById.get(o.cafe_id)?.name ?? 'Grabbit'} cafeSlug={cafeById.get(o.cafe_id)?.slug} cafeLogo={cafeById.get(o.cafe_id)?.logo_url} />
           ))
         )}
       </div>
