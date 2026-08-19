@@ -13,6 +13,7 @@ import { OfferStrip } from '@/components/gb/OfferStrip';
 import type { GrabbitOffer } from '@/components/gb/offers';
 import { PairingSheet } from '@/components/gb/PairingSheet';
 import { pairingsFor } from '@/components/gb/pairings';
+import { useBackTo } from '@/lib/useBackTo';
 
 const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
 const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
@@ -117,6 +118,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     }
   }
   const router = useRouter();
+  useBackTo('/home'); // browser back matches the hero back arrow
 
   // Dine-in QR entry (/{slug}?table=N): remember the table for this session so cart/checkout become
   // dine-in (no pickup slot); a plain visit (no ?table) clears it back to pickup.

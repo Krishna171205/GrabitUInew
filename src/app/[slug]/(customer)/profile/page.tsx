@@ -8,6 +8,7 @@ import { formatPaise } from '@/lib/utils';
 import type { GrabbitWallet } from '@gradient365/gradient-commons';
 import { TopBar, Card, Button, Icon } from '@/components/ui/kit';
 import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
+import { useBackTo } from '@/lib/useBackTo';
 
 interface TopItem {
   menu_item_id: number;
@@ -20,6 +21,7 @@ interface TopItem {
 export default function ProfilePage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  useBackTo(`/${slug}`); // browser back matches the TopBar back arrow
   const { addItem } = useCart();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

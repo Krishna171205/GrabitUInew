@@ -17,6 +17,7 @@ import { MS } from '@/components/gb/kit';
 import { LineNote } from '@/components/gb/LineNote';
 import { inr } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
+import { useBackTo } from '@/lib/useBackTo';
 
 interface SlotsData { slots: GrabbitAvailableSlot[]; label: string | null; }
 
@@ -327,6 +328,9 @@ function FreeItemCelebration({ offer, onDismiss }: { offer: GrabbitOffer; onDism
 export default function CartPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  // Retry-from-order does router.replace() onto this page, so the entry behind it
+  // is the spent Cashfree checkout. Browser back matches the header back arrow.
+  useBackTo(`/${slug}`);
   const { items, updateQty, removeItem, total, addItem, setLineNote } = useCart();
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);

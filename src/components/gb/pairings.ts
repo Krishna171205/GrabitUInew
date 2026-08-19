@@ -14,7 +14,13 @@ export interface Pairing {
 /** Max drinks offered, so the sheet stays a suggestion and not a second menu. */
 const MAX_DRINKS = 6;
 
-const isDrink = (i: GrabbitMenuItem) => i.category === 'drinks';
+/** Bottled water, tea and the like are sold as add-ons, not under drinks. */
+const DRINKLIKE = /water|tea|coffee|milk|juice|lassi|soda|cola|shake|smoothie/i;
+const isDrink = (i: GrabbitMenuItem) =>
+  i.category === 'drinks' || (i.category === 'addons' && DRINKLIKE.test(i.name));
+
+/** Only a real plate of food earns a drink upsell. A lone water bottle does not. */
+const isMeal = (i: GrabbitMenuItem) => i.category === 'food' || i.category === 'specials';
 const inSub = (i: GrabbitMenuItem, sub: string) =>
   (i.subcategory_name ?? '').toLowerCase() === sub || i.name.toLowerCase().includes(sub);
 
@@ -37,9 +43,10 @@ export function pairingsFor(items: GrabbitMenuItem[], cartItemIds: number[]): Pa
   const out: Pairing[] = [];
 
   // A meal with nothing to drink. First, because it is the biggest gap on the order.
-  if (cart.some((i) => !isDrink(i)) && !cart.some(isDrink)) {
+  if (cart.some(isMeal) && !cart.some(isDrink)) {
     const drinks = items
-      .filter((i) => isDrink(i) && i.is_available && !inCart.has(i.id))
+      // category only: the water add-on is appended separately below, no duplicates.
+      .filter((i) => i.category === 'drinks' && i.is_available && !inCart.has(i.id))
       .sort((a, b) => Number(b.is_bestseller) - Number(a.is_bestseller))
       .slice(0, MAX_DRINKS);
     const water = addon(items, /water/i);

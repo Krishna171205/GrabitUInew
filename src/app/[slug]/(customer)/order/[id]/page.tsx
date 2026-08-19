@@ -6,6 +6,7 @@ import { useCart } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import { downloadReceipt } from '@/components/gb/receipt';
+import { useBackTo } from '@/lib/useBackTo';
 
 function stepIndex(s: GrabbitOrderStatus): number {
   const map: Record<GrabbitOrderStatus, number> = {
@@ -42,6 +43,7 @@ export default function OrderPage() {
     ? (new URLSearchParams(window.location.search).get('t') ?? '')
     : '';
   const router = useRouter();
+  useBackTo('/home'); // browser back matches the "Back to home" button
   const { clearCart } = useCart();
   const [order, setOrder] = useState<GrabbitOrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
