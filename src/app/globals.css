@@ -426,6 +426,15 @@ button {
 .gb-app .gb-dialog-in { animation: gb-dialog-in 200ms var(--gb-ease-out) both; }
 .gb-app .gb-scrim-in { animation: gb-scrim-in 200ms var(--gb-ease-out) both; }
 
+/* Content inside a sheet lands just behind the panel, staggered by the caller, so a long
+   list of choices arrives as a sequence rather than a wall. Transform and opacity only. */
+@keyframes gb-rise-in { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.gb-app .gb-rise-in { animation: gb-rise-in 280ms var(--gb-ease-out) both; }
+
+/* A selection that appears at full size reads as "was already true"; the overshoot is what
+   makes it read as "you just did that". */
+@keyframes gb-pop { from { transform: scale(0); } 70% { transform: scale(1.25); } to { transform: scale(1); } }
+
 /* Grab handle: the affordance that says this panel is a physical thing. */
 .gb-app .gb-sheet-handle {
   width: 38px; height: 4px; border-radius: 999px;
@@ -436,6 +445,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .gb-app .gb-press:active { transform: none; }
   .gb-app .gb-sheet-in { animation: gb-scrim-in 160ms ease both; }
+  .gb-app .gb-rise-in { animation: none; }
 }
 
 /* Translucency is a luxury, legibility is not. Anything that cannot blur, or any

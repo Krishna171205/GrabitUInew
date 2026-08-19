@@ -679,6 +679,8 @@ export default function CartPage() {
             menu_item_id: i.menu_item_id,
             quantity: i.quantity,
             addon_ids: (i.addons ?? []).map(a => a.id),
+            ...(i.variation ? { variation_id: i.variation.id } : {}),
+            ...((i.options ?? []).length ? { option_ids: i.options!.map(o => o.id) } : {}),
             ...(i.notes ? { notes: i.notes } : {}),
           })),
         }),
@@ -812,7 +814,9 @@ export default function CartPage() {
       {/* items */}
       <div style={{ padding: '4px 16px 2px' }}>
         {items.map(item => {
-          const addonsSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0);
+          // Options are priced like add-ons; item.price is already the chosen variation's.
+          const addonsSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0)
+            + (item.options ?? []).reduce((s, o) => s + o.price, 0);
           const lineKey = cartLineKey(item);
           // The one unit of a FREE_ITEM giveaway we auto-added - system-controlled like
           // Zomato/Swiggy's free items, so no stepper: it comes and goes with the offer.
@@ -822,7 +826,9 @@ export default function CartPage() {
             <div key={lineKey} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--gb-line)' }}>
               <Veg veg={item.is_veg} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>
+                  {item.name}{item.variation ? ` · ${item.variation.name}` : ''}
+                </div>
                 <div style={{ fontSize: 11.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {isFreeGift ? (
                     <>
@@ -833,11 +839,14 @@ export default function CartPage() {
                     inr(item.price)
                   )}
                 </div>
-                {item.addons && item.addons.length > 0 && (
-                  <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', marginTop: 3 }}>
-                    + {item.addons.map(a => a.name).join(', ')}
-                  </div>
-                )}
+                {(() => {
+                  const extras = [...(item.options ?? []), ...(item.addons ?? [])].map(e => e.name);
+                  return extras.length > 0 ? (
+                    <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', marginTop: 3 }}>
+                      + {extras.join(', ')}
+                    </div>
+                  ) : null;
+                })()}
                 {/* Per-dish instruction. The free item is the offer's, not hers to change. */}
                 {!isFreeGift && (
                   <LineNote

@@ -5,7 +5,7 @@ async function getCafeMenu(slug: string) {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`, {
     next: { revalidate: 300 }
   });
-  if (!res.ok) return { cafe: null, items: [], addons: [] };
+  if (!res.ok) return { cafe: null, items: [], addons: [], variations: [], option_groups: [] };
   return res.json();
 }
 
@@ -71,7 +71,7 @@ export default async function HomePage(
   const cookieStore = await cookies();
   const token = cookieStore.get('grabbit_customer_token')?.value ?? null;
 
-  const { cafe, items, addons } = await getCafeMenu(slug);
+  const { cafe, items, addons, variations, option_groups: optionGroups } = await getCafeMenu(slug);
   if (!cafe) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -93,6 +93,8 @@ export default async function HomePage(
       cafe={cafe}
       items={items}
       addons={addons ?? []}
+      variations={variations ?? []}
+      optionGroups={optionGroups ?? []}
       customerName={profile.name}
       topItems={topItems}
       favorites={favorites}

@@ -53,6 +53,26 @@ export interface GrabbitMenuAddon {
   sort_order: number;
 }
 
+/** A "Select any 1" choice on an item. Its price REPLACES the item price. Synced from Omega. */
+export interface GrabbitMenuVariation {
+  id: number;
+  menu_item_id: number;
+  name: string;
+  price: number;
+  sort_order: number;
+}
+
+/** An add-on group on one item: min_select 1 makes it mandatory, max_select caps the ticks. */
+export interface GrabbitMenuOptionGroup {
+  id: number;
+  menu_item_id: number;
+  name: string;
+  min_select: number;
+  max_select: number;
+  sort_order: number;
+  options: { id: number; name: string; price_delta: number }[];
+}
+
 export interface GrabbitSlotConfig {
   slot_duration_minutes: number;
   max_orders_per_slot: number;
@@ -136,11 +156,16 @@ export interface GrabbitAvailableSlot {
 export interface GrabbitCartItem {
   menu_item_id: number;
   name: string;
+  /** The chosen variation's price when the item has variations, else the item's own price. */
   price: number;
   quantity: number;
   image_url: string | null;
   is_veg?: boolean | null;
   addons?: { id: number; name: string; price: number }[];
+  /** Which "Select any 1" choice this line is for. Absent when the item has no variations. */
+  variation?: { id: number; name: string };
+  /** Add-on group options ticked on this line. Priced on top of `price`, like `addons`. */
+  options?: { id: number; name: string; price: number }[];
 }
 
 export interface GrabbitAuthResponse {

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddon } from '@gradient365/gradient-commons';
+import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddon, GrabbitMenuVariation, GrabbitMenuOptionGroup } from '@gradient365/gradient-commons';
 import { useCart, cartLineKey } from '@/store/cart';
 import { MS, Veg } from '@/components/gb/kit';
 import { VoiceSearch } from '@/components/gb/VoiceSearch';
@@ -13,6 +13,7 @@ import { OfferStrip } from '@/components/gb/OfferStrip';
 import type { GrabbitOffer } from '@/components/gb/offers';
 import { PairingSheet } from '@/components/gb/PairingSheet';
 import { pairingsFor } from '@/components/gb/pairings';
+import { CustomizeSheet, type CustomizeSelection } from '@/components/gb/CustomizeSheet';
 import { useBackTo } from '@/lib/useBackTo';
 
 const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
@@ -68,6 +69,8 @@ interface Props {
   cafe: GrabbitCafe;
   items: GrabbitMenuItem[];
   addons: GrabbitMenuAddon[];
+  variations: GrabbitMenuVariation[];
+  optionGroups: GrabbitMenuOptionGroup[];
   customerName?: string | null;
   topItems?: TopItem[];
   favorites?: FavItem[];
@@ -78,7 +81,7 @@ interface Props {
   initialAcceptingOrders?: boolean;
 }
 
-export default function MenuClient({ slug, cafe, items, addons, customerName, topItems = [], favorites = [], offers = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
+export default function MenuClient({ slug, cafe, items, addons, variations = [], optionGroups = [], customerName, topItems = [], favorites = [], offers = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
   const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
 
   // Omega's store-status toggle, on top of the scheduled hours below. Seeded server-side
@@ -134,8 +137,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   const [showSortSheet, setShowSortSheet] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
-  const [addonSheetItem, setAddonSheetItem] = useState<GrabbitMenuItem | null>(null);
-  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<number>>(new Set());
+  const [customizeItem, setCustomizeItem] = useState<GrabbitMenuItem | null>(null);
   const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   // Inline steppers (menu grid + carousels) have no addon context, so they only ever
@@ -176,6 +178,23 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   function addonsFor(item: GrabbitMenuItem): GrabbitMenuAddon[] {
     return item.subcategory_id ? (addonsBySubcategory.get(item.subcategory_id) ?? []) : [];
   }
+
+  // Variations and option groups are per item and pushed from Omega, unlike the legacy
+  // add-ons above which the cafe authors against a whole subcategory.
+  const variationsByItem = new Map<number, GrabbitMenuVariation[]>();
+  for (const v of variations) {
+    const list = variationsByItem.get(v.menu_item_id) ?? [];
+    list.push(v);
+    variationsByItem.set(v.menu_item_id, list);
+  }
+  const groupsByItem = new Map<number, GrabbitMenuOptionGroup[]>();
+  for (const g of optionGroups) {
+    const list = groupsByItem.get(g.menu_item_id) ?? [];
+    list.push(g);
+    groupsByItem.set(g.menu_item_id, list);
+  }
+  const variationsFor = (item: GrabbitMenuItem) => variationsByItem.get(item.id) ?? [];
+  const groupsFor = (item: GrabbitMenuItem) => groupsByItem.get(item.id) ?? [];
 
   function addTop(item: TopItem) {
     const live = itemById.get(item.menu_item_id);
@@ -240,29 +259,30 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
   });
 
   function handleAddClick(item: GrabbitMenuItem) {
-    const available = addonsFor(item);
-    if (available.length === 0) {
+    const customizable =
+      variationsFor(item).length > 0 || groupsFor(item).length > 0 || addonsFor(item).length > 0;
+    if (!customizable) {
       addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg, category: item.category }, slug);
       return;
     }
-    setSelectedAddonIds(new Set());
-    setAddonSheetItem(item);
+    setCustomizeItem(item);
   }
 
-  function confirmAddonSheet() {
-    if (!addonSheetItem) return;
-    const chosen = addonsFor(addonSheetItem).filter(a => selectedAddonIds.has(a.id));
+  function confirmCustomization(item: GrabbitMenuItem, selection: CustomizeSelection) {
     addItem({
-      menu_item_id: addonSheetItem.id,
-      name: addonSheetItem.name,
-      price: addonSheetItem.price,
-      quantity: 1,
-      image_url: addonSheetItem.image_url,
-      is_veg: addonSheetItem.is_veg,
-      category: addonSheetItem.category,
-      addons: chosen.map(a => ({ id: a.id, name: a.name, price: a.price })),
+      menu_item_id: item.id,
+      name: item.name,
+      // The chosen variation is what the customer is buying, so it is what the line costs.
+      price: selection.variation ? selection.variation.price : item.price,
+      quantity: selection.quantity,
+      image_url: item.image_url,
+      is_veg: item.is_veg,
+      category: item.category,
+      addons: selection.addons,
+      variation: selection.variation ? { id: selection.variation.id, name: selection.variation.name } : undefined,
+      options: selection.options,
     }, slug);
-    setAddonSheetItem(null);
+    setCustomizeItem(null);
   }
 
   const addStep = (item: GrabbitMenuItem) => {
@@ -645,38 +665,17 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
         </div>
       )}
 
-      {addonSheetItem && (
-        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setAddonSheetItem(null)}>
-          <div className="gb-glass-sheet gb-sheet-in" style={{ borderRadius: '22px 22px 0 0', padding: '14px 22px calc(22px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 448 }} onClick={(e) => e.stopPropagation()}>
-            <div className="gb-sheet-handle" />
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>{addonSheetItem.name}</div>
-            <div style={{ fontSize: 13, color: 'var(--gb-muted)', marginTop: 4 }}>Add extras</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
-              {addonsFor(addonSheetItem).map(a => (
-                <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedAddonIds.has(a.id)}
-                    onChange={() => setSelectedAddonIds(prev => {
-                      const next = new Set(prev);
-                      next.has(a.id) ? next.delete(a.id) : next.add(a.id);
-                      return next;
-                    })}
-                  />
-                  <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--gb-text)' }}>{a.name}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-muted)' }}>{inr(a.price)}</span>
-                </label>
-              ))}
-            </div>
-            <button
-              onClick={confirmAddonSheet}
-              style={{ width: '100%', marginTop: 20, padding: '13px 0', borderRadius: 'var(--gb-r-sm)', border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
-            >
-              Add to cart
-            </button>
-          </div>
-        </div>
+      {customizeItem && (
+        <CustomizeSheet
+          item={customizeItem}
+          variations={variationsFor(customizeItem)}
+          groups={groupsFor(customizeItem)}
+          addons={addonsFor(customizeItem)}
+          onClose={() => setCustomizeItem(null)}
+          onAdd={selection => confirmCustomization(customizeItem, selection)}
+        />
       )}
+
     </div>
   );
 }

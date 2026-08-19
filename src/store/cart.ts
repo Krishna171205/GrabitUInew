@@ -2,12 +2,16 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { GrabbitCartItem } from '@gradient365/gradient-commons';
 
-// A cart "line" is a menu item + its exact add-on selection. Two lines with the same
-// menu_item_id but different add-ons (e.g. burger+cheese vs burger with nothing) must
-// stay separate — this key is how addItem/removeItem/updateQty identify a line.
-export function cartLineKey(item: Pick<GrabbitCartItem, 'menu_item_id' | 'addons'>): string {
+// A cart "line" is a menu item + its exact customization: the chosen variation, the add-on
+// group options, and the cafe's own extras. Two lines with the same menu_item_id but
+// different choices (Reg Meal vs Burger Only, with cheese vs without) must stay separate —
+// this key is how addItem/removeItem/updateQty identify a line.
+export function cartLineKey(
+  item: Pick<GrabbitCartItem, 'menu_item_id' | 'addons' | 'variation' | 'options'>,
+): string {
   const addonIds = (item.addons ?? []).map(a => a.id).sort((a, b) => a - b);
-  return `${item.menu_item_id}:${addonIds.join(',')}`;
+  const optionIds = (item.options ?? []).map(o => o.id).sort((a, b) => a - b);
+  return `${item.menu_item_id}:${item.variation?.id ?? ''}:${addonIds.join(',')}:${optionIds.join(',')}`;
 }
 
 /**
@@ -77,7 +81,9 @@ export const useCart = create<CartState>()(
       total: () =>
         get().items.reduce((sum, i) => {
           const addonsSum = (i.addons ?? []).reduce((s, a) => s + a.price, 0);
-          return sum + (i.price + addonsSum) * i.quantity;
+          const optionsSum = (i.options ?? []).reduce((s, o) => s + o.price, 0);
+          // i.price is already the chosen variation's price when the item has variations.
+          return sum + (i.price + addonsSum + optionsSum) * i.quantity;
         }, 0)
     }),
     { name: 'grabbit-cart' }
