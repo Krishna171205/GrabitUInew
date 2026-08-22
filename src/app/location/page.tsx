@@ -82,7 +82,7 @@ export default function LocationPickerPage() {
         </div>
 
         <div style={{ padding: '18px 18px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '13px 15px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '13px 15px', boxShadow: '0 6px 16px -12px rgba(15, 23, 42,.4)' }}>
             <MS name="search" size={20} color="#B0A08C" />
             <input
               autoFocus

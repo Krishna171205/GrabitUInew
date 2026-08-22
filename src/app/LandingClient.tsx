@@ -1,6 +1,7 @@
 'use client';
 import LandingNav from '@/components/landing/LandingNav';
 import Hero from '@/components/landing/Hero';
+import AppShowcase from '@/components/landing/AppShowcase';
 import TrustBand from '@/components/landing/TrustBand';
 import HowItWorks from '@/components/landing/HowItWorks';
 import TimeSaved from '@/components/landing/TimeSaved';
@@ -15,12 +16,13 @@ import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
 
 export default function LandingClient() {
   return (
-    <div className="gb-app bg-[#FDFBF7] text-[#1A1311] font-sans antialiased min-h-screen">
+    <div className="gb-app bg-[#F8FAFC] text-[#0F172A] font-sans antialiased min-h-screen w-full overflow-x-clip">
       <LandingNav />
-      <main data-landing-root>
+      <main data-landing-root className="relative z-10 w-full overflow-x-clip">
         <Hero />
         <TrustBand />
         <HowItWorks />
+        <AppShowcase />
         <TimeSaved />
         <CafeDiscovery />
         <ProductPreview />

@@ -1,6 +1,8 @@
 'use client';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import { Annotation } from './Annotation';
+import { Sticker } from './Sticker';
 
 export default function TimeSaved() {
   const containerRef = useRef(null);
@@ -10,78 +12,124 @@ export default function TimeSaved() {
   });
 
   // Animate the widths of the bars based on scroll
-  const grabbitWidth = useTransform(scrollYProgress, [0, 0.5], ['0%', '20%']);
-  const traditionalWidth = useTransform(scrollYProgress, [0, 0.5], ['0%', '85%']);
+  const grabbitWidth = useTransform(scrollYProgress, [0, 0.45], ['0%', '24%']);
+  const traditionalWidth = useTransform(scrollYProgress, [0, 0.45], ['0%', '88%']);
   
   // Opacity for the payoff text
-  const payoffOpacity = useTransform(scrollYProgress, [0.4, 0.6], [0, 1]);
-  const payoffY = useTransform(scrollYProgress, [0.4, 0.6], [20, 0]);
+  const payoffOpacity = useTransform(scrollYProgress, [0.35, 0.55], [0, 1]);
+  const payoffY = useTransform(scrollYProgress, [0.35, 0.55], [20, 0]);
 
   return (
-    <section ref={containerRef} className="py-32 bg-[#1A1311] text-[#FDFBF7] relative overflow-hidden">
-      
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#F09819]/5 rounded-full blur-[120px] pointer-events-none" />
+    <section 
+      ref={containerRef} 
+      className="py-20 sm:py-28 md:py-32 bg-gradient-to-b from-[#0047B3] via-[#0055D4] to-[#003D99] text-[#F8FAFC] relative overflow-hidden border-b-2 border-[#0F172A]"
+    >
+      {/* Background radial glows & texture */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 15% 25%, rgba(96, 165, 250, 0.35) 0%, transparent 45%),
+            radial-gradient(circle at 85% 75%, rgba(15, 23, 42, 0.6) 0%, transparent 50%)
+          `
+        }}
+      />
+      <div className="absolute inset-0 bg-noise opacity-30 mix-blend-overlay pointer-events-none" />
 
-      <div className="max-w-[1200px] mx-auto px-6 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12 md:gap-16">
         
-        {/* Header */}
-        <div className="text-center mb-24">
-          <h2 className="text-[42px] md:text-[64px] font-black tracking-tighter mb-6 leading-none">
-            The math is <span className="text-[#F09819]">simple.</span>
-          </h2>
-          <p className="text-[18px] text-white/60 font-semibold max-w-lg mx-auto">
-            Traditional queues waste your mornings. We bypass the queue entirely so you can get back your time.
-          </p>
-        </div>
-
-        {/* Visual Timeline Comparison */}
-        <div className="max-w-[900px] mx-auto space-y-12">
+        {/* Left: The Math */}
+        <div className="w-full md:w-1/2 relative flex flex-col items-center md:items-start text-center md:text-left">
           
-          {/* TRADITIONAL CAFE */}
-          <div>
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-[14px] font-bold text-white/50 tracking-widest uppercase">Without Grabbit</span>
-              <span className="text-[20px] font-black text-white/50">17 MIN</span>
-            </div>
-            <div className="w-full h-12 bg-white/5 rounded-full p-1.5 overflow-hidden">
-              <motion.div 
-                style={{ width: traditionalWidth }}
-                className="h-full bg-white/20 rounded-full relative flex items-center"
-              >
-                <div className="absolute right-4 text-[10px] font-bold tracking-widest text-white/60 uppercase">Waiting</div>
-              </motion.div>
+          <div className="relative inline-block mb-3">
+            <div className="absolute -top-9 -left-4 sm:-left-6 rotate-[-5deg]">
+              <Annotation text="we did the math" arrowDirection="down-right" delay={0.2} color="#93C5FD" />
             </div>
           </div>
 
-          {/* WITH GRABBIT */}
-          <div>
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-[14px] font-bold text-[#F09819] tracking-widest uppercase">With Grabbit</span>
-              <span className="text-[20px] font-black text-[#F09819]">03 MIN</span>
+          <h2 
+            className="text-[48px] sm:text-[68px] md:text-[80px] font-black tracking-normal leading-[0.9] mb-8 uppercase text-white drop-shadow-md" 
+            style={{ fontFamily: 'var(--font-anton)' }}
+          >
+            TIME IS <br/> MONEY.
+          </h2>
+          
+          <div className="space-y-6 w-full max-w-[420px]">
+            {/* TRADITIONAL CAFE */}
+            <div className="relative">
+              <div className="flex justify-between items-end mb-2 px-1">
+                <span className="text-[12px] sm:text-[13px] font-bold text-white/75 tracking-widest uppercase">
+                  Without Grabbit
+                </span>
+                <span className="text-[18px] sm:text-[20px] font-black text-white/80 tracking-tight" style={{ fontFamily: 'var(--font-anton)' }}>
+                  17 MIN
+                </span>
+              </div>
+              <div className="w-full h-9 sm:h-10 bg-black/25 rounded-2xl p-1 border border-white/10 shadow-inner backdrop-blur-sm overflow-hidden">
+                <motion.div 
+                  style={{ width: traditionalWidth }}
+                  className="h-full rounded-xl bg-gradient-to-r from-slate-400/30 to-slate-300/50 border border-white/20 relative flex items-center justify-end pr-3"
+                >
+                  <span className="text-[9px] font-bold text-white/70 tracking-widest uppercase hidden sm:inline">
+                    Long Queue
+                  </span>
+                </motion.div>
+              </div>
             </div>
-            <div className="w-full h-12 bg-[#F09819]/10 rounded-full p-1.5 overflow-hidden">
-              <motion.div 
-                style={{ width: grabbitWidth }}
-                className="h-full bg-[#F09819] rounded-full shadow-[0_0_24px_rgba(240,152,25,0.4)] relative flex items-center"
-              >
-                <div className="absolute left-4 text-[10px] font-bold tracking-widest text-[#1A1311] uppercase">Pickup</div>
-              </motion.div>
+
+            {/* WITH GRABBIT */}
+            <div className="relative pt-2">
+              <Sticker text="⚡ 5X FASTER" color="cream" rotation={8} className="absolute -top-4 right-0 sm:-right-2 z-20 shadow-md scale-90 sm:scale-100" />
+              <div className="flex justify-between items-end mb-2 px-1">
+                <span className="text-[13px] sm:text-[14px] font-extrabold text-white tracking-widest uppercase flex items-center gap-1.5">
+                  With Grabbit
+                </span>
+                <span className="text-[22px] sm:text-[26px] font-black text-[#FDE047] drop-shadow-sm tracking-tight" style={{ fontFamily: 'var(--font-anton)' }}>
+                  03 MIN
+                </span>
+              </div>
+              <div className="w-full h-11 sm:h-12 bg-black/35 rounded-2xl p-1 border-2 border-white/25 shadow-lg backdrop-blur-md overflow-hidden">
+                <motion.div 
+                  style={{ width: grabbitWidth }}
+                  className="h-full rounded-xl bg-gradient-to-r from-[#10B981] to-[#34D399] shadow-[0_0_20px_rgba(16,185,129,0.6)] border border-emerald-200 relative flex items-center px-3 min-w-[90px]"
+                >
+                  <div className="text-[10px] sm:text-[11px] font-extrabold tracking-widest text-white uppercase flex items-center gap-1.5 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    Pickup
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </div>
-
         </div>
 
-        {/* PAYOFF METRIC */}
-        <motion.div 
-          style={{ opacity: payoffOpacity, y: payoffY }}
-          className="mt-24 text-center"
-        >
-          <div className="text-[14px] font-bold text-[#F09819] tracking-widest uppercase mb-4">You just reclaimed</div>
-          <div className="text-[86px] md:text-[140px] font-black tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-b from-[#FDFBF7] to-white/40">
-            14 MIN
-          </div>
-        </motion.div>
+        {/* Right: PAYOFF METRIC */}
+        <div className="w-full md:w-1/2 flex items-center justify-center pt-4 md:pt-0">
+          <motion.div 
+            style={{ opacity: payoffOpacity, y: payoffY }}
+            className="text-center relative bg-white/95 backdrop-blur-2xl border-[3px] sm:border-4 border-[#0F172A] p-8 sm:p-12 md:p-14 rounded-[36px] sm:rounded-[44px] shadow-[12px_12px_0px_#0F172A] hover:shadow-[16px_16px_0px_#0F172A] rotate-[1.5deg] hover:rotate-0 transition-all duration-500 w-full max-w-[360px] sm:max-w-[420px]"
+          >
+            <div className="absolute -top-7 -right-4 sm:-top-8 sm:-right-8 rotate-[12deg]">
+              <Annotation text="every single day" arrowDirection="down-left" delay={0.4} color="#0055D4" />
+            </div>
+            <div className="text-[12px] sm:text-[14px] font-extrabold text-[#64748B] tracking-widest uppercase mb-1">
+              You just reclaimed
+            </div>
+            <div 
+              className="text-[84px] sm:text-[110px] md:text-[130px] font-black tracking-[-0.04em] leading-[0.8] text-[#0055D4] uppercase" 
+              style={{ fontFamily: 'var(--font-anton)' }}
+            >
+              14
+              <span className="text-[32px] sm:text-[44px] md:text-[52px] block text-[#0F172A] tracking-tight leading-none mt-1">
+                MINS
+              </span>
+            </div>
+            <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] sm:text-[12px] text-[#64748B] font-semibold">
+              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              <span>That&apos;s ~85 hours saved / year</span>
+            </div>
+          </motion.div>
+        </div>
 
       </div>
     </section>

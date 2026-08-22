@@ -216,7 +216,7 @@ export default function CheckoutPage() {
     ? new Date(pickupSlot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
     : '';
   const eyebrow = { fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' as const, color: 'var(--gb-faint)', marginBottom: 8 };
-  const card = { background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' };
+  const card = { background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(15, 23, 42,.4)' };
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>

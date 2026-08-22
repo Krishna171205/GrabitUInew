@@ -1,195 +1,771 @@
-// grabbit/src/components/landing/ProductPreview.tsx
 'use client';
 import Image from 'next/image';
-import { useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionTemplate, type MotionValue } from 'framer-motion';
+import { useState, useRef, useEffect, MouseEvent } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionTemplate, useReducedMotion, type MotionValue } from 'framer-motion';
+import { OrbitingCircles } from '@/components/ui/orbiting-circles';
+import { Sparkles, Star, MapPin, Timer, Zap, Coffee, Check, ArrowRight, ShieldCheck, ShoppingBag, Clock, Heart, RotateCcw } from 'lucide-react';
 
-const ITEMS = [
-  { name: 'Cold Brew', desc: 'Smooth 12-hour steep', price: '₹220', img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=200&q=80' },
-  { name: 'Flat White', desc: 'Double ristretto, silky foam', price: '₹280', img: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=200&q=80' },
-  { name: 'Matcha Latte', desc: 'Ceremonial grade, oat milk', price: '₹320', img: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=200&q=80' },
+interface MenuItem {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  category: 'coffee' | 'bakery';
+  tag?: string;
+  img: string;
+}
+
+const ITEMS: MenuItem[] = [
+  { 
+    id: 'c1', 
+    name: 'Cold Brew', 
+    desc: 'Smooth 12-hour single-origin steep', 
+    price: 220, 
+    category: 'coffee',
+    tag: 'Popular',
+    img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=300&q=80' 
+  },
+  { 
+    id: 'c2', 
+    name: 'Flat White', 
+    desc: 'Double ristretto with silky micro-foam', 
+    price: 280, 
+    category: 'coffee',
+    tag: 'Artisan',
+    img: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=80' 
+  },
+  { 
+    id: 'c3', 
+    name: 'Almond Croissant', 
+    desc: 'Flaky French butter pastry with toasted almonds', 
+    price: 180, 
+    category: 'bakery',
+    tag: 'Fresh Baked',
+    img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&q=80' 
+  },
 ];
 
-// Coffee "orbs" that drift in from the edges on scroll (dock.cool's flying-rocks parallax).
 type OrbDef = { img: string; size: number; top: string; left?: string; right?: string; from: number; to: number; blur: number; op: number };
 const ORBS: OrbDef[] = [
-  { img: ITEMS[0].img, size: 150, top: '10%', left: '3%', from: -70, to: 70, blur: 2, op: 0.5 },
-  { img: ITEMS[2].img, size: 190, top: '52%', right: '4%', from: 90, to: -60, blur: 3, op: 0.42 },
-  { img: ITEMS[1].img, size: 112, top: '80%', left: '11%', from: -40, to: 55, blur: 1, op: 0.4 },
+  { img: ITEMS[0].img, size: 160, top: '12%', left: '2%', from: -40, to: 40, blur: 4, op: 0.3 },
+  { img: ITEMS[1].img, size: 190, top: '58%', right: '2%', from: 50, to: -30, blur: 5, op: 0.25 },
 ];
 
 function Orb({ o, p }: { o: OrbDef; p: MotionValue<number> }) {
   const y = useTransform(p, [0, 1], [o.from, o.to]);
+  const isReduced = useReducedMotion();
   return (
     <motion.div
       aria-hidden
       style={{
-        position: 'absolute', top: o.top, left: o.left, right: o.right, width: o.size, height: o.size, y,
+        position: 'absolute', top: o.top, left: o.left, right: o.right, width: o.size, height: o.size, y: isReduced ? 0 : y,
         borderRadius: '50%', overflow: 'hidden', filter: `blur(${o.blur}px)`, opacity: o.op,
-        zIndex: 0, pointerEvents: 'none', boxShadow: '0 24px 60px -20px rgba(120,70,0,.45)',
+        zIndex: 0, pointerEvents: 'none', boxShadow: '0 25px 60px -15px rgba(0, 85, 212, 0.25)',
       }}>
       <Image src={o.img} alt="" fill loading="lazy" sizes="200px" style={{ objectFit: 'cover' }} />
     </motion.div>
   );
 }
 
-// Orbital Nodes System for smooth, perfectly circular tracks.
-const OrbitNode = ({
-  radius,
-  baseAngle, // 0 is top (12 o'clock). Negative is left, positive is right.
-  swing = 8, // how many degrees to oscillate
-  duration = 20, // seconds for a full swing
-  children
-}: {
-  radius: number;
-  baseAngle: number;
-  swing?: number;
-  duration?: number;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div
-      className="absolute top-[280px] left-1/2 pointer-events-none"
-      style={{
-        width: radius * 2,
-        height: radius * 2,
-        transform: 'translate(-50%, -50%)',
-      }}
-    >
-      <motion.div
-        className="absolute inset-0"
-        animate={{ rotate: [baseAngle, baseAngle + swing, baseAngle - swing, baseAngle] }}
-        transition={{ repeat: Infinity, duration, ease: "easeInOut" }}
-      >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
-          <motion.div
-            animate={{ rotate: [-baseAngle, -(baseAngle + swing), -(baseAngle - swing), -baseAngle] }}
-            transition={{ repeat: Infinity, duration, ease: "easeInOut" }}
-          >
-            {children}
-          </motion.div>
-        </div>
-      </motion.div>
+// ----------------------------------------------------------------------
+// Enhanced Orbital Badges
+// ----------------------------------------------------------------------
+
+const NeoBadge = ({ 
+  icon, 
+  title, 
+  subtitle, 
+  accentColor = "#0055D4",
+  badgeTag
+}: { 
+  icon: React.ReactNode; 
+  title: string; 
+  subtitle: string; 
+  accentColor?: string;
+  badgeTag?: string;
+}) => (
+  <div className="relative group/badge cursor-default">
+    <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-[4px_4px_0px_#0F172A] border-2 border-[#0F172A] flex items-center gap-2 text-[#0F172A] whitespace-nowrap transition-all duration-300 hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 hover:scale-105">
+      <span className="text-[16px] flex items-center justify-center">{icon}</span>
+      <span className="text-[12px] font-black tracking-wider uppercase font-sans">{title}</span>
+      {badgeTag && (
+        <span className="bg-[#0055D4]/10 text-[#0055D4] text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-tight">
+          {badgeTag}
+        </span>
+      )}
     </div>
-  );
-};
+    
+    {/* Micro Tooltip */}
+    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/badge:opacity-100 transition-all duration-200 pointer-events-none z-50 transform group-hover/badge:translate-y-0 translate-y-1">
+      <div className="bg-[#0F172A] text-white text-[11px] font-medium px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-2xl flex flex-col items-center gap-0.5 border border-white/10">
+        <span className="font-bold text-white flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
+          {title}
+        </span>
+        <span className="text-slate-300 text-[10px]">{subtitle}</span>
+      </div>
+    </div>
+  </div>
+);
+
+const UserAvatarBadge = ({ 
+  src, 
+  name, 
+  role, 
+  savedText 
+}: { 
+  src: string; 
+  name: string; 
+  role: string; 
+  savedText: string; 
+}) => (
+  <div className="relative group/badge cursor-default">
+    <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-[4px_4px_0px_#0F172A] border-2 border-[#0F172A] transition-all duration-300 hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 hover:scale-105">
+      <div className="w-8 h-8 rounded-full overflow-hidden border border-[#0F172A]/20 relative flex-none">
+        <img src={src} alt={name} className="w-full h-full object-cover" />
+      </div>
+      <div className="flex flex-col text-left">
+        <span className="text-[11px] font-black text-[#0F172A] leading-tight flex items-center gap-1">
+          {name}
+          <Check size={10} className="text-[#0055D4] stroke-[3]" />
+        </span>
+        <span className="text-[9px] font-bold text-[#0055D4] tracking-tight">{role}</span>
+      </div>
+    </div>
+
+    {/* Micro Tooltip */}
+    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/badge:opacity-100 transition-all duration-200 pointer-events-none z-50 transform group-hover/badge:translate-y-0 translate-y-1">
+      <div className="bg-[#0F172A] text-white text-[11px] font-medium px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-2xl flex flex-col items-center border border-white/10">
+        <span className="font-bold text-white">{name} · {role}</span>
+        <span className="text-green-400 font-semibold text-[10px] flex items-center gap-1">
+          <span>⚡</span> {savedText}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+// ----------------------------------------------------------------------
+// Main Section Component
+// ----------------------------------------------------------------------
+
+type OrderState = 'MENU' | 'CART' | 'CONFIRMING' | 'PREPARING' | 'READY';
 
 export default function ProductPreview() {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
-  // Card tilts back on entry, settles flat as it reaches centre (3D scroll-scrub).
-  const rotateX = useTransform(scrollYProgress, [0.12, 0.5], [18, 0]);
-  const cardY = useTransform(scrollYProgress, [0.12, 0.5], [80, 0]);
-  const cardOpacity = useTransform(scrollYProgress, [0.12, 0.42], [0, 1]);
+  const isReduced = useReducedMotion();
 
-  // Pointer-driven tilt, spring-smoothed; layered on top of the scroll entrance tilt.
-  const tiltX = useSpring(0, { stiffness: 260, damping: 18 });
-  const tiltY = useSpring(0, { stiffness: 260, damping: 18 });
-  const rotateXAll = useTransform([rotateX, tiltX] as MotionValue<number>[], ([a, b]: number[]) => a + b);
+  // Scroll animations
+  const orderOpacity = useTransform(scrollYProgress, [0.22, 0.45], [1, 0.35]);
+  const orderY = useTransform(scrollYProgress, [0.22, 0.45], [0, -12]);
+  
+  const pickupOpacity = useTransform(scrollYProgress, [0.32, 0.55], [0.3, 1]);
+  const pickupScale = useTransform(scrollYProgress, [0.32, 0.55], [0.96, 1.04]);
+
+  const uiScale = useTransform(scrollYProgress, [0.18, 0.5], [0.96, 1.0]);
+  const cardY = useTransform(scrollYProgress, [0.12, 0.5], [30, 0]);
+  const cardOpacity = useTransform(scrollYProgress, [0.12, 0.4], [0, 1]);
+
+  // Pointer tilt & sheen
+  const rotateXScroll = useTransform(scrollYProgress, [0.12, 0.5], [8, 0]);
+  const tiltX = useSpring(0, { stiffness: 260, damping: 20 });
+  const tiltY = useSpring(0, { stiffness: 260, damping: 20 });
+  const rotateXAll = useTransform([rotateXScroll, tiltX] as MotionValue<number>[], ([a, b]: number[]) => a + b);
   const sheenX = useSpring(50, { stiffness: 200, damping: 25 });
   const sheenY = useSpring(50, { stiffness: 200, damping: 25 });
   const sheenOpacity = useSpring(0, { stiffness: 200, damping: 25 });
-  const sheen = useMotionTemplate`radial-gradient(circle at ${sheenX}% ${sheenY}%, rgba(255,255,255,.55), transparent 45%)`;
+  const sheen = useMotionTemplate`radial-gradient(circle at ${sheenX}% ${sheenY}%, rgba(255,255,255,0.45), transparent 50%)`;
 
-  function handleMove(e: React.MouseEvent<HTMLDivElement>) {
+  function handleMove(e: MouseEvent<HTMLDivElement>) {
+    if (isReduced) return;
     const r = e.currentTarget.getBoundingClientRect();
     const cx = e.clientX - r.left;
     const cy = e.clientY - r.top;
-    tiltY.set((cx / r.width - 0.5) * 16);   // rotateY: left/right
-    tiltX.set((0.5 - cy / r.height) * 14);  // rotateX: up/down
+    tiltY.set((cx / r.width - 0.5) * 8);
+    tiltX.set((0.5 - cy / r.height) * 6);
     sheenX.set((cx / r.width) * 100);
     sheenY.set((cy / r.height) * 100);
     sheenOpacity.set(1);
   }
   function handleLeave() { tiltX.set(0); tiltY.set(0); sheenOpacity.set(0); }
 
+  // App State
+  const [orderState, setOrderState] = useState<OrderState>('MENU');
+  const [cart, setCart] = useState<Record<string, number>>({ c1: 1 });
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'coffee' | 'bakery'>('all');
+  
+  const cartTotal = Object.entries(cart).reduce((sum, [id, qty]) => {
+    const item = ITEMS.find(i => i.id === id);
+    return sum + (item?.price || 0) * qty;
+  }, 0);
+  const cartItemsCount = Object.values(cart).reduce((a, b) => a + b, 0);
+
+  const handleAdd = (id: string) => {
+    setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+  };
+
+  const handleRemove = (id: string) => {
+    setCart(prev => {
+      const current = prev[id] || 0;
+      if (current <= 1) {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      }
+      return { ...prev, [id]: current - 1 };
+    });
+  };
+
+  // Preparation Progress Simulation
+  const [prepProgress, setPrepProgress] = useState(0);
+  useEffect(() => {
+    if (orderState === 'PREPARING') {
+      const interval = setInterval(() => {
+        setPrepProgress(p => {
+          if (p >= 100) {
+            clearInterval(interval);
+            setTimeout(() => setOrderState('READY'), 500);
+            return 100;
+          }
+          return p + 2;
+        });
+      }, 90);
+      return () => clearInterval(interval);
+    }
+  }, [orderState]);
+
+  const filteredItems = selectedCategory === 'all' 
+    ? ITEMS 
+    : ITEMS.filter(it => it.category === selectedCategory);
+
   return (
-    <section ref={sectionRef} style={{ position: 'relative', background: 'var(--gb-surface)', padding: '160px 22px 88px', overflow: 'hidden' }}>
+    <section ref={sectionRef} className="relative bg-[#F8FAFC] pt-[140px] pb-[160px] min-h-[110vh] overflow-hidden flex flex-col items-center justify-center border-b-2 border-[#0F172A]/10">
       
-      {/* Orbital Tracks Background Dome */}
-      <div className="absolute inset-0 mx-auto flex justify-center w-full pointer-events-none z-0 overflow-visible">
-        <div className="absolute top-[280px] left-1/2 -translate-x-1/2 flex items-center justify-center">
-          {/* Outer Track */}
-          <div className="absolute w-[1000px] h-[1000px] rounded-full border-[1.5px] border-[#1A1311]/[0.05]" />
-          {/* Middle Track */}
-          <div className="absolute w-[800px] h-[800px] rounded-full border-[1.5px] border-[#1A1311]/[0.05]" />
-          {/* Inner Track */}
-          <div className="absolute w-[600px] h-[600px] rounded-full border-[1.5px] border-[#1A1311]/[0.05]" />
-        </div>
-        
-        {/* Outer Track Nodes */}
-        <OrbitNode radius={500} baseAngle={-40} duration={25} swing={6}>
-          <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-2 text-[13px] font-semibold text-[#1A1311] whitespace-nowrap"><span className="text-lg">☕</span> 5 min prep</div>
-        </OrbitNode>
-        <OrbitNode radius={500} baseAngle={35} duration={22} swing={8}>
-          <div className="w-10 h-10 rounded-full shadow-sm border border-gray-100 overflow-hidden"><img src="https://i.pravatar.cc/100?img=32" alt="avatar" /></div>
-        </OrbitNode>
-        <OrbitNode radius={500} baseAngle={-10} duration={19} swing={5}>
-          <div className="bg-white w-10 h-10 rounded-full shadow-sm border border-gray-100 flex items-center justify-center text-lg">🔥</div>
-        </OrbitNode>
-
-        {/* Middle Track Nodes */}
-        <OrbitNode radius={400} baseAngle={45} duration={20} swing={7}>
-          <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1311] whitespace-nowrap"><span className="text-[#F09819] text-base">📍</span> 200m away</div>
-        </OrbitNode>
-        <OrbitNode radius={400} baseAngle={-25} duration={24} swing={5}>
-          <div className="w-10 h-10 rounded-full shadow-sm border border-gray-100 overflow-hidden"><img src="https://i.pravatar.cc/100?img=44" alt="avatar" /></div>
-        </OrbitNode>
-        <OrbitNode radius={400} baseAngle={15} duration={18} swing={6}>
-          <div className="bg-white w-10 h-10 rounded-full shadow-sm border border-gray-100 flex items-center justify-center text-lg">🤎</div>
-        </OrbitNode>
-
-        {/* Inner Track Nodes */}
-        <OrbitNode radius={300} baseAngle={-45} duration={16} swing={8}>
-          <div className="bg-white w-10 h-10 rounded-full shadow-sm border border-gray-100 flex items-center justify-center text-lg">✨</div>
-        </OrbitNode>
-        <OrbitNode radius={300} baseAngle={25} duration={21} swing={6}>
-          <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1311] whitespace-nowrap"><span className="text-[#F09819] text-base">⭐</span> 4.9 Rated</div>
-        </OrbitNode>
+      {/* Ambient Radial Glowing Backdrop */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+        <div className="w-[850px] h-[850px] rounded-full bg-gradient-to-tr from-[#0055D4]/10 via-[#3B82F6]/5 to-transparent blur-[120px]" />
+        <div className="absolute w-[500px] h-[500px] rounded-full bg-[#0055D4]/8 blur-[90px]" />
       </div>
 
+      {/* Background Soft Orbs */}
       {ORBS.map((o, i) => <Orb key={i} o={o} p={scrollYProgress} />)}
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1120, margin: '0 auto', textAlign: 'center' }}>
-        <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, letterSpacing: '-.01em', margin: '0 0 40px', color: 'var(--gb-text-strong)', position: 'relative' }}>
-          Order in seconds.<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-primary)' }}>Pick up in minutes.</span>
-        </h2>
-        <motion.div
-          onMouseMove={handleMove}
-          onMouseLeave={handleLeave}
-          style={{ rotateX: rotateXAll, rotateY: tiltY, y: cardY, opacity: cardOpacity, transformPerspective: 1200, transformStyle: 'preserve-3d', position: 'relative', cursor: 'pointer', maxWidth: 380, margin: '0 auto', background: '#fff', borderRadius: 28, overflow: 'hidden', boxShadow: 'var(--gb-shadow-pop)', border: '1px solid var(--gb-line-2)', textAlign: 'left' }}>
-          <div style={{ position: 'relative', height: 130 }}>
-            <Image src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=85" alt="Café" fill loading="lazy" style={{ objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.55), transparent 60%)' }} />
-            <div style={{ position: 'absolute', bottom: 12, left: 16, color: '#fff' }}>
-              <div className="gb-serif" style={{ fontSize: 20, fontWeight: 600 }}>The Raydee Cafe</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>DTU, Delhi · 15 min prep</div>
-            </div>
-          </div>
-          <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {ITEMS.map((it) => (
-              <motion.div key={it.name}
-                whileHover={{ scale: 1.025, y: -2, boxShadow: '0 12px 28px -12px rgba(120,70,0,.35)' }}
-                transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, borderRadius: 16, background: 'var(--gb-surface)' }}>
-                <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flex: 'none' }}>
-                  <Image src={it.img} alt={it.name} fill loading="lazy" style={{ objectFit: 'cover' }} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-text)' }}>{it.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--gb-muted)' }}>{it.desc}</div>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-text)' }}>{it.price}</span>
-              </motion.div>
-            ))}
-          </div>
-          <div style={{ padding: '12px 16px 16px' }}>
-            <div className="gb-hover-btn" style={{ width: '100%', padding: '13px 0', textAlign: 'center', borderRadius: 999, color: '#fff', fontSize: 14, fontWeight: 800, background: 'var(--gb-primary)' }}>
-              View cart · ₹500 → Pickup 10:30 AM
-            </div>
-          </div>
-          {/* Cursor-follow sheen */}
-          <motion.div aria-hidden style={{ position: 'absolute', inset: 0, background: sheen, opacity: sheenOpacity, mixBlendMode: 'soft-light', pointerEvents: 'none', zIndex: 2 }} />
+
+      {/* Main Content Container */}
+      <div className="relative z-20 w-full max-w-[1180px] mx-auto px-4 text-center">
+        
+        {/* Top Feature Pill */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#0F172A]/10 shadow-sm mb-5 text-[11px] font-bold text-[#0F172A] uppercase tracking-wider"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#0055D4] animate-pulse" />
+          <span>Interactive Live Demo</span>
+          <span className="text-[#0055D4] font-black">·</span>
+          <span className="text-[#0055D4]">Try Ordering Below</span>
         </motion.div>
+
+        {/* Editorial Heading Block */}
+        <div className="mb-14 flex flex-col items-center justify-center relative">
+          <motion.h2 
+            className="text-[52px] sm:text-[76px] md:text-[98px] font-black tracking-[-0.03em] text-[#0F172A] leading-[0.88] uppercase drop-shadow-sm"
+            style={{ opacity: orderOpacity, y: orderY, fontFamily: 'var(--font-anton)' }}
+          >
+            ORDER IN SECONDS.
+          </motion.h2>
+          
+          <motion.div 
+            className="mt-3.5 relative inline-block"
+            style={{ opacity: pickupOpacity, scale: pickupScale }}
+          >
+            <span className="text-[34px] sm:text-[42px] md:text-[48px] text-[#0055D4] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>
+              Pick up in minutes.
+            </span>
+          </motion.div>
+        </div>
+
+        {/* Central Card Anchor Container */}
+        <div className="relative w-full max-w-[390px] mx-auto">
+          
+          {/* Radial & Orbiting Circles Background System */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 w-[1200px] h-[1200px] flex items-center justify-center">
+            
+            {/* Inner Orbit (Clockwise, Radius 300) */}
+            <OrbitingCircles radius={300} duration={24} speed={1} iconSize={48} path={true}>
+              <NeoBadge 
+                icon="⏱️" 
+                title="5 MIN PREP" 
+                subtitle="Ready before you arrive at counter" 
+                badgeTag="Live"
+                accentColor="#10B981"
+              />
+              <NeoBadge 
+                icon={<Star size={15} className="fill-[#F59E0B] text-[#F59E0B]" />} 
+                title="4.9 RATED" 
+                subtitle="Based on 1.4k+ verified campus reviews" 
+                accentColor="#F59E0B"
+              />
+              <NeoBadge 
+                icon={<MapPin size={15} className="text-[#0055D4]" />} 
+                title="200M AWAY" 
+                subtitle="~3 min walk from DTU lecture hall" 
+                accentColor="#0055D4"
+              />
+            </OrbitingCircles>
+
+            {/* Outer Orbit (Reverse/Counter-Clockwise, Radius 480) */}
+            <OrbitingCircles radius={480} duration={38} speed={1} iconSize={52} reverse={true} path={true}>
+              <UserAvatarBadge 
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&q=80" 
+                name="Sarah P." 
+                role="DTU Student" 
+                savedText="Saved 14 mins on Flat White"
+              />
+              <NeoBadge 
+                icon={<Zap size={15} className="text-[#0055D4] fill-[#0055D4]" />} 
+                title="ZERO QUEUE" 
+                subtitle="Direct contactless counter pickup" 
+                badgeTag="Fast"
+                accentColor="#0055D4"
+              />
+              <UserAvatarBadge 
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80" 
+                name="Rohan M." 
+                role="Coffee Regular" 
+                savedText="28 orders this month"
+              />
+              <NeoBadge 
+                icon={<Coffee size={15} className="text-[#0F172A]" />} 
+                title="BREWED FRESH" 
+                subtitle="Crafted freshly upon order placement" 
+                accentColor="#8B5CF6"
+              />
+            </OrbitingCircles>
+
+          </div>
+
+          {/* Halo Glow behind Phone Card */}
+          <motion.div 
+            style={{ opacity: cardOpacity }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] pointer-events-none z-0"
+          >
+            <div className="absolute inset-0 bg-[#0055D4]/15 rounded-full blur-[90px]" />
+          </motion.div>
+
+          {/* Interactive Smartphone UI */}
+          <motion.div
+            onMouseMove={handleMove}
+            onMouseLeave={handleLeave}
+            style={{ 
+              rotateX: rotateXAll, 
+              rotateY: tiltY, 
+              y: cardY, 
+              opacity: cardOpacity, 
+              scale: uiScale,
+              transformPerspective: 1200, 
+              transformStyle: 'preserve-3d', 
+            }}
+            className="relative z-10 w-full bg-[#FFFFFF] rounded-[36px] overflow-hidden shadow-[14px_14px_0px_#0F172A] border-[4px] border-[#0F172A] text-left select-none"
+          >
+            {/* Realistic Smartphone Status Bar */}
+            <div className="bg-[#0F172A] text-white px-6 pt-3 pb-2 flex items-center justify-between text-[11px] font-semibold tracking-tight">
+              <span>9:41</span>
+              {/* Dynamic Island Capsule */}
+              <div className="w-20 h-4 bg-black/90 rounded-full flex items-center justify-center gap-1.5 border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                <span className="text-[9px] text-white/80 font-bold tracking-tight">Grabbit</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px]">
+                <span>5G</span>
+                <span>100%</span>
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait" initial={false}>
+              
+              {/* STATE 1: CAFE MENU */}
+              {orderState === 'MENU' && (
+                <motion.div 
+                  key="menu" 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0, filter: 'blur(4px)' }} 
+                  transition={{ duration: 0.3 }} 
+                  className="pb-16 bg-[#F8FAFC]"
+                >
+                  {/* Café Header Banner */}
+                  <div className="relative h-[155px] overflow-hidden group">
+                    <Image 
+                      src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=85" 
+                      alt="The Raydee Cafe" 
+                      fill 
+                      className="object-cover transition-transform duration-1000 group-hover:scale-[1.04]" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-[#0F172A]/40 to-transparent" />
+                    
+                    {/* Live Open Status Tag */}
+                    <div className="absolute top-3.5 right-4 bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold tracking-wider border border-white/25 flex items-center gap-1.5 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(74,222,128,1)]" /> 
+                      OPEN NOW
+                    </div>
+
+                    {/* Cafe Name & Details */}
+                    <div className="absolute bottom-3.5 left-5 right-5 flex items-end justify-between text-white">
+                      <div>
+                        <div className="text-[21px] font-black leading-tight mb-0.5 tracking-tight font-sans">
+                          The Raydee Cafe
+                        </div>
+                        <div className="text-[12px] text-white/80 font-medium flex items-center gap-1.5">
+                          <span>DTU Campus</span>
+                          <span>·</span>
+                          <span className="text-[#60A5FA] font-bold">~5-8 min prep</span>
+                        </div>
+                      </div>
+                      <div className="bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-xl text-[12px] font-bold border border-white/25 flex items-center gap-1">
+                        <Star size={12} className="fill-[#F59E0B] text-[#F59E0B]" />
+                        <span>4.9</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category Chips */}
+                  <div className="px-4 pt-3.5 pb-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    {[
+                      { id: 'all', label: 'All Items' },
+                      { id: 'coffee', label: '☕ Coffee' },
+                      { id: 'bakery', label: '🥐 Bakery' },
+                    ].map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id as any)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap ${
+                          selectedCategory === cat.id
+                            ? 'bg-[#0F172A] text-white shadow-sm'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Menu Items List */}
+                  <div className="p-4 flex flex-col gap-2.5 relative z-10">
+                    {filteredItems.map((it) => {
+                      const qty = cart[it.id] || 0;
+                      return (
+                        <motion.div 
+                          key={it.id}
+                          whileHover={{ scale: 1.015, y: -1 }}
+                          className="group/item flex items-center gap-3 p-2.5 rounded-[22px] bg-white border border-[#0F172A]/[0.06] shadow-sm transition-all hover:shadow-md hover:border-[#0055D4]/30"
+                        >
+                          <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-none border border-slate-100">
+                            <Image 
+                              src={it.img} 
+                              alt={it.name} 
+                              fill 
+                              className="object-cover transition-transform duration-500 group-hover/item:scale-110" 
+                            />
+                            {it.tag && (
+                              <span className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs text-white text-[8px] font-bold text-center py-0.5 tracking-tight uppercase">
+                                {it.tag}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[14px] font-bold text-[#0F172A] truncate">{it.name}</div>
+                            <div className="text-[11px] text-slate-500 line-clamp-1">{it.desc}</div>
+                            <div className="text-[13px] font-black text-[#0055D4] mt-0.5">₹{it.price}</div>
+                          </div>
+
+                          {/* Interactive Add Button */}
+                          <div className="flex items-center gap-1.5 pr-1">
+                            {qty > 0 ? (
+                              <div className="flex items-center bg-[#F1F5F9] rounded-full p-0.5 border border-slate-200">
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleRemove(it.id); }}
+                                  className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-[#0F172A] shadow-xs hover:bg-slate-50"
+                                >
+                                  -
+                                </button>
+                                <span className="px-2 text-xs font-black text-[#0F172A]">{qty}</span>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleAdd(it.id); }}
+                                  className="w-6 h-6 rounded-full bg-[#0055D4] flex items-center justify-center text-xs font-bold text-white shadow-xs hover:bg-[#0040A1]"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : (
+                              <motion.button 
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleAdd(it.id)}
+                                className="h-8 px-3 rounded-full bg-[#0F172A] text-white flex items-center gap-1 text-[11px] font-bold shadow-sm hover:bg-[#0055D4] transition-colors"
+                              >
+                                <span>Add</span>
+                                <span>+</span>
+                              </motion.button>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Floating Cart Sticky Bottom Bar */}
+                  <AnimatePresence>
+                    {cartItemsCount > 0 && (
+                      <motion.div 
+                        initial={{ y: 80, opacity: 0 }} 
+                        animate={{ y: 0, opacity: 1 }} 
+                        exit={{ y: 80, opacity: 0 }}
+                        className="absolute bottom-3 left-4 right-4 z-20"
+                      >
+                        <button 
+                          onClick={() => setOrderState('CART')}
+                          className="w-full bg-[#0055D4] text-white px-4 py-3 rounded-2xl font-bold shadow-lg shadow-[#0055D4]/35 flex items-center justify-between hover:bg-[#0040A1] transition-all hover:scale-[1.01]"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-black">
+                              {cartItemsCount} item{cartItemsCount > 1 ? 's' : ''}
+                            </span>
+                            <span className="text-xs font-black">₹{cartTotal}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs tracking-wide">
+                            <span>View Order</span>
+                            <ArrowRight size={13} strokeWidth={2.5} />
+                          </div>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+
+              {/* STATE 2: CART / CHECKOUT */}
+              {orderState === 'CART' && (
+                <motion.div 
+                  key="cart" 
+                  initial={{ opacity: 0, scale: 0.95 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  exit={{ opacity: 0, y: -10 }} 
+                  transition={{ duration: 0.25 }} 
+                  className="p-6 min-h-[410px] flex flex-col bg-white"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-[11px] font-black tracking-widest text-slate-400 uppercase">
+                      Order Summary
+                    </div>
+                    <button 
+                      onClick={() => setOrderState('MENU')}
+                      className="text-[11px] font-bold text-[#0055D4] hover:underline"
+                    >
+                      + Add more items
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 flex-1">
+                    {Object.entries(cart).map(([id, qty]) => {
+                      const item = ITEMS.find(i => i.id === id);
+                      if (!item) return null;
+                      return (
+                        <div key={id} className="flex justify-between items-center p-2.5 rounded-2xl bg-[#F8FAFC] border border-slate-100">
+                          <div className="flex items-center gap-2.5">
+                            <div className="relative w-9 h-9 rounded-xl overflow-hidden flex-none">
+                              <Image src={item.img} alt={item.name} fill className="object-cover" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-[13px] text-[#0F172A]">{item.name}</div>
+                              <div className="text-[11px] text-slate-500 font-medium">₹{item.price} each</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center bg-white rounded-lg border border-slate-200 px-1 py-0.5">
+                              <button onClick={() => handleRemove(id)} className="px-1 text-xs font-bold text-slate-600">-</button>
+                              <span className="px-1.5 text-xs font-black text-[#0F172A]">{qty}</span>
+                              <button onClick={() => handleAdd(id)} className="px-1 text-xs font-bold text-slate-600">+</button>
+                            </div>
+                            <div className="font-black text-[13px] text-[#0F172A] w-12 text-right">
+                              ₹{item.price * qty}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    <div className="h-[1px] bg-slate-100 my-1" />
+                    
+                    <div className="flex justify-between items-center font-black text-[#0F172A] text-[16px] px-1">
+                      <div>Total Payable</div>
+                      <div className="text-[#0055D4] text-[18px]">₹{cartTotal}</div>
+                    </div>
+                    
+                    {/* Pickup Details Box */}
+                    <div className="mt-auto pt-3 p-3.5 rounded-2xl bg-[#F1F5F9] border border-slate-200/80">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Direct Pickup At</div>
+                      <div className="font-black text-[#0F172A] text-[14px] mt-0.5">The Raydee Cafe · Counter #1</div>
+                      <div className="text-[11px] text-[#0055D4] font-bold flex items-center gap-1 mt-1">
+                        <Clock size={12} /> Estimated prep time: ~5 mins
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => setOrderState('CONFIRMING')}
+                    className="w-full bg-[#0F172A] text-white px-5 py-3.5 rounded-2xl font-bold mt-4 shadow-md flex items-center justify-center gap-2 hover:bg-[#0055D4] transition-all hover:scale-[1.01] text-sm"
+                  >
+                    <span>Confirm & Pay ₹{cartTotal}</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </motion.div>
+              )}
+
+              {/* STATE 3: ORDER CONFIRMING / TRANSMITTING */}
+              {orderState === 'CONFIRMING' && (
+                <motion.div 
+                  key="confirming" 
+                  initial={{ opacity: 0, y: 15 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  onAnimationComplete={() => setTimeout(() => setOrderState('PREPARING'), 1800)} 
+                  className="p-8 min-h-[410px] flex flex-col items-center justify-center text-center bg-white"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.5, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", damping: 14 }}
+                    className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mb-4 shadow-sm border-2 border-emerald-300"
+                  >
+                    <Check size={32} strokeWidth={3} />
+                  </motion.div>
+                  
+                  <div className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-1">
+                    Order Transmitted
+                  </div>
+                  <div className="text-[22px] font-black text-[#0F172A] leading-tight mb-1">
+                    The Raydee Cafe
+                  </div>
+                  <div className="text-[13px] text-slate-500 mb-6">
+                    Directly queued at barista counter.
+                  </div>
+                  
+                  <div className="bg-[#F8FAFC] border border-slate-200/80 w-full p-4 rounded-2xl shadow-xs">
+                    <div className="text-[11px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider">Pickup Token</div>
+                    <div className="font-black text-[#0055D4] text-[24px] tracking-wider">#GB-408</div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STATE 4: LIVE PREPARING PROGRESS */}
+              {orderState === 'PREPARING' && (
+                <motion.div 
+                  key="preparing" 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  className="p-8 min-h-[410px] flex flex-col items-center justify-center text-center bg-white"
+                >
+                  <div className="relative mb-4">
+                    <motion.div 
+                      animate={{ rotate: [0, 10, -10, 0] }} 
+                      transition={{ repeat: Infinity, duration: 2.5 }}
+                      className="text-[44px]"
+                    >
+                      ☕
+                    </motion.div>
+                    <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0055D4] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#0055D4]" />
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] font-black tracking-widest text-[#0055D4] uppercase mb-1">
+                    Live Preparation
+                  </div>
+                  <div className="text-[19px] font-black text-[#0F172A] mb-5">
+                    Your barista is brewing
+                  </div>
+                  
+                  {/* Progress Track */}
+                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-3 shadow-inner border border-slate-200/60">
+                    <motion.div 
+                      className="h-full bg-gradient-to-r from-[#0055D4] to-[#3B82F6] rounded-full" 
+                      style={{ width: `${prepProgress}%` }} 
+                      transition={{ duration: 0.2 }} 
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between w-full text-[12px] font-bold text-slate-500 px-1">
+                    <span>{prepProgress < 50 ? 'Grinding beans...' : 'Pouring micro-foam...'}</span>
+                    <span className="text-[#0055D4] font-black">{Math.round(prepProgress)}%</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STATE 5: READY FOR PICKUP */}
+              {orderState === 'READY' && (
+                <motion.div 
+                  key="ready" 
+                  initial={{ opacity: 0, scale: 0.92 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  className="p-8 min-h-[410px] flex flex-col items-center justify-center text-center bg-white"
+                >
+                  <div className="relative mb-5">
+                    <motion.div 
+                      initial={{ scale: 0 }} 
+                      animate={{ scale: 1 }} 
+                      transition={{ type: 'spring', damping: 12, delay: 0.15 }} 
+                      className="w-18 h-18 rounded-full bg-emerald-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/30"
+                    >
+                      <Check size={36} strokeWidth={3.5} />
+                    </motion.div>
+                    <motion.div 
+                      animate={{ scale: [1, 1.5], opacity: [0.5, 0] }} 
+                      transition={{ repeat: Infinity, duration: 1.8 }} 
+                      className="absolute inset-0 rounded-full border-2 border-emerald-500" 
+                    />
+                  </div>
+                  
+                  <div className="text-[11px] font-black tracking-widest text-emerald-600 uppercase mb-1">
+                    Ready At Counter
+                  </div>
+                  <div className="text-[22px] font-black text-[#0F172A] leading-tight mb-1">
+                    The Raydee Cafe
+                  </div>
+                  <div className="text-[13px] text-slate-500 mb-6">
+                    Present Token <span className="font-black text-[#0F172A]">#GB-408</span> to collect.
+                  </div>
+                  
+                  <button 
+                    onClick={() => { setOrderState('MENU'); setCart({ c1: 1 }); }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F172A] text-white text-[12px] font-bold hover:bg-[#0055D4] transition-all hover:scale-105"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Replay Demo</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Cursor-follow realistic sheen reflection */}
+            <motion.div 
+              aria-hidden 
+              style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                background: sheen, 
+                opacity: sheenOpacity, 
+                mixBlendMode: 'soft-light', 
+                pointerEvents: 'none', 
+                zIndex: 30 
+              }} 
+            />
+          </motion.div>
+
+        </div>
+
       </div>
     </section>
   );

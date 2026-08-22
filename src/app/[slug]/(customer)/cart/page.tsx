@@ -178,7 +178,7 @@ export default function CartPage() {
 
       {dineInTable ? (
         /* dine-in: table service, no pickup slot */
-        <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+        <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(15, 23, 42,.4)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <MS name="restaurant" size={20} fill color="var(--gb-primary)" />
             <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Dine-in · Table {dineInTable}</div>
@@ -187,7 +187,7 @@ export default function CartPage() {
         </div>
       ) : (
       /* pickup slot */
-      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '22px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '22px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(15, 23, 42,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MS name="schedule" size={20} fill color="var(--gb-primary)" />
           <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, flex: 1 }}>Pickup time</div>
@@ -272,7 +272,7 @@ export default function CartPage() {
       </div>
 
       {/* pay bar */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '14px 16px calc(26px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '14px 16px calc(26px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(15, 23, 42,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11, color: '#6E6155', fontSize: 12.5, fontWeight: 600 }}>
           <MS name="account_balance_wallet" size={19} color="var(--gb-primary)" />Paying with UPI · you@okbank
           <MS name="expand_more" size={18} color="#B0A392" style={{ marginLeft: 'auto' }} />

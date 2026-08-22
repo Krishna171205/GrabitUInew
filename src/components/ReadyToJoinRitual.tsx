@@ -92,7 +92,7 @@ const STYLES = `
   border: 1px solid var(--gb-line-3);
   border-radius: 999px;
   padding: 5px;
-  box-shadow: 0 12px 30px -22px rgba(60,40,25,0.55);
+  box-shadow: 0 12px 30px -22px rgba(15, 23, 42,0.55);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .ritual-signup-cta {
@@ -113,7 +113,7 @@ const STYLES = `
 .ritual-signup input:focus { outline: none; }
 .ritual-signup-row:focus-within {
   border-color: rgba(255, 177, 0, 0.75);
-  box-shadow: 0 10px 30px -18px rgba(60,40,25,0.5), 0 0 0 4px rgba(255, 177, 0, 0.14);
+  box-shadow: 0 10px 30px -18px rgba(15, 23, 42,0.5), 0 0 0 4px rgba(255, 177, 0, 0.14);
 }
 
 @media (min-width: 640px) {
@@ -125,12 +125,12 @@ const STYLES = `
     border: 1px solid var(--gb-line-3);
     border-radius: 999px;
     padding: 5px;
-    box-shadow: 0 12px 30px -22px rgba(60,40,25,0.55);
+    box-shadow: 0 12px 30px -22px rgba(15, 23, 42,0.55);
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
   .ritual-signup:focus-within {
     border-color: rgba(255, 177, 0, 0.75);
-    box-shadow: 0 10px 30px -18px rgba(60,40,25,0.5), 0 0 0 4px rgba(255, 177, 0, 0.14);
+    box-shadow: 0 10px 30px -18px rgba(15, 23, 42,0.5), 0 0 0 4px rgba(255, 177, 0, 0.14);
   }
   .ritual-signup-row { flex: 1; border: none; padding: 0; box-shadow: none; background: transparent; }
   .ritual-signup-row:focus-within { border: none; box-shadow: none; }
@@ -173,12 +173,9 @@ const STYLES = `
 // ─────────────────────────────────────────────────────────────────────────────
 // MAGNETIC BUTTON (GSAP spring pull) — reserved for the two real actions
 // ─────────────────────────────────────────────────────────────────────────────
-type MagneticProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-    as?: React.ElementType;
-  };
+type MagneticProps = any;
 
-const MagneticButton = React.forwardRef<HTMLElement, MagneticProps>(
+const MagneticButton = React.forwardRef<HTMLElement, any>(
   ({ className, children, as: Tag = "button", ...props }, forwardedRef) => {
     const localRef = useRef<HTMLElement>(null);
 
@@ -209,8 +206,10 @@ const MagneticButton = React.forwardRef<HTMLElement, MagneticProps>(
       return () => ctx.revert();
     }, []);
 
+    const Component = Tag as any;
+
     return (
-      <Tag
+      <Component
         ref={(node: HTMLElement) => {
           (localRef as React.MutableRefObject<HTMLElement | null>).current = node;
           if (typeof forwardedRef === "function") forwardedRef(node);
@@ -220,7 +219,7 @@ const MagneticButton = React.forwardRef<HTMLElement, MagneticProps>(
         {...props}
       >
         {children}
-      </Tag>
+      </Component>
     );
   }
 );

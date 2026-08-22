@@ -57,7 +57,7 @@ export default function LegalLayout({
         }
         .legal-prose ul { list-style: disc; padding-left: 1.3rem; }
         .legal-prose li { margin-top: 0.4rem; }
-        .legal-prose a { color: var(--color-on-surface, #241612); font-weight: 700; text-decoration: underline; text-decoration-color: var(--color-primary, #FFB100); text-underline-offset: 2px; }
+        .legal-prose a { color: var(--color-on-surface, #0F172A); font-weight: 700; text-decoration: underline; text-decoration-color: var(--color-primary, #0055D4); text-underline-offset: 2px; }
         .legal-prose a:hover { text-decoration-thickness: 2px; }
         .legal-prose strong { color: var(--color-on-surface, #1b1c1c); font-weight: 700; }
       `}</style>

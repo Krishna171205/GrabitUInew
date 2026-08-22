@@ -246,7 +246,7 @@ export default function ProfilePage() {
       </div>
 
       {/* gold membership */}
-      <div style={{ margin: '16px 16px 0', borderRadius: 20, padding: 18, background: 'linear-gradient(120deg,#2A1B10 0%,#8A5A00 55%,#FFB100 130%)', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ margin: '16px 16px 0', borderRadius: 20, padding: 18, background: 'linear-gradient(120deg,#050B14 0%,#003380 55%,#0055D4 130%)', color: '#fff', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -20, top: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <MS name="workspace_premium" size={19} fill color="#F2D48A" />

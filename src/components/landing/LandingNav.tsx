@@ -6,8 +6,9 @@ import { MS } from '@/components/gb/kit';
 export default function LandingNav() {
   const { scrollY } = useScroll();
 
-  const margin = useTransform(scrollY, [0, 100], ['20px auto 0', '12px auto 0']);
-  const width = useTransform(scrollY, [0, 100], ['92%', 'calc(100% - 32px)']);
+  // Lowered navbar margin for better spacing on mobile & desktop
+  const margin = useTransform(scrollY, [0, 100], ['18px auto 0', '10px auto 0']);
+  const width = useTransform(scrollY, [0, 100], ['calc(100% - 24px)', 'calc(100% - 32px)']);
   const boxShadow = useTransform(
     scrollY,
     [0, 100],
@@ -16,6 +17,9 @@ export default function LandingNav() {
 
   return (
     <motion.header
+      initial={{ opacity: 0, y: -12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       style={{
         position: 'fixed',
         top: 0,
@@ -32,61 +36,53 @@ export default function LandingNav() {
           maxWidth: 1120,
           width,
           margin,
-          background: '#1A1311',
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           boxShadow,
           borderRadius: 999,
-          height: 64,
-          padding: '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
           pointerEvents: 'auto',
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: '1px solid rgba(15, 23, 42, 0.1)',
         }}
+        className="h-14 sm:h-16 px-3.5 sm:px-5 flex items-center justify-between transition-all duration-300"
       >
-        {/* Left: Brand Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/transparent-image.svg" alt="Grabbit." style={{ height: 38, width: 'auto', display: 'block' }} />
+        {/* Left: Brand Logo with micro-interaction */}
+        <Link href="/" className="flex items-center shrink-0">
+          <motion.img 
+            src="/new-logo.svg" 
+            alt="Grabbit." 
+            className="h-7 sm:h-9 w-auto block object-contain"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          />
         </Link>
 
-        {/* Right: Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button
+        {/* Right: Actions with micro-animations */}
+        <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
+          <motion.button
             type="button"
             aria-label="Toggle theme"
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#FDFBF7',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-            }}
-            className="hover:bg-white/10"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/[0.04] border border-slate-900/10 flex items-center justify-center text-[#0F172A] cursor-pointer hover:bg-slate-100 transition-colors shrink-0"
+            whileHover={{ scale: 1.1, rotate: 15 }}
+            whileTap={{ scale: 0.9, rotate: -15 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            <MS name="dark_mode" size={18} />
-          </button>
+            <MS name="dark_mode" size={16} />
+          </motion.button>
           
-          <Link
-            href="/home"
-            style={{
-              background: '#F09819',
-              color: '#1A1311',
-              fontSize: 14,
-              fontWeight: 700,
-              padding: '10px 20px',
-              borderRadius: 999,
-              transition: 'background 0.2s',
-            }}
-            className="hover:bg-[#FFB100]"
+          <motion.div
+            whileHover={{ scale: 1.04, y: -1 }}
+            whileTap={{ scale: 0.96, y: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
           >
-            Browse Cafés
-          </Link>
+            <Link
+              href="/home"
+              className="bg-[#0055D4] hover:bg-[#0040A1] text-white text-xs sm:text-sm font-bold px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full transition-colors shadow-sm hover:shadow active:scale-95 whitespace-nowrap block"
+            >
+              Browse Cafés
+            </Link>
+          </motion.div>
         </div>
       </motion.nav>
     </motion.header>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Baloo_2, Mukta, Poppins } from 'next/font/google';
+import { Baloo_2, Mukta, Poppins, Anton, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
@@ -29,6 +29,22 @@ const mukta = Mukta({
   weight: ['400', '500', '700'],
   display: 'swap',
   variable: '--font-deva',
+});
+
+// Vibrant Display Font
+const anton = Anton({
+  subsets: ['latin'],
+  weight: ['400'],
+  display: 'swap',
+  variable: '--font-anton',
+});
+
+// Handwriting Script Font
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  variable: '--font-caveat',
 });
 
 export const metadata: Metadata = {
@@ -97,17 +113,17 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/new-logo.svg', sizes: 'any', type: 'image/svg+xml' },
-      { url: '/new-logo.svg', rel: 'mask-icon', color: '#241612' },
+      { url: '/new-logo.svg', rel: 'mask-icon', color: '#0F172A' },
     ],
     apple: [{ url: '/new-logo.svg', sizes: '180x180' }],
   },
-  themeColor: '#FFFDF8',
+  themeColor: '#F8FAFC',
   category: 'Food & Dining',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${poppins.variable} ${mukta.variable}`}>
+    <html lang="en" className={`scroll-smooth ${baloo.variable} ${poppins.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
       <head>
         {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link
@@ -120,7 +136,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* JSON-LD structured data: Organization + Website */}
         <SeoScripts names={['organization', 'website', 'breadcrumb']} />
       </head>
-      <body>{children}</body>
+      <body className="relative">
+        <div className="fixed inset-0 bg-noise z-[9999] pointer-events-none mix-blend-overlay opacity-50"></div>
+        {children}
+      </body>
     </html>
   );
 }

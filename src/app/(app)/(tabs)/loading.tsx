@@ -3,7 +3,7 @@
  * without a loading boundary a tab tap shows the previous screen frozen until
  * the server responds. This turns that dead time into instant feedback.
  */
-const SHIMMER = '#F3E8D4';
+const SHIMMER = '#E2E8F0';
 
 export default function Loading() {
   return (

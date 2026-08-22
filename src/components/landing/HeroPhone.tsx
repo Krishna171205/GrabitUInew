@@ -25,16 +25,16 @@ const promoThemes: Record<string, { tag: string; title: string; code: string; co
     tag: 'Express Pickup',
     title: 'ZERO WAIT',
     code: 'Pre-order ahead',
-    color: '#2A1B10',
-    gradient: 'from-[#2A1B10] via-[#2A1B10]/80 to-transparent',
+    color: '#050B14',
+    gradient: 'from-[#050B14] via-[#050B14]/80 to-transparent',
     img: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=600&auto=format&fit=crop'
   },
   time: {
     tag: 'Happy Hour',
     title: 'BUY 1 GET 1',
     code: 'Use code BOGO50',
-    color: '#E09A00',
-    gradient: 'from-[#E09A00] via-[#E09A00]/80 to-transparent',
+    color: '#0040A1',
+    gradient: 'from-[#0040A1] via-[#0040A1]/80 to-transparent',
     img: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=600&auto=format&fit=crop'
   },
   rated: {
@@ -89,7 +89,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
       <div className="absolute inset-0 bg-[#140F0D] rounded-[48px] shadow-[0_30px_60px_rgba(20,10,5,0.25),0_8px_16px_rgba(20,10,5,0.4)] overflow-visible">
         
         {/* Subtle Warm Highlight Rim */}
-        <div className="absolute inset-[-1px] rounded-[49px] bg-gradient-to-br from-[#8A7A6B]/40 via-transparent to-[#140F0D] opacity-80 pointer-events-none" />
+        <div className="absolute inset-[-1px] rounded-[49px] bg-gradient-to-br from-[#64748B]/40 via-transparent to-[#140F0D] opacity-80 pointer-events-none" />
         
         {/* Physical Side Buttons */}
         <div className="absolute -left-[3px] top-[120px] w-[3px] h-[32px] bg-[#2A2422] rounded-l-sm shadow-sm" />
@@ -110,10 +110,10 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
           </div>
 
           {/* Inner Display (App UI) */}
-          <div className="absolute inset-0 bg-[#FDFBF7] text-[#1A1311] overflow-hidden flex flex-col font-sans">
+          <div className="absolute inset-0 bg-[#F8FAFC] text-[#0F172A] overflow-hidden flex flex-col font-sans">
             
             {/* iOS Status Bar */}
-            <div className="h-[46px] w-full flex items-center justify-between px-7 shrink-0 pt-[10px] text-[12px] font-bold tracking-tight z-40 bg-[#FDFBF7]">
+            <div className="h-[46px] w-full flex items-center justify-between px-7 shrink-0 pt-[10px] text-[12px] font-bold tracking-tight z-40 bg-[#F8FAFC]">
               <span>9:41</span>
               <div className="flex items-center gap-1.5 opacity-80">
                 <MS name="signal_cellular_4_bar" size={13} />
@@ -132,9 +132,9 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -20, opacity: 0 }}
-                  className="absolute top-[50px] left-4 right-4 bg-[#1A1311] text-white text-[11px] font-bold py-2 px-3 rounded-full shadow-lg z-50 flex items-center gap-2 justify-center"
+                  className="absolute top-[50px] left-4 right-4 bg-[#0F172A] text-white text-[11px] font-bold py-2 px-3 rounded-full shadow-lg z-50 flex items-center gap-2 justify-center"
                 >
-                  <MS name="check_circle" size={14} className="text-[#F09819]" />
+                  <MS name="check_circle" size={14} className="text-[#0055D4]" />
                   <span>{toastMessage}</span>
                 </motion.div>
               )}
@@ -154,7 +154,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     initial={{ y: 100 }}
                     animate={{ y: 0 }}
                     exit={{ y: 100 }}
-                    className="w-full bg-[#FDFBF7] rounded-t-[28px] p-5 border-t border-[#EBE4D8] shadow-xl"
+                    className="w-full bg-[#F8FAFC] rounded-t-[28px] p-5 border-t border-[#E2E8F0] shadow-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex justify-between items-center mb-3">
@@ -172,7 +172,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                             setShowCityPicker(false);
                             showToast(`Switched to ${city}`);
                           }}
-                          className={`p-3 rounded-xl border text-[13px] font-bold flex justify-between items-center cursor-pointer transition-colors ${selectedCity === city ? 'bg-[#F09819]/10 border-[#F09819] text-[#F09819]' : 'bg-white border-[#EBE4D8]'}`}
+                          className={`p-3 rounded-xl border text-[13px] font-bold flex justify-between items-center cursor-pointer transition-colors ${selectedCity === city ? 'bg-[#0055D4]/10 border-[#0055D4] text-[#0055D4]' : 'bg-white border-[#E2E8F0]'}`}
                         >
                           <span>{city}</span>
                           {selectedCity === city && <MS name="check" size={16} />}
@@ -191,25 +191,25 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute top-[55px] right-4 w-[240px] bg-white border border-[#EBE4D8] rounded-[20px] p-4 shadow-xl z-50"
+                  className="absolute top-[55px] right-4 w-[240px] bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-xl z-50"
                 >
                   <div className="flex justify-between items-center mb-2.5">
                     <span className="text-[12px] font-black">Notifications</span>
-                    <span onClick={() => setNotificationsOpen(false)} className="text-[10px] font-bold text-[#F09819] cursor-pointer">Close</span>
+                    <span onClick={() => setNotificationsOpen(false)} className="text-[10px] font-bold text-[#0055D4] cursor-pointer">Close</span>
                   </div>
                   <div className="space-y-2">
-                    <div className="p-2 rounded-lg bg-[#FFF8EC] border border-[#F09819]/20 flex gap-2">
-                      <MS name="stars" size={16} className="text-[#F09819] shrink-0" />
+                    <div className="p-2 rounded-lg bg-[#F1F5F9] border border-[#0055D4]/20 flex gap-2">
+                      <MS name="stars" size={16} className="text-[#0055D4] shrink-0" />
                       <div className="text-[10px]">
-                        <p className="font-bold text-[#1A1311]">₹50 Off Next Order</p>
-                        <p className="text-[#8A7A6B]">Valid for Blue Tokai Coffee</p>
+                        <p className="font-bold text-[#0F172A]">₹50 Off Next Order</p>
+                        <p className="text-[#64748B]">Valid for Blue Tokai Coffee</p>
                       </div>
                     </div>
                     <div className="p-2 rounded-lg bg-gray-50 flex gap-2">
-                      <MS name="local_shipping" size={16} className="text-[#8A7A6B] shrink-0" />
+                      <MS name="local_shipping" size={16} className="text-[#64748B] shrink-0" />
                       <div className="text-[10px]">
-                        <p className="font-bold text-[#1A1311]">Order Delivered</p>
-                        <p className="text-[#8A7A6B]">Blue Tokai • 2 hrs ago</p>
+                        <p className="font-bold text-[#0F172A]">Order Delivered</p>
+                        <p className="text-[#64748B]">Blue Tokai • 2 hrs ago</p>
                       </div>
                     </div>
                   </div>
@@ -235,21 +235,21 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     <div className="px-6 pt-2 pb-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] font-extrabold text-[#8A7A6B] uppercase tracking-[0.1em] mb-0.5">Good morning 👋</p>
+                          <p className="text-[10px] font-extrabold text-[#64748B] uppercase tracking-[0.1em] mb-0.5">Good morning 👋</p>
                           <div 
                             onClick={() => setShowCityPicker(true)}
                             className="flex items-center gap-1 cursor-pointer hover:opacity-80 active:scale-95 transition-all"
                           >
                             <span className="text-[15px] font-black">{selectedCity}</span>
-                            <MS name="expand_more" size={16} className="text-[#8A7A6B]" />
+                            <MS name="expand_more" size={16} className="text-[#64748B]" />
                           </div>
                         </div>
                         <div 
                           onClick={() => setNotificationsOpen(!notificationsOpen)}
-                          className="w-10 h-10 rounded-full border border-[#EBE4D8] flex items-center justify-center text-[#1A1311] relative cursor-pointer active:scale-95 transition-transform bg-white shadow-xs"
+                          className="w-10 h-10 rounded-full border border-[#E2E8F0] flex items-center justify-center text-[#0F172A] relative cursor-pointer active:scale-95 transition-transform bg-white shadow-xs"
                         >
                           <MS name="notifications" size={20} />
-                          <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#F09819] rounded-full border-[1.5px] border-white" />
+                          <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#0055D4] rounded-full border-[1.5px] border-white" />
                         </div>
                       </div>
                     </div>
@@ -258,11 +258,11 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     <div className="px-6 mb-5">
                       <div 
                         onClick={() => setState('EXPLORE')}
-                        className="w-full bg-white border border-[#EBE4D8] rounded-[20px] h-[48px] flex items-center px-4 shadow-[0_2px_8px_rgba(26,19,17,0.03)] cursor-pointer active:scale-[0.98] transition-transform group"
+                        className="w-full bg-white border border-[#E2E8F0] rounded-[20px] h-[48px] flex items-center px-4 shadow-[0_2px_8px_rgba(15, 23, 42,0.03)] cursor-pointer active:scale-[0.98] transition-transform group"
                       >
-                        <MS name="search" size={20} className="text-[#8A7A6B] group-hover:text-[#F09819] transition-colors" />
-                        <span className="text-[14px] text-[#8A7A6B] ml-3 font-medium">Search cafés, coffee...</span>
-                        <div className="ml-auto w-8 h-8 bg-[#1A1311] rounded-full flex items-center justify-center text-white shadow-sm">
+                        <MS name="search" size={20} className="text-[#64748B] group-hover:text-[#0055D4] transition-colors" />
+                        <span className="text-[14px] text-[#64748B] ml-3 font-medium">Search cafés, coffee...</span>
+                        <div className="ml-auto w-8 h-8 bg-[#0F172A] rounded-full flex items-center justify-center text-white shadow-sm">
                           <MS name="tune" size={16} />
                         </div>
                       </div>
@@ -328,7 +328,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     <div className="px-6 mb-6">
                       <div className="flex justify-between items-end mb-3">
                         <h3 className="text-[15px] font-black">Categories</h3>
-                        <span onClick={() => setState('EXPLORE')} className="text-[11px] font-bold text-[#F09819] cursor-pointer hover:underline">See all</span>
+                        <span onClick={() => setState('EXPLORE')} className="text-[11px] font-bold text-[#0055D4] cursor-pointer hover:underline">See all</span>
                       </div>
                       <div className="flex gap-3 overflow-x-auto noscroll pb-1">
                         {[
@@ -343,7 +343,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                               setActiveCategory(cat.name);
                               setState('EXPLORE');
                             }}
-                            className={`flex flex-col items-center justify-center shrink-0 w-[62px] h-[64px] rounded-[18px] shadow-xs cursor-pointer active:scale-95 transition-transform border ${activeCategory === cat.name ? 'bg-[#F09819] text-white border-[#F09819]' : 'bg-white border-[#EBE4D8] text-[#1A1311] hover:border-[#8A7A6B]'}`}
+                            className={`flex flex-col items-center justify-center shrink-0 w-[62px] h-[64px] rounded-[18px] shadow-xs cursor-pointer active:scale-95 transition-transform border ${activeCategory === cat.name ? 'bg-[#0055D4] text-white border-[#0055D4]' : 'bg-white border-[#E2E8F0] text-[#0F172A] hover:border-[#64748B]'}`}
                           >
                             <MS name={cat.icon} size={22} className="mb-1" />
                             <span className="text-[10px] font-bold">{cat.name}</span>
@@ -356,14 +356,14 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     <div className="px-6 pb-6">
                       <div className="flex justify-between items-end mb-3">
                         <h3 className="text-[15px] font-black">Nearby cafés</h3>
-                        <span onClick={() => setState('EXPLORE')} className="text-[11px] font-bold text-[#F09819] cursor-pointer hover:underline">See all</span>
+                        <span onClick={() => setState('EXPLORE')} className="text-[11px] font-bold text-[#0055D4] cursor-pointer hover:underline">See all</span>
                       </div>
                       
                       <div className="space-y-3">
                         {/* Cafe Card 1: Blue Tokai */}
                         <div 
                           onClick={() => setState('CAFE')}
-                          className="w-full flex items-center gap-3.5 bg-white border border-[#EBE4D8] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform group"
+                          className="w-full flex items-center gap-3.5 bg-white border border-[#E2E8F0] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform group"
                         >
                           <div className="w-[76px] h-[76px] bg-gray-200 rounded-[16px] overflow-hidden relative shrink-0">
                             <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Cafe" />
@@ -373,15 +373,15 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                             <div className="flex justify-between items-start mb-0.5">
                               <h4 className="text-[14px] font-bold leading-tight">Blue Tokai Coffee</h4>
                               <div 
-                                className="text-[#8A7A6B] hover:text-red-500 transition-colors p-1"
+                                className="text-[#64748B] hover:text-red-500 transition-colors p-1"
                                 onClick={(e) => { e.stopPropagation(); setFavorite(!favorite); showToast(favorite ? 'Removed from favorites' : 'Saved to favorites'); }}
                               >
                                 <MS name={favorite ? 'favorite' : 'favorite_border'} size={18} className={favorite ? 'text-red-500' : ''} />
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#8A7A6B] mb-1.5">
-                              <span className="flex items-center gap-0.5 text-[#F09819]"><MS name="star" size={12} /> 4.9</span>
-                              <span className="w-0.5 h-0.5 rounded-full bg-[#8A7A6B]" />
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#64748B] mb-1.5">
+                              <span className="flex items-center gap-0.5 text-[#0055D4]"><MS name="star" size={12} /> 4.9</span>
+                              <span className="w-0.5 h-0.5 rounded-full bg-[#64748B]" />
                               <span>0.8 km</span>
                             </div>
                             <div className="bg-[#10B981]/10 text-[#10B981] w-fit px-2 py-0.5 rounded flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wide">
@@ -393,7 +393,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         {/* Cafe Card 2: Third Wave */}
                         <div 
                           onClick={() => setState('CAFE')}
-                          className="w-full flex items-center gap-3.5 bg-white border border-[#EBE4D8] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform group"
+                          className="w-full flex items-center gap-3.5 bg-white border border-[#E2E8F0] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform group"
                         >
                           <div className="w-[76px] h-[76px] bg-gray-200 rounded-[16px] overflow-hidden relative shrink-0">
                             <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Third Wave Coffee" />
@@ -403,9 +403,9 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                             <div className="flex justify-between items-start mb-0.5">
                               <h4 className="text-[14px] font-bold leading-tight">Third Wave Coffee</h4>
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#8A7A6B] mb-1.5">
-                              <span className="flex items-center gap-0.5 text-[#F09819]"><MS name="star" size={12} /> 4.8</span>
-                              <span className="w-0.5 h-0.5 rounded-full bg-[#8A7A6B]" />
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#64748B] mb-1.5">
+                              <span className="flex items-center gap-0.5 text-[#0055D4]"><MS name="star" size={12} /> 4.8</span>
+                              <span className="w-0.5 h-0.5 rounded-full bg-[#64748B]" />
                               <span>1.2 km</span>
                             </div>
                             <div className="bg-[#10B981]/10 text-[#10B981] w-fit px-2 py-0.5 rounded flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wide">
@@ -429,17 +429,17 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     className="flex flex-col w-full h-full px-6 pt-2"
                   >
                     {/* Sticky Header, Search & Filter Pills */}
-                    <div className="sticky top-0 bg-[#FDFBF7] z-20 pt-1 pb-2 border-b border-[#EBE4D8]/60">
+                    <div className="sticky top-0 bg-[#F8FAFC] z-20 pt-1 pb-2 border-b border-[#E2E8F0]/60">
                       <div className="flex items-center gap-3 mb-3">
-                        <div onClick={() => setState('HOME')} className="p-2 rounded-full bg-white border border-[#EBE4D8] cursor-pointer active:scale-90 transition-transform">
+                        <div onClick={() => setState('HOME')} className="p-2 rounded-full bg-white border border-[#E2E8F0] cursor-pointer active:scale-90 transition-transform">
                           <MS name="arrow_back" size={18} />
                         </div>
                         <h2 className="text-[18px] font-black">Explore Cafés</h2>
                       </div>
 
                       {/* Search Bar */}
-                      <div className="bg-white border border-[#EBE4D8] rounded-[18px] h-[42px] flex items-center px-3 mb-3 shadow-xs">
-                        <MS name="search" size={18} className="text-[#8A7A6B]" />
+                      <div className="bg-white border border-[#E2E8F0] rounded-[18px] h-[42px] flex items-center px-3 mb-3 shadow-xs">
+                        <MS name="search" size={18} className="text-[#64748B]" />
                         <input 
                           type="text" 
                           placeholder="Search espresso, cold brew..." 
@@ -449,7 +449,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         />
                         {searchQuery && (
                           <div onClick={() => setSearchQuery('')} className="cursor-pointer">
-                            <MS name="cancel" size={16} className="text-[#8A7A6B]" />
+                            <MS name="cancel" size={16} className="text-[#64748B]" />
                           </div>
                         )}
                       </div>
@@ -460,7 +460,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                           <button
                             key={filter}
                             onClick={() => setActiveCategory(filter)}
-                            className={`px-3 py-1.5 rounded-full text-[11px] font-bold border shrink-0 transition-colors ${activeCategory === filter ? 'bg-[#1A1311] text-white border-[#1A1311]' : 'bg-white border-[#EBE4D8] text-[#8A7A6B]'}`}
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-bold border shrink-0 transition-colors ${activeCategory === filter ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-white border-[#E2E8F0] text-[#64748B]'}`}
                           >
                             {filter}
                           </button>
@@ -479,13 +479,13 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         <div 
                           key={cafe.name}
                           onClick={() => setState('CAFE')}
-                          className="w-full flex items-center gap-3.5 bg-white border border-[#EBE4D8] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
+                          className="w-full flex items-center gap-3.5 bg-white border border-[#E2E8F0] rounded-[22px] p-3 shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
                         >
                           <img src={cafe.img} className="w-[68px] h-[68px] rounded-[16px] object-cover shrink-0" alt={cafe.name} />
                           <div className="flex-1">
                             <h4 className="text-[14px] font-bold">{cafe.name}</h4>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#8A7A6B] my-1">
-                              <span className="flex items-center text-[#F09819]"><MS name="star" size={12} /> {cafe.rating}</span>
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-[#64748B] my-1">
+                              <span className="flex items-center text-[#0055D4]"><MS name="star" size={12} /> {cafe.rating}</span>
                               <span>•</span>
                               <span>{cafe.dist}</span>
                             </div>
@@ -524,7 +524,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                           <h3 className="text-[17px] font-black leading-tight">Blue Tokai Coffee</h3>
                           <p className="text-[10px] text-white/80 font-bold">Connaught Place • 0.8 km</p>
                         </div>
-                        <span className="bg-[#F09819] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="bg-[#0055D4] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                           <MS name="star" size={12} /> 4.9
                         </span>
                       </div>
@@ -532,19 +532,19 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
 
                     {/* Menu Items */}
                     <div className="p-5 flex-1 space-y-3">
-                      <h4 className="text-[13px] font-black uppercase tracking-wider text-[#8A7A6B]">Must Try Drinks</h4>
+                      <h4 className="text-[13px] font-black uppercase tracking-wider text-[#64748B]">Must Try Drinks</h4>
 
                       {/* Item 1 */}
                       <div 
                         onClick={() => setState('PRODUCT')}
-                        className="p-3 bg-white border border-[#EBE4D8] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
+                        className="p-3 bg-white border border-[#E2E8F0] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
                       >
                         <div className="flex gap-3 items-center">
                           <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=200&auto=format&fit=crop" className="w-14 h-14 rounded-xl object-cover shrink-0" alt="Vietnamese Iced" />
                           <div>
                             <h5 className="text-[13px] font-bold">Vietnamese Iced Coffee</h5>
-                            <p className="text-[10px] text-[#8A7A6B] font-medium">Sweetened condensed milk</p>
-                            <span className="text-[13px] font-black text-[#1A1311] mt-0.5 block">₹240</span>
+                            <p className="text-[10px] text-[#64748B] font-medium">Sweetened condensed milk</p>
+                            <span className="text-[13px] font-black text-[#0F172A] mt-0.5 block">₹240</span>
                           </div>
                         </div>
                         <button 
@@ -553,7 +553,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                             setCartCount(cartCount + 1);
                             showToast('Added Vietnamese Iced Coffee!');
                           }}
-                          className="px-3 py-1.5 bg-[#F09819]/10 text-[#F09819] border border-[#F09819]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
+                          className="px-3 py-1.5 bg-[#0055D4]/10 text-[#0055D4] border border-[#0055D4]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
                         >
                           ADD +
                         </button>
@@ -562,14 +562,14 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                       {/* Item 2 */}
                       <div 
                         onClick={() => setState('PRODUCT')}
-                        className="p-3 bg-white border border-[#EBE4D8] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
+                        className="p-3 bg-white border border-[#E2E8F0] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
                       >
                         <div className="flex gap-3 items-center">
                           <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=200&auto=format&fit=crop" className="w-14 h-14 rounded-xl object-cover shrink-0" alt="Almond Croissant" />
                           <div>
                             <h5 className="text-[13px] font-bold">Almond Croissant</h5>
-                            <p className="text-[10px] text-[#8A7A6B] font-medium">Flaky & freshly baked</p>
-                            <span className="text-[13px] font-black text-[#1A1311] mt-0.5 block">₹180</span>
+                            <p className="text-[10px] text-[#64748B] font-medium">Flaky & freshly baked</p>
+                            <span className="text-[13px] font-black text-[#0F172A] mt-0.5 block">₹180</span>
                           </div>
                         </div>
                         <button 
@@ -578,7 +578,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                             setCartCount(cartCount + 1);
                             showToast('Added Almond Croissant!');
                           }}
-                          className="px-3 py-1.5 bg-[#F09819]/10 text-[#F09819] border border-[#F09819]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
+                          className="px-3 py-1.5 bg-[#0055D4]/10 text-[#0055D4] border border-[#0055D4]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
                         >
                           ADD +
                         </button>
@@ -590,13 +590,13 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                       <div className="px-5 pb-3">
                         <div 
                           onClick={() => setState('CART')}
-                          className="w-full bg-[#1A1311] text-white p-3 rounded-full flex justify-between items-center cursor-pointer active:scale-95 transition-transform shadow-lg"
+                          className="w-full bg-[#0F172A] text-white p-3 rounded-full flex justify-between items-center cursor-pointer active:scale-95 transition-transform shadow-lg"
                         >
                           <div className="flex items-center gap-2 pl-2">
-                            <span className="w-6 h-6 bg-[#F09819] rounded-full text-white text-[11px] font-bold flex items-center justify-center">{cartCount}</span>
+                            <span className="w-6 h-6 bg-[#0055D4] rounded-full text-white text-[11px] font-bold flex items-center justify-center">{cartCount}</span>
                             <span className="text-[12px] font-bold">Items added</span>
                           </div>
-                          <div className="flex items-center gap-1 pr-2 text-[12px] font-bold text-[#F09819]">
+                          <div className="flex items-center gap-1 pr-2 text-[12px] font-bold text-[#0055D4]">
                             <span>View Cart</span>
                             <MS name="arrow_forward" size={16} />
                           </div>
@@ -616,23 +616,23 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     className="flex flex-col w-full h-full p-5 relative"
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <div onClick={() => setState('CAFE')} className="p-2 rounded-full bg-white border border-[#EBE4D8] cursor-pointer">
+                      <div onClick={() => setState('CAFE')} className="p-2 rounded-full bg-white border border-[#E2E8F0] cursor-pointer">
                         <MS name="close" size={18} />
                       </div>
-                      <span className="text-[12px] font-bold text-[#8A7A6B]">Blue Tokai</span>
+                      <span className="text-[12px] font-bold text-[#64748B]">Blue Tokai</span>
                     </div>
 
                     <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=600&auto=format&fit=crop" className="w-full h-[140px] rounded-[24px] object-cover mb-4 shadow-sm" alt="Product" />
 
                     <h3 className="text-[18px] font-black mb-1">Vietnamese Iced Coffee</h3>
-                    <p className="text-[11px] text-[#8A7A6B] mb-4 leading-relaxed">Signature espresso poured over condensed milk & ice. Strong, sweet & creamy.</p>
+                    <p className="text-[11px] text-[#64748B] mb-4 leading-relaxed">Signature espresso poured over condensed milk & ice. Strong, sweet & creamy.</p>
 
                     <div className="space-y-3 mb-6">
                       <div>
-                        <label className="text-[11px] font-extrabold uppercase text-[#8A7A6B]">Size</label>
+                        <label className="text-[11px] font-extrabold uppercase text-[#64748B]">Size</label>
                         <div className="flex gap-2 mt-1">
-                          <button className="flex-1 py-2 bg-[#F09819]/10 border border-[#F09819] rounded-xl text-[11px] font-bold text-[#F09819]">Regular (350ml)</button>
-                          <button className="flex-1 py-2 bg-white border border-[#EBE4D8] rounded-xl text-[11px] font-bold text-[#8A7A6B]">Large (450ml) +₹40</button>
+                          <button className="flex-1 py-2 bg-[#0055D4]/10 border border-[#0055D4] rounded-xl text-[11px] font-bold text-[#0055D4]">Regular (350ml)</button>
+                          <button className="flex-1 py-2 bg-white border border-[#E2E8F0] rounded-xl text-[11px] font-bold text-[#64748B]">Large (450ml) +₹40</button>
                         </div>
                       </div>
                     </div>
@@ -642,7 +642,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         setCartCount(cartCount + 1);
                         setState('CART');
                       }}
-                      className="w-full py-3.5 bg-[#1A1311] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-md"
+                      className="w-full py-3.5 bg-[#0F172A] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-md"
                     >
                       Add to Order • ₹240
                     </button>
@@ -659,19 +659,19 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     className="flex flex-col w-full h-full p-5 relative"
                   >
                     <div className="flex items-center gap-3 mb-4">
-                      <div onClick={() => setState('HOME')} className="p-2 rounded-full bg-white border border-[#EBE4D8] cursor-pointer">
+                      <div onClick={() => setState('HOME')} className="p-2 rounded-full bg-white border border-[#E2E8F0] cursor-pointer">
                         <MS name="arrow_back" size={18} />
                       </div>
                       <h2 className="text-[16px] font-black">Checkout Order</h2>
                     </div>
 
                     {/* Order Items */}
-                    <div className="bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-3 space-y-3 shadow-xs">
-                      <div className="flex justify-between items-center text-[12px] font-bold pb-2 border-b border-[#EBE4D8]">
+                    <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 mb-3 space-y-3 shadow-xs">
+                      <div className="flex justify-between items-center text-[12px] font-bold pb-2 border-b border-[#E2E8F0]">
                         <span>1x Vietnamese Iced Coffee</span>
                         <span>₹240</span>
                       </div>
-                      <div className="flex justify-between items-center text-[12px] font-bold pb-2 border-b border-[#EBE4D8]">
+                      <div className="flex justify-between items-center text-[12px] font-bold pb-2 border-b border-[#E2E8F0]">
                         <span>1x Almond Croissant</span>
                         <span>₹180</span>
                       </div>
@@ -682,7 +682,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                           setCouponApplied(!couponApplied);
                           showToast(couponApplied ? 'Coupon Removed' : 'GRAB20 Applied!');
                         }}
-                        className="flex justify-between items-center p-2 rounded-xl bg-[#F09819]/10 border border-[#F09819]/30 text-[11px] font-bold text-[#F09819] cursor-pointer"
+                        className="flex justify-between items-center p-2 rounded-xl bg-[#0055D4]/10 border border-[#0055D4]/30 text-[11px] font-bold text-[#0055D4] cursor-pointer"
                       >
                         <div className="flex items-center gap-1.5">
                           <MS name="local_offer" size={14} />
@@ -693,8 +693,8 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     </div>
 
                     {/* Bill Breakdown */}
-                    <div className="bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-4 text-[11px] font-bold space-y-1.5 shadow-xs">
-                      <div className="flex justify-between text-[#8A7A6B]">
+                    <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 mb-4 text-[11px] font-bold space-y-1.5 shadow-xs">
+                      <div className="flex justify-between text-[#64748B]">
                         <span>Item Total</span>
                         <span>₹420</span>
                       </div>
@@ -704,11 +704,11 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                           <span>-₹84</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-[#8A7A6B]">
+                      <div className="flex justify-between text-[#64748B]">
                         <span>Convenience Fee</span>
                         <span>₹0 (Free)</span>
                       </div>
-                      <div className="flex justify-between text-[13px] font-black text-[#1A1311] pt-2 border-t border-[#EBE4D8]">
+                      <div className="flex justify-between text-[13px] font-black text-[#0F172A] pt-2 border-t border-[#E2E8F0]">
                         <span>To Pay</span>
                         <span>₹{couponApplied ? 336 : 420}</span>
                       </div>
@@ -716,7 +716,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
 
                     <button 
                       onClick={() => setState('CONFIRMATION')}
-                      className="w-full py-3.5 bg-[#F09819] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-lg flex items-center justify-center gap-2"
+                      className="w-full py-3.5 bg-[#0055D4] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-lg flex items-center justify-center gap-2"
                     >
                       <span>Pay ₹{couponApplied ? 336 : 420} & Order</span>
                       <MS name="arrow_forward" size={16} />
@@ -733,30 +733,30 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     exit={{ opacity: 0 }}
                     className="flex flex-col items-center justify-center w-full h-full p-6 text-center"
                   >
-                    <div className="w-14 h-14 bg-[#F09819]/10 border-2 border-[#F09819] rounded-full flex items-center justify-center text-[#F09819] mb-4 animate-pulse">
+                    <div className="w-14 h-14 bg-[#0055D4]/10 border-2 border-[#0055D4] rounded-full flex items-center justify-center text-[#0055D4] mb-4 animate-pulse">
                       <MS name="hourglass_top" size={28} />
                     </div>
                     <h3 className="text-[18px] font-black mb-1">Preparing Your Order</h3>
-                    <p className="text-[11px] text-[#8A7A6B] mb-6">Barista at Blue Tokai is brewing your coffee.</p>
+                    <p className="text-[11px] text-[#64748B] mb-6">Barista at Blue Tokai is brewing your coffee.</p>
 
-                    <div className="w-full bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-6 text-left shadow-xs">
-                      <div className="flex justify-between items-center text-[11px] font-bold text-[#8A7A6B] mb-2">
+                    <div className="w-full bg-white border border-[#E2E8F0] rounded-[20px] p-4 mb-6 text-left shadow-xs">
+                      <div className="flex justify-between items-center text-[11px] font-bold text-[#64748B] mb-2">
                         <span>ESTIMATED PICKUP</span>
-                        <span className="text-[#F09819] font-black">04:30 mins</span>
+                        <span className="text-[#0055D4] font-black">04:30 mins</span>
                       </div>
                       <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                         <motion.div 
                           initial={{ width: '0%' }}
                           animate={{ width: '75%' }}
                           transition={{ duration: 3 }}
-                          className="h-full bg-[#F09819] rounded-full"
+                          className="h-full bg-[#0055D4] rounded-full"
                         />
                       </div>
                     </div>
 
                     <button 
                       onClick={() => setState('READY')}
-                      className="w-full py-3.5 bg-[#1A1311] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform"
+                      className="w-full py-3.5 bg-[#0F172A] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform"
                     >
                       Simulate Order Ready
                     </button>
@@ -783,14 +783,14 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     </motion.div>
                     
                     <h2 className="text-[18px] font-black mb-1">Order Ready for Pickup!</h2>
-                    <p className="text-[11px] text-[#8A7A6B] mb-5 leading-relaxed">
+                    <p className="text-[11px] text-[#64748B] mb-5 leading-relaxed">
                       Show code at <strong>Blue Tokai Counter</strong>.
                     </p>
 
-                    <div className="w-full bg-white border border-[#EBE4D8] rounded-[20px] p-4 mb-5 shadow-xs">
-                      <div className="text-[10px] font-bold text-[#8A7A6B] uppercase mb-1">Pickup Token</div>
-                      <div className="text-[22px] font-black text-[#F09819] mb-3 tracking-widest">#GT-8492</div>
-                      <div className="flex justify-between items-center text-[11px] font-bold pt-2 border-t border-[#EBE4D8] text-[#8A7A6B]">
+                    <div className="w-full bg-white border border-[#E2E8F0] rounded-[20px] p-4 mb-5 shadow-xs">
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase mb-1">Pickup Token</div>
+                      <div className="text-[22px] font-black text-[#0055D4] mb-3 tracking-widest">#GT-8492</div>
+                      <div className="flex justify-between items-center text-[11px] font-bold pt-2 border-t border-[#E2E8F0] text-[#64748B]">
                         <span>1x Vietnamese Iced</span>
                         <span>1x Croissant</span>
                       </div>
@@ -798,7 +798,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
 
                     <button 
                       onClick={() => setState('HOME')}
-                      className="w-full py-3.5 bg-[#1A1311] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform shadow-md"
+                      className="w-full py-3.5 bg-[#0F172A] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform shadow-md"
                     >
                       Back to Home
                     </button>
@@ -815,12 +815,12 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     className="flex flex-col w-full h-full p-5"
                   >
                     <div className="flex items-center gap-3 mb-5">
-                      <div className="w-12 h-12 rounded-full bg-[#F09819]/20 border border-[#F09819] flex items-center justify-center text-[#F09819] font-black text-[16px]">
+                      <div className="w-12 h-12 rounded-full bg-[#0055D4]/20 border border-[#0055D4] flex items-center justify-center text-[#0055D4] font-black text-[16px]">
                         S
                       </div>
                       <div>
                         <h3 className="text-[15px] font-black">Shriyansh Sharma</h3>
-                        <p className="text-[10px] text-[#8A7A6B] font-bold">GrabbIt Gold Member • 340 pts</p>
+                        <p className="text-[10px] text-[#64748B] font-bold">GrabbIt Gold Member • 340 pts</p>
                       </div>
                     </div>
 
@@ -835,13 +835,13 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         <div 
                           key={item.title}
                           onClick={item.action}
-                          className="p-3 bg-white border border-[#EBE4D8] rounded-[16px] flex items-center justify-between cursor-pointer active:scale-98 transition-transform shadow-xs"
+                          className="p-3 bg-white border border-[#E2E8F0] rounded-[16px] flex items-center justify-between cursor-pointer active:scale-98 transition-transform shadow-xs"
                         >
                           <div className="flex items-center gap-3 text-[12px] font-bold">
-                            <MS name={item.icon} size={18} className="text-[#8A7A6B]" />
+                            <MS name={item.icon} size={18} className="text-[#64748B]" />
                             <span>{item.title}</span>
                           </div>
-                          <MS name="chevron_right" size={18} className="text-[#8A7A6B]" />
+                          <MS name="chevron_right" size={18} className="text-[#64748B]" />
                         </div>
                       ))}
                     </div>
@@ -852,7 +852,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
             </div>
 
             {/* BOTTOM APP NAVIGATION */}
-            <div className="absolute bottom-0 inset-x-0 h-[84px] bg-[rgba(255,255,255,0.95)] border-t border-[rgba(235,228,216,0.5)] flex items-start justify-around pt-3.5 px-3 z-40 pb-5 shadow-[0_-4px_12px_rgba(26,19,17,0.02)]">
+            <div className="absolute bottom-0 inset-x-0 h-[84px] bg-[rgba(255,255,255,0.95)] border-t border-[rgba(235,228,216,0.5)] flex items-start justify-around pt-3.5 px-3 z-40 pb-5 shadow-[0_-4px_12px_rgba(15, 23, 42,0.02)]">
               {[
                 { id: 'HOME', icon: 'home', label: 'Home' },
                 { id: 'EXPLORE', icon: 'search', label: 'Explore' },
@@ -866,19 +866,19 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     onClick={() => setState(item.id as AppState)}
                     className="flex flex-col items-center gap-1 cursor-pointer w-14 group"
                   >
-                    <div className={`relative flex items-center justify-center w-12 h-9 rounded-full transition-colors duration-200 ${isActive ? 'bg-[#F09819]/10' : 'group-hover:bg-gray-100'}`}>
+                    <div className={`relative flex items-center justify-center w-12 h-9 rounded-full transition-colors duration-200 ${isActive ? 'bg-[#0055D4]/10' : 'group-hover:bg-gray-100'}`}>
                       <MS 
                         name={item.icon} 
                         size={22} 
-                        className={`transition-colors duration-200 ${isActive ? 'text-[#F09819]' : 'text-[#8A7A6B]'}`} 
+                        className={`transition-colors duration-200 ${isActive ? 'text-[#0055D4]' : 'text-[#64748B]'}`} 
                       />
                       {item.id === 'CART' && cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#F09819] text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#0055D4] text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
                           {cartCount}
                         </span>
                       )}
                     </div>
-                    <span className={`text-[9.5px] font-bold transition-colors duration-200 ${isActive ? 'text-[#1A1311]' : 'text-[#8A7A6B]'}`}>
+                    <span className={`text-[9.5px] font-bold transition-colors duration-200 ${isActive ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
                       {item.label}
                     </span>
                   </div>
@@ -886,7 +886,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
               })}
               
               {/* Home indicator bar (iOS) */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[110px] h-[4px] bg-[#1A1311] rounded-full opacity-90" />
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[110px] h-[4px] bg-[#0F172A] rounded-full opacity-90" />
             </div>
 
           </div>

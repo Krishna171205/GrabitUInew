@@ -34,21 +34,21 @@ const CAFES = [
 
 export default function CafeDiscovery() {
   return (
-    <section className="py-32 bg-white text-[#1A1311] relative overflow-hidden">
+    <section className="py-32 bg-white text-[#0F172A] relative overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-6">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-6">
           <div className="max-w-2xl">
-            <h2 className="text-[42px] md:text-[56px] font-black tracking-tighter text-[#1A1311] leading-[1.05] mb-4">
-              Top cafés live on <span className="text-[#F09819]">Grabbit.</span>
+            <h2 className="text-[42px] md:text-[56px] font-black tracking-tighter text-[#0F172A] leading-[1.05] mb-4">
+              Top cafés live on <span className="text-[#0055D4]">Grabbit.</span>
             </h2>
-            <p className="text-[#8A7A6B] text-[18px] font-semibold">
+            <p className="text-[#64748B] text-[18px] font-semibold">
               Skip lines at Delhi NCR’s best coffee spots. Order ahead, track your slot, and grab your order warm.
             </p>
           </div>
           <div className="shrink-0">
-            <div className="group flex items-center gap-2 bg-[#FDFBF7] border border-[#EBE4D8] text-[#1A1311] px-6 py-3 rounded-[16px] font-bold text-[14px] cursor-pointer hover:border-[#F09819] transition-colors shadow-sm">
+            <div className="group flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] px-6 py-3 rounded-[16px] font-bold text-[14px] cursor-pointer hover:border-[#0055D4] transition-colors shadow-sm">
               View all 50+ Cafés <MS name="arrow_forward" size={16} className="transition-transform group-hover:translate-x-1" />
             </div>
           </div>
@@ -63,18 +63,18 @@ export default function CafeDiscovery() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.15, duration: 0.5 }}
-              className="group bg-[#FDFBF7] rounded-[24px] border border-[#EBE4D8] shadow-[0_4px_24px_rgba(26,19,17,0.04)] overflow-hidden flex flex-col cursor-pointer hover:shadow-[0_24px_48px_rgba(26,19,17,0.12)] hover:-translate-y-2 transition-all duration-300"
+              className="group bg-[#F8FAFC] rounded-[24px] border border-[#E2E8F0] shadow-[0_4px_24px_rgba(15, 23, 42,0.04)] overflow-hidden flex flex-col cursor-pointer hover:shadow-[0_24px_48px_rgba(15, 23, 42,0.12)] hover:-translate-y-2 transition-all duration-300"
             >
               {/* Image Banner */}
               <div className="relative h-[240px] w-full overflow-hidden">
                 <img src={cafe.image} alt={cafe.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-[0.16,1,0.3,1]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1311]/80 via-transparent to-transparent pointer-events-none" />
-                <div className="absolute top-4 left-4 bg-[rgba(253,251,247,0.95)] text-[#1A1311] text-[12px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
-                  <MS name="star" size={14} color="#F09819" /> {cafe.rating}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute top-4 left-4 bg-[rgba(253,251,247,0.95)] text-[#0F172A] text-[12px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1">
+                  <MS name="star" size={14} color="#0055D4" /> {cafe.rating}
                 </div>
 
                 <div className="absolute bottom-5 left-5 right-5 text-white z-10">
-                  <span className="text-[10px] font-black tracking-widest text-[#F09819] uppercase block mb-1">{cafe.tag}</span>
+                  <span className="text-[10px] font-black tracking-widest text-[#0055D4] uppercase block mb-1">{cafe.tag}</span>
                   <h3 className="text-[24px] font-black leading-tight">{cafe.name}</h3>
                 </div>
               </div>
@@ -82,29 +82,29 @@ export default function CafeDiscovery() {
               {/* Details */}
               <div className="p-6 flex flex-col grow">
                 <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2 text-[13px] font-semibold text-[#8A7A6B]">
-                    <MS name="location_on" size={16} color="#8A7A6B" />
+                  <div className="flex items-center gap-2 text-[13px] font-semibold text-[#64748B]">
+                    <MS name="location_on" size={16} color="#64748B" />
                     <span>{cafe.location}</span>
                   </div>
-                  <div className="bg-[#EBE4D8]/50 text-[#8A7A6B] text-[10px] font-bold tracking-wider px-2 py-1 rounded">
+                  <div className="bg-[#E2E8F0]/50 text-[#64748B] text-[10px] font-bold tracking-wider px-2 py-1 rounded">
                     {cafe.status}
                   </div>
                 </div>
 
                 {/* Pickup Time & Action */}
-                <div className="mt-auto flex items-center justify-between border-t border-[#EBE4D8] pt-5">
+                <div className="mt-auto flex items-center justify-between border-t border-[#E2E8F0] pt-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#F09819]/10 flex items-center justify-center">
-                      <MS name="schedule" size={20} color="#F09819" />
+                    <div className="w-10 h-10 rounded-full bg-[#0055D4]/10 flex items-center justify-center">
+                      <MS name="schedule" size={20} color="#0055D4" />
                     </div>
                     <div>
-                      <div className="text-[11px] font-bold text-[#8A7A6B] tracking-widest uppercase">Ready in</div>
-                      <div className="text-[18px] font-black text-[#1A1311] leading-none group-hover:text-[#F09819] transition-colors">{cafe.prepTime} Min</div>
+                      <div className="text-[11px] font-bold text-[#64748B] tracking-widest uppercase">Ready in</div>
+                      <div className="text-[18px] font-black text-[#0F172A] leading-none group-hover:text-[#0055D4] transition-colors">{cafe.prepTime} Min</div>
                     </div>
                   </div>
                   
                   {/* Hover Order Button */}
-                  <div className="w-10 h-10 rounded-full bg-[#1A1311] flex items-center justify-center text-white opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                  <div className="w-10 h-10 rounded-full bg-[#0F172A] flex items-center justify-center text-white opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                     <MS name="arrow_forward" size={18} />
                   </div>
                 </div>

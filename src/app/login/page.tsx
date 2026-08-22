@@ -138,7 +138,7 @@ function LoginForm() {
                     fontSize: 13.5, fontWeight: 700, fontFamily: 'var(--gb-sans)',
                     background: mode === m ? '#fff' : 'transparent',
                     color: mode === m ? 'var(--gb-text)' : 'var(--gb-muted)',
-                    boxShadow: mode === m ? '0 2px 6px -2px rgba(60,40,25,.3)' : 'none',
+                    boxShadow: mode === m ? '0 2px 6px -2px rgba(15, 23, 42,.3)' : 'none',
                   }}
                 >
                   {m === 'login' ? 'Log in' : 'Sign up'}

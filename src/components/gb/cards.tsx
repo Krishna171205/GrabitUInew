@@ -158,7 +158,7 @@ export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
 export function CategoryCircle({ cat }: { cat: GbCategory }) {
   return (
     <Link href={`/raydee?craving=${encodeURIComponent(cat.query)}`} style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 72, textDecoration: 'none' }}>
-      <div style={{ width: 66, height: 66, borderRadius: 20, overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(60,40,25,.4)', border: '1px solid #EFE7DB', position: 'relative' }}>
+      <div style={{ width: 66, height: 66, borderRadius: 20, overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(15, 23, 42,.4)', border: '1px solid #EFE7DB', position: 'relative' }}>
         <Image src={cat.photo} alt={cat.label} fill sizes="66px" style={{ objectFit: 'cover', borderRadius: 20 }} />
       </div>
       <span style={{ fontSize: 12, fontWeight: 600, color: '#4A4038', textAlign: 'center', lineHeight: 1.1 }}>{cat.label}</span>

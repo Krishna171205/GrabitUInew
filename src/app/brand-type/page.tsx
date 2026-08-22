@@ -45,40 +45,40 @@ function Specimen({ s }: { s: Sys }) {
   return (
     <section style={{ borderTop: '1px solid #EDE2CE', padding: '40px 0' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
-        <h2 style={{ fontFamily: s.display, fontWeight: 800, fontSize: 22, color: '#241612', margin: 0, letterSpacing: '-.01em' }}>{s.name}</h2>
-        {s.rec && <span style={{ fontFamily: s.body, fontSize: 11, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: '#241612', background: '#FFB100', padding: '3px 9px', borderRadius: 999 }}>Recommended</span>}
-        <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#8A7A6B' }}>{s.tag}</span>
+        <h2 style={{ fontFamily: s.display, fontWeight: 800, fontSize: 22, color: '#0F172A', margin: 0, letterSpacing: '-.01em' }}>{s.name}</h2>
+        {s.rec && <span style={{ fontFamily: s.body, fontSize: 11, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: '#0F172A', background: '#0055D4', padding: '3px 9px', borderRadius: 999 }}>Recommended</span>}
+        <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#64748B' }}>{s.tag}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 22 }}>
 
         {/* Hero + wordmark */}
         <div>
-          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 15, color: '#8A7A6B', letterSpacing: '-.01em' }}>Wordmark</div>
-          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 46, letterSpacing: '-.04em', color: '#241612', lineHeight: 1 }}>grab<span style={{ color: '#FFB100' }}>it</span></div>
-          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 40, letterSpacing: '-.03em', color: '#241612', lineHeight: 1.02, marginTop: 18 }}>Skip the queue.</div>
-          <p style={{ fontFamily: s.body, fontWeight: 400, fontSize: 15.5, color: '#4A3B33', lineHeight: 1.5, marginTop: 10, maxWidth: '40ch' }}>Pre-order from cafés near you. Ready when you arrive, no waiting. Pick a slot, pay, and grab it.</p>
+          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 15, color: '#64748B', letterSpacing: '-.01em' }}>Wordmark</div>
+          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 46, letterSpacing: '-.04em', color: '#0F172A', lineHeight: 1 }}>grab<span style={{ color: '#0055D4' }}>it</span></div>
+          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 40, letterSpacing: '-.03em', color: '#0F172A', lineHeight: 1.02, marginTop: 18 }}>Skip the queue.</div>
+          <p style={{ fontFamily: s.body, fontWeight: 400, fontSize: 15.5, color: '#334155', lineHeight: 1.5, marginTop: 10, maxWidth: '40ch' }}>Pre-order from cafés near you. Ready when you arrive, no waiting. Pick a slot, pay, and grab it.</p>
         </div>
 
         {/* Numerals + menu row */}
         <div>
-          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 15, color: '#8A7A6B' }}>Numerals (tabular)</div>
-          <div style={{ fontFamily: s.body, fontWeight: 700, fontSize: 28, color: '#241612', fontVariantNumeric: 'tabular-nums', letterSpacing: '.01em', marginTop: 4 }}>₹1,299 · 10:30 · 04:59</div>
-          <div style={{ marginTop: 16, background: '#FFFDF8', border: '1px solid #EDE2CE', borderRadius: 16, padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 15, color: '#64748B' }}>Numerals (tabular)</div>
+          <div style={{ fontFamily: s.body, fontWeight: 700, fontSize: 28, color: '#0F172A', fontVariantNumeric: 'tabular-nums', letterSpacing: '.01em', marginTop: 4 }}>₹1,299 · 10:30 · 04:59</div>
+          <div style={{ marginTop: 16, background: '#F8FAFC', border: '1px solid #EDE2CE', borderRadius: 16, padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#FFE7B0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>☕</div>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: '#CCE0FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>☕</div>
               <div>
-                <div style={{ fontFamily: s.display, fontWeight: 700, fontSize: 16, color: '#241612' }}>Cold Brew</div>
-                <div style={{ fontFamily: s.body, fontSize: 12.5, color: '#4A3B33' }}>Smooth 12-hour steep</div>
+                <div style={{ fontFamily: s.display, fontWeight: 700, fontSize: 16, color: '#0F172A' }}>Cold Brew</div>
+                <div style={{ fontFamily: s.body, fontSize: 12.5, color: '#334155' }}>Smooth 12-hour steep</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span style={{ fontFamily: s.body, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#241612' }}>₹220</span>
-              <button style={{ fontFamily: s.display, fontWeight: 700, border: 'none', background: '#FFB100', color: '#241612', borderRadius: 999, padding: '8px 14px', fontSize: 14 }}>Add +</button>
+              <span style={{ fontFamily: s.body, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#0F172A' }}>₹220</span>
+              <button style={{ fontFamily: s.display, fontWeight: 700, border: 'none', background: '#0055D4', color: '#0F172A', borderRadius: 999, padding: '8px 14px', fontSize: 14 }}>Add +</button>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
-            {[['Pending', '#FFE7B0', '#8A5A00'], ['Confirmed', '#D7ECFB', '#215C88'], ['Ready', '#D8F1E4', '#1E7A50'], ['Done', '#EDE2CE', '#4A3B33']].map(([t, bg, fg]) => (
+            {[['Pending', '#CCE0FF', '#003380'], ['Confirmed', '#D7ECFB', '#215C88'], ['Ready', '#D8F1E4', '#1E7A50'], ['Done', '#EDE2CE', '#334155']].map(([t, bg, fg]) => (
               <span key={t} style={{ fontFamily: s.body, fontWeight: 700, fontSize: 12, padding: '5px 12px', borderRadius: 999, background: bg, color: fg }}>{t}</span>
             ))}
           </div>
@@ -86,10 +86,10 @@ function Specimen({ s }: { s: Sys }) {
 
         {/* Hindi / Devanagari */}
         <div>
-          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 15, color: '#8A7A6B' }}>Hindi (Devanagari)</div>
-          <div style={{ fontFamily: s.deva, fontWeight: 700, fontSize: 30, color: '#241612', lineHeight: 1.2, marginTop: 4 }}>कतार छोड़ो,<br />कॉफ़ी पाओ।</div>
-          <p style={{ fontFamily: s.deva, fontWeight: 400, fontSize: 15.5, color: '#4A3B33', lineHeight: 1.5, marginTop: 10, maxWidth: '34ch' }}>अपने पसंदीदा कैफ़े से पहले से ऑर्डर करें। पहुँचते ही तैयार, कोई इंतज़ार नहीं। ₹220 में।</p>
-          <div style={{ fontFamily: s.deva, fontWeight: 700, fontSize: 22, color: '#241612', fontVariantNumeric: 'tabular-nums', marginTop: 8 }}>ऑर्डर #4821 · 10:30 बजे</div>
+          <div style={{ fontFamily: s.display, fontWeight: 800, fontSize: 15, color: '#64748B' }}>Hindi (Devanagari)</div>
+          <div style={{ fontFamily: s.deva, fontWeight: 700, fontSize: 30, color: '#0F172A', lineHeight: 1.2, marginTop: 4 }}>कतार छोड़ो,<br />कॉफ़ी पाओ।</div>
+          <p style={{ fontFamily: s.deva, fontWeight: 400, fontSize: 15.5, color: '#334155', lineHeight: 1.5, marginTop: 10, maxWidth: '34ch' }}>अपने पसंदीदा कैफ़े से पहले से ऑर्डर करें। पहुँचते ही तैयार, कोई इंतज़ार नहीं। ₹220 में।</p>
+          <div style={{ fontFamily: s.deva, fontWeight: 700, fontSize: 22, color: '#0F172A', fontVariantNumeric: 'tabular-nums', marginTop: 8 }}>ऑर्डर #4821 · 10:30 बजे</div>
         </div>
       </div>
     </section>
@@ -99,11 +99,11 @@ function Specimen({ s }: { s: Sys }) {
 export default function TypeSpecimen() {
   return (
     <div className={`${baloo.variable} ${poppins.variable} ${mukta.variable} ${satoshi.variable} ${clash.variable} ${general.variable}`}
-      style={{ background: '#FFF3DC', minHeight: '100vh' }}>
+      style={{ background: '#E6F0FF', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '48px 24px 80px' }}>
-        <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: '#8A7A6B' }}>Grabbit · Marigold · Type comparison</div>
-        <h1 style={{ fontFamily: 'var(--f-baloo)', fontWeight: 800, fontSize: 40, color: '#241612', letterSpacing: '-.03em', margin: '10px 0 6px' }}>Three type systems, same brand</h1>
-        <p style={{ fontFamily: 'var(--f-satoshi)', fontSize: 16, color: '#4A3B33', maxWidth: '60ch' }}>All rendered with the real self-hosted fonts on the Marigold palette. Compare the wordmark, small UI, tabular numerals (prices/timers), and Hindi. Then pick one.</p>
+        <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: '#64748B' }}>Grabbit · Marigold · Type comparison</div>
+        <h1 style={{ fontFamily: 'var(--f-baloo)', fontWeight: 800, fontSize: 40, color: '#0F172A', letterSpacing: '-.03em', margin: '10px 0 6px' }}>Three type systems, same brand</h1>
+        <p style={{ fontFamily: 'var(--f-satoshi)', fontSize: 16, color: '#334155', maxWidth: '60ch' }}>All rendered with the real self-hosted fonts on the Marigold palette. Compare the wordmark, small UI, tabular numerals (prices/timers), and Hindi. Then pick one.</p>
         {SYSTEMS.map((s) => <Specimen key={s.id} s={s} />)}
       </div>
     </div>

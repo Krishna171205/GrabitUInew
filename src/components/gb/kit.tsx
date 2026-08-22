@@ -39,8 +39,8 @@ export function BottomNav() {
     <nav
       className="gb-bottomnav"
       style={{
-        background: 'rgba(250,246,240,.9)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-        borderTop: '1px solid #ECE3D6',
+        background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+        borderTop: '1px solid var(--gb-line)',
         padding: '11px 14px calc(26px + env(safe-area-inset-bottom))',
       }}
     >

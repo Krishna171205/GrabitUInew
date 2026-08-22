@@ -17,9 +17,9 @@ export default function TrustBand() {
   const marqueeItems = [...PILLARS, ...PILLARS, ...PILLARS, ...PILLARS];
 
   return (
-    <section className="relative overflow-hidden py-16 bg-[#FDFBF7] flex items-center justify-center -mt-8 mb-8 z-10">
+    <section className="relative overflow-hidden py-16 bg-[#F8FAFC] flex items-center justify-center -mt-8 mb-8 z-10">
       <div 
-        className="w-[110%] bg-[#F09819] flex items-center shadow-lg border-y border-[#E09A00]"
+        className="w-[110%] bg-[#0055D4] flex items-center shadow-lg border-y border-[#0040A1]"
         style={{ transform: 'rotate(-2deg)' }}
       >
         <motion.div
@@ -29,9 +29,9 @@ export default function TrustBand() {
         >
           {marqueeItems.map((p, idx) => (
             <div key={`${p.label}-${idx}`} className="flex items-center gap-2 shrink-0">
-              <MS name={p.icon} size={20} fill color="#FFFDF8" />
-              <span className="text-[14px] font-bold text-[#FFFDF8] uppercase tracking-widest">{p.label}</span>
-              <span className="text-[#FFFDF8] opacity-40 ml-10">✦</span>
+              <MS name={p.icon} size={20} fill color="#F8FAFC" />
+              <span className="text-[14px] font-bold text-[#F8FAFC] uppercase tracking-widest">{p.label}</span>
+              <span className="text-[#F8FAFC] opacity-40 ml-10">✦</span>
             </div>
           ))}
         </motion.div>
