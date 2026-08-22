@@ -251,8 +251,13 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     const qty = qtyOf(item.id);
     if (qty > 0) {
       return (
+<<<<<<< HEAD
         <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.5)', overflow: 'hidden' }}>
           <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
+=======
+        <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(15, 23, 42,.5)', overflow: 'hidden' }}>
+          <button onClick={() => updateQty(item.id, qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
+>>>>>>> new_source/master
           <span style={{ minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
           <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
         </div>
@@ -260,9 +265,14 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
     }
     return (
       <button
+<<<<<<< HEAD
         onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
         className={shakeId === item.id ? 'gb-shake' : undefined}
         style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(60,40,25,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
+=======
+        onClick={() => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug)}
+        style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 11, boxShadow: '0 6px 14px -6px rgba(15, 23, 42,.4)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
+>>>>>>> new_source/master
       >
         Add<MS name="add" size={16} />
       </button>
@@ -321,7 +331,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
       </div>
 
       {/* info strip — real signals only */}
-      <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 18, border: '1px solid var(--gb-line-2)', boxShadow: '0 12px 26px -18px rgba(60,40,25,.4)', display: 'flex', padding: '14px 6px' }}>
+      <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 18, border: '1px solid var(--gb-line-2)', boxShadow: '0 12px 26px -18px rgba(15, 23, 42,.4)', display: 'flex', padding: '14px 6px' }}>
         <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14.5, fontWeight: 800, color: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)', flex: 'none' }} />{open ? 'Open now' : 'Closed'}
@@ -378,8 +388,13 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
                 <div style={{ position: 'relative', height: 96 }}>
                   <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   {qtyOf(item.menu_item_id) > 0 ? (
+<<<<<<< HEAD
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+=======
+                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(15, 23, 42,.25)', overflow: 'hidden' }}>
+                      <button onClick={() => updateQty(item.menu_item_id, qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+>>>>>>> new_source/master
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.menu_item_id)}</span>
                       <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={shakeId === item.menu_item_id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
@@ -414,8 +429,13 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
                     <MS name="favorite" size={15} fill color="#C0392B" />
                   </button>
                   {qtyOf(item.id) > 0 ? (
+<<<<<<< HEAD
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(60,40,25,.25)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(plainLineKey(item.id), qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+=======
+                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: '0 3px 10px rgba(15, 23, 42,.25)', overflow: 'hidden' }}>
+                      <button onClick={() => updateQty(item.id, qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
+>>>>>>> new_source/master
                       <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.id)}</span>
                       <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qtyOf(item.id) + 1))} aria-label="Add one" className={shakeId === item.id ? 'gb-shake' : undefined} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
                     </div>
@@ -438,7 +458,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
 
       {/* menu search */}
       <div style={{ padding: '18px 16px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '12px 14px', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 14, padding: '12px 14px', boxShadow: '0 6px 16px -12px rgba(15, 23, 42,.4)' }}>
           <MS name="search" size={20} color="#B0A08C" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 16, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
           {query
@@ -447,6 +467,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* filter chips — sticky so switching category/subcategory is always one tap away.
           Subcategories share the same row as categories (Zomato-style), with a "+More"
           chip opening a sheet once there are more than fit on one line. */}
@@ -455,6 +476,12 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           <MS name="tune" size={17} color={sortMode !== 'recommended' ? '#fff' : 'var(--gb-primary)'} />Filters
         </button>
         <button style={chip(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>All</button>
+=======
+      {/* filter chips — sticky so switching category is always one tap away */}
+      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(15, 23, 42,.35)', display: 'flex', gap: 9, overflowX: 'auto', padding: '14px 16px 10px' }}>
+        <div style={chip(false)}><MS name="tune" size={17} color="var(--gb-primary)" />Filters</div>
+        <button style={chip(activeCat === 'all')} onClick={() => setActiveCat('all')}>All</button>
+>>>>>>> new_source/master
         {categoriesPresent.map(c => (
           <button key={c} style={chip(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>{CATEGORY_LABELS[c]}</button>
         ))}
@@ -487,6 +514,7 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
           return (
             <div key={cat}>
               <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
+<<<<<<< HEAD
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, paddingBottom: 6 }}>
                 {catItems.map(item => (
                   <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 6px 16px -12px rgba(60,40,25,.4)' }}>
@@ -510,6 +538,25 @@ export default function MenuClient({ slug, cafe, items, addons, customerName, to
                       <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8, paddingRight: 60 }}>{inr(item.price)}</div>
                       {gridAddStep(item)}
                     </div>
+=======
+              {catItems.map(item => (
+                <div key={item.id} style={{ display: 'flex', gap: 14, padding: '15px 0', borderBottom: '1px solid var(--gb-line)' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Veg veg={item.is_veg} /><span style={{ fontSize: 16, fontWeight: 700, color: 'var(--gb-text)' }}>{item.name}</span></div>
+                    {item.description && <div style={{ fontSize: 13, color: 'var(--gb-muted)', lineHeight: 1.4, marginTop: 5, fontWeight: 500 }}>{item.description}</div>}
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8 }}>{inr(item.price)}</div>
+                  </div>
+                  <div style={{ width: 104, flex: 'none', position: 'relative' }}>
+                    <div style={{ width: 104, height: 96, borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 18px -10px rgba(15, 23, 42,.4)', position: 'relative' }}>
+                      <Image src={item.image_url || ph(placeholderFor(item))} alt={item.name} fill sizes="104px" style={{ objectFit: 'cover' }} />
+                    </div>
+                    {isLoggedIn && (
+                      <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(15, 23, 42,.25)' }}>
+                        <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
+                      </button>
+                    )}
+                    {addStep(item)}
+>>>>>>> new_source/master
                   </div>
                 ))}
               </div>

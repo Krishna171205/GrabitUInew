@@ -97,16 +97,16 @@ export function FloatingStatusCard({
         <motion.div 
           animate={isReceivingEnergy ? { 
             scale: 1.4, 
-            boxShadow: '0 0 12px rgba(240,152,25,0.7)',
-            background: 'linear-gradient(to bottom right, #F09819, #F09819)'
+            boxShadow: '0 0 12px rgba(0, 85, 212,0.7)',
+            background: 'linear-gradient(to bottom right, #0055D4, #0055D4)'
           } : isHovered ? { 
             scale: 1.2, 
-            boxShadow: '0 0 8px rgba(240,152,25,0.4)',
-            background: 'linear-gradient(to bottom right, #F09819, #D46C20)'
+            boxShadow: '0 0 8px rgba(0, 85, 212,0.4)',
+            background: 'linear-gradient(to bottom right, #0055D4, #D46C20)'
           } : { 
             scale: 1, 
             boxShadow: '0 2px 4px rgba(30,20,10,0.1)',
-            background: 'linear-gradient(to bottom right, #F09819, #D46C20)'
+            background: 'linear-gradient(to bottom right, #0055D4, #D46C20)'
           }}
           transition={{ duration: 0.25 }}
           className="w-[8px] h-[8px] rounded-full flex items-center justify-center relative z-20 border border-[rgba(255,255,255,0.6)] shadow-sm"
@@ -123,13 +123,13 @@ export function FloatingStatusCard({
         animate={isReceivingEnergy ? { 
           scale: 1.03,
           y: -4,
-          boxShadow: '0 20px 50px rgba(240,152,25,0.25), 0 8px 20px rgba(240,152,25,0.12)',
-          borderColor: 'rgba(240,152,25,0.8)'
+          boxShadow: '0 20px 50px rgba(0, 85, 212,0.25), 0 8px 20px rgba(0, 85, 212,0.12)',
+          borderColor: 'rgba(0, 85, 212,0.8)'
         } : active ? { 
           scale: 1.015,
           y: -2,
-          boxShadow: '0 14px 36px rgba(240,152,25,0.18), 0 4px 12px rgba(30,20,10,0.06)',
-          borderColor: 'rgba(240,152,25,0.4)'
+          boxShadow: '0 14px 36px rgba(0, 85, 212,0.18), 0 4px 12px rgba(30,20,10,0.06)',
+          borderColor: 'rgba(0, 85, 212,0.4)'
         } : { 
           scale: 1,
           y: 0,
@@ -141,10 +141,10 @@ export function FloatingStatusCard({
         whileHover={{ 
           y: -4, 
           scale: 1.025, 
-          boxShadow: '0 18px 48px rgba(240,152,25,0.2), 0 6px 16px rgba(30,20,10,0.06)' 
+          boxShadow: '0 18px 48px rgba(0, 85, 212,0.2), 0 6px 16px rgba(30,20,10,0.06)' 
         }}
         whileTap={{ scale: 0.99 }}
-        className={`relative bg-[#FFFDF8] border rounded-[22px] w-[230px] p-[20px] pr-[24px] transition-all duration-300 z-10 overflow-hidden ${
+        className={`relative bg-[#F8FAFC] border rounded-[22px] w-[230px] p-[20px] pr-[24px] transition-all duration-300 z-10 overflow-hidden ${
           entranceDirection === 'left' ? 'order-1' : 'order-1'
         }`}
       >
@@ -154,7 +154,7 @@ export function FloatingStatusCard({
         {type === 'cafes' && (
           <div className="flex flex-col text-left relative z-10">
             <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#64748B] uppercase">
                 {label}
               </span>
               <motion.div 
@@ -176,7 +176,7 @@ export function FloatingStatusCard({
                   rotate: isReceivingEnergy ? [-8, 8, 0] : isHovered ? -5 : 0 
                 }}
                 transition={{ duration: 0.35, type: "spring", stiffness: 300, damping: 15 }}
-                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#E6F0FF] to-[#CCE0FF] flex items-center justify-center text-[#0055D4] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(0, 85, 212,0.15)] border border-white"
               >
                 <div className="scale-90">{icon}</div>
               </motion.div>
@@ -184,7 +184,7 @@ export function FloatingStatusCard({
                 <motion.div 
                   animate={{ 
                     scale: isReceivingEnergy ? [1, 1.12, 1] : 1,
-                    color: isReceivingEnergy ? ['#1A1311', '#F09819', '#1A1311'] : '#1A1311'
+                    color: isReceivingEnergy ? ['#0F172A', '#0055D4', '#0F172A'] : '#0F172A'
                   }}
                   transition={{ duration: 0.35 }}
                   className="text-[20px] font-black leading-none mb-1 tracking-tight origin-left"
@@ -197,7 +197,7 @@ export function FloatingStatusCard({
                       key={i} 
                       animate={isHovered || isReceivingEnergy ? { x: (i - 1) * 3, scale: isReceivingEnergy ? 1.1 : 1 } : { x: 0, scale: 1 }}
                       transition={{ delay: i * 0.04, duration: 0.25 }}
-                      className="relative rounded-full border-[1.5px] border-[#FDFBF7] shadow-sm z-[3] hover:z-[10] transition-transform"
+                      className="relative rounded-full border-[1.5px] border-[#F8FAFC] shadow-sm z-[3] hover:z-[10] transition-transform"
                       style={{ zIndex: 3 - i }}
                     >
                       <img src={`https://i.pravatar.cc/100?img=${i+20}`} className="w-[20px] h-[20px] rounded-full object-cover" alt="User" />
@@ -207,8 +207,8 @@ export function FloatingStatusCard({
               </div>
             </div>
 
-            <div className="text-[10px] font-bold text-[#8A7A6B] pt-2.5 flex justify-between items-center relative">
-              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#8A7A6B]/15 to-transparent" />
+            <div className="text-[10px] font-bold text-[#64748B] pt-2.5 flex justify-between items-center relative">
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#64748B]/15 to-transparent" />
               <span>120+ Outlets</span>
             </div>
           </div>
@@ -218,11 +218,11 @@ export function FloatingStatusCard({
         {type === 'time' && (
           <div className="flex flex-col text-left relative z-10">
             <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#64748B] uppercase">
                 {label}
               </span>
               <motion.span 
-                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#F09819', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(240,152,25,0.1)', color: '#F09819' }}
+                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#0055D4', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(0, 85, 212,0.1)', color: '#0055D4' }}
                 transition={{ duration: 0.3 }}
                 className="text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-[1px] rounded-sm transition-colors"
               >
@@ -237,19 +237,19 @@ export function FloatingStatusCard({
                   rotate: isReceivingEnergy ? [0, 15, 0] : isHovered ? 10 : 0 
                 }}
                 transition={{ duration: 0.35, type: "spring", stiffness: 300 }}
-                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#E6F0FF] to-[#CCE0FF] flex items-center justify-center text-[#0055D4] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(0, 85, 212,0.15)] border border-white"
               >
                 <div className="scale-90">{icon}</div>
               </motion.div>
               <div className="flex flex-col">
                 <motion.div 
-                  animate={isReceivingEnergy ? { scale: [1, 1.12, 1], color: ['#1A1311', '#F09819', '#1A1311'] } : { scale: 1, color: '#1A1311' }}
+                  animate={isReceivingEnergy ? { scale: [1, 1.12, 1], color: ['#0F172A', '#0055D4', '#0F172A'] } : { scale: 1, color: '#0F172A' }}
                   transition={{ duration: 0.35 }}
                   className="text-[20px] font-black leading-none mb-1 tracking-tight origin-left"
                 >
                   {timeValue}
                 </motion.div>
-                <div className="text-[11px] font-bold text-[#8A7A6B]">
+                <div className="text-[11px] font-bold text-[#64748B]">
                   {detail}
                 </div>
               </div>
@@ -260,7 +260,7 @@ export function FloatingStatusCard({
                 <motion.path 
                   d="M 0 20 Q 25 15, 50 18 T 100 4" 
                   fill="none" 
-                  stroke="rgba(240,152,25,0.3)" 
+                  stroke="rgba(0, 85, 212,0.3)" 
                   strokeWidth="4"
                   strokeLinecap="round"
                   className="blur-sm"
@@ -271,7 +271,7 @@ export function FloatingStatusCard({
                 <motion.path 
                   d="M 0 20 Q 25 15, 50 18 T 100 4" 
                   fill="none" 
-                  stroke="#F09819" 
+                  stroke="#0055D4" 
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   initial={{ pathLength: 0, opacity: 0.3 }}
@@ -281,9 +281,9 @@ export function FloatingStatusCard({
               </svg>
               <motion.div 
                 initial={{ opacity: 0, scale: 0 }}
-                animate={isReceivingEnergy ? { opacity: 1, scale: 1.6, boxShadow: '0 0 14px rgba(240,152,25,1)' } : { opacity: isEngaged ? 1 : 0.5, scale: 1, boxShadow: '0 0 8px rgba(240,152,25,0.8)' }}
+                animate={isReceivingEnergy ? { opacity: 1, scale: 1.6, boxShadow: '0 0 14px rgba(0, 85, 212,1)' } : { opacity: isEngaged ? 1 : 0.5, scale: 1, boxShadow: '0 0 8px rgba(0, 85, 212,0.8)' }}
                 transition={{ duration: 0.25 }}
-                className="absolute right-0 top-0 w-[5px] h-[5px] bg-white rounded-full border-2 border-[#F09819]"
+                className="absolute right-0 top-0 w-[5px] h-[5px] bg-white rounded-full border-2 border-[#0055D4]"
               />
             </div>
           </div>
@@ -293,11 +293,11 @@ export function FloatingStatusCard({
         {type === 'ready' && (
           <div className="flex flex-col text-left relative z-10">
             <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#64748B] uppercase">
                 {label}
               </span>
               <motion.span 
-                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#F09819', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(240,152,25,0.1)', color: '#F09819' }}
+                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#0055D4', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(0, 85, 212,0.1)', color: '#0055D4' }}
                 transition={{ duration: 0.3 }}
                 className="text-[8px] font-extrabold uppercase px-1.5 py-[1px] rounded-sm transition-colors"
               >
@@ -312,7 +312,7 @@ export function FloatingStatusCard({
                   scale: isReceivingEnergy ? [1, 1.25, 1] : isHovered ? 1.05 : 1 
                 }}
                 transition={{ duration: 0.35, type: "spring", stiffness: 300, damping: 15 }}
-                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#E6F0FF] to-[#CCE0FF] flex items-center justify-center text-[#0055D4] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(0, 85, 212,0.15)] border border-white"
               >
                 <div className="scale-90">{icon}</div>
               </motion.div>
@@ -320,14 +320,14 @@ export function FloatingStatusCard({
                 <motion.div 
                   animate={{ 
                     scale: isReceivingEnergy ? [1, 1.08, 1] : 1,
-                    color: isReceivingEnergy ? ['#1A1311', '#F09819', '#1A1311'] : '#1A1311'
+                    color: isReceivingEnergy ? ['#0F172A', '#0055D4', '#0F172A'] : '#0F172A'
                   }}
                   transition={{ duration: 0.35 }}
                   className="text-[18px] font-black leading-none mb-1 whitespace-nowrap tracking-tight origin-left"
                 >
                   {value}
                 </motion.div>
-                <div className="text-[11px] font-bold text-[#8A7A6B]">
+                <div className="text-[11px] font-bold text-[#64748B]">
                   {detail}
                 </div>
               </div>
@@ -351,11 +351,11 @@ export function FloatingStatusCard({
         {type === 'rating' && (
           <div className="flex flex-col text-left relative z-10">
             <div className="flex items-center justify-between mb-3.5">
-              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#8A7A6B] uppercase">
+              <span className="text-[9px] font-extrabold tracking-[0.14em] text-[#64748B] uppercase">
                 {label}
               </span>
               <motion.span 
-                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#F09819', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(240,152,25,0.1)', color: '#F09819' }}
+                animate={isReceivingEnergy ? { scale: [1, 1.15, 1], backgroundColor: '#0055D4', color: '#FFF' } : { scale: 1, backgroundColor: 'rgba(0, 85, 212,0.1)', color: '#0055D4' }}
                 transition={{ duration: 0.3 }}
                 className="text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-[1px] rounded-sm transition-colors"
               >
@@ -370,7 +370,7 @@ export function FloatingStatusCard({
                   rotate: isReceivingEnergy ? [0, 15, 0] : isHovered ? 15 : 0 
                 }}
                 transition={{ duration: 0.35, type: "spring", stiffness: 300 }}
-                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#FFF3DC] to-[#FFE7B0] flex items-center justify-center text-[#F09819] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(240,152,25,0.15)] border border-white"
+                className="w-[42px] h-[42px] rounded-[12px] bg-gradient-to-br from-[#E6F0FF] to-[#CCE0FF] flex items-center justify-center text-[#0055D4] shrink-0 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_8px_rgba(0, 85, 212,0.15)] border border-white"
               >
                 <div className="scale-90">{icon}</div>
               </motion.div>
@@ -378,28 +378,28 @@ export function FloatingStatusCard({
                 <motion.div 
                   animate={{ 
                     scale: isReceivingEnergy ? [1, 1.12, 1] : 1,
-                    color: isReceivingEnergy ? ['#1A1311', '#F09819', '#1A1311'] : '#1A1311'
+                    color: isReceivingEnergy ? ['#0F172A', '#0055D4', '#0F172A'] : '#0F172A'
                   }}
                   transition={{ duration: 0.35 }}
                   className="text-[20px] font-black leading-none mb-1 tracking-tight origin-left"
                 >
                   {value}
                 </motion.div>
-                <div className="text-[11px] font-bold text-[#8A7A6B]">
+                <div className="text-[11px] font-bold text-[#64748B]">
                   {detail}
                 </div>
               </div>
             </div>
             
             <div className="pt-1">
-              <div className="flex gap-1 text-[#F09819] text-[15px]">
+              <div className="flex gap-1 text-[#0055D4] text-[15px]">
                 {[...Array(5)].map((_, i) => (
                   <motion.span 
                     key={i}
                     animate={{ 
                       opacity: 1, 
                       scale: isReceivingEnergy ? [1, 1.4, 1] : isHovered ? [1, 1.2, 1] : 1, 
-                      textShadow: isReceivingEnergy ? '0 0 16px rgba(240,152,25,1)' : isHovered ? '0 0 10px rgba(240,152,25,0.6)' : '0 2px 3px rgba(240,152,25,0.2)' 
+                      textShadow: isReceivingEnergy ? '0 0 16px rgba(0, 85, 212,1)' : isHovered ? '0 0 10px rgba(0, 85, 212,0.6)' : '0 2px 3px rgba(0, 85, 212,0.2)' 
                     }}
                     transition={{ delay: i * 0.05, duration: 0.35 }}
                     className="drop-shadow-sm"

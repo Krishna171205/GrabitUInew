@@ -133,7 +133,7 @@ export default function EcosystemArchitecture() {
       />
 
       {/* Atmospheric Radial Ambient Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-[#6366F1]/20 via-[#4F46E5]/15 to-[#F09819]/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-[#6366F1]/20 via-[#4F46E5]/15 to-[#0055D4]/10 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
@@ -145,7 +145,7 @@ export default function EcosystemArchitecture() {
             viewport={{ once: true }}
             className="inline-flex items-center gap-2 bg-[#6366F1]/10 border border-[#6366F1]/30 rounded-full px-3.5 py-1 mb-4"
           >
-            <div className="w-2 h-2 rounded-full bg-[#F09819] animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-[#0055D4] animate-pulse" />
             <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-[#A5B4FC]">
               Ecosystem Architecture
             </span>
@@ -159,7 +159,7 @@ export default function EcosystemArchitecture() {
             className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-4"
           >
             Infrastructure Built to Power <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A5B4FC] via-white to-[#F09819]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A5B4FC] via-white to-[#0055D4]">
               Modern Food-Tech Operations
             </span>
           </motion.h2>
@@ -183,23 +183,23 @@ export default function EcosystemArchitecture() {
           {/* SVG CONNECTOR LINES SYSTEM */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 hidden lg:block opacity-60">
             {/* Top row connectors */}
-            <line x1="200" y1="90" x2="512" y2="230" stroke={hoveredNode === 'pos' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
-            <line x1="390" y1="90" x2="512" y2="230" stroke={hoveredNode === 'preorder' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
-            <line x1="630" y1="90" x2="512" y2="230" stroke={hoveredNode === 'legacy' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
-            <line x1="820" y1="90" x2="512" y2="230" stroke={hoveredNode === 'booking' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="200" y1="90" x2="512" y2="230" stroke={hoveredNode === 'pos' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="390" y1="90" x2="512" y2="230" stroke={hoveredNode === 'preorder' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="630" y1="90" x2="512" y2="230" stroke={hoveredNode === 'legacy' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="820" y1="90" x2="512" y2="230" stroke={hoveredNode === 'booking' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
 
             {/* Mid Left & Right */}
-            <line x1="390" y1="180" x2="512" y2="230" stroke={hoveredNode === 'sdk' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
-            <line x1="670" y1="180" x2="512" y2="230" stroke={hoveredNode === 'events' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="390" y1="180" x2="512" y2="230" stroke={hoveredNode === 'sdk' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="670" y1="180" x2="512" y2="230" stroke={hoveredNode === 'events' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
 
             {/* Marketplace & Pipeline */}
-            <line x1="270" y1="260" x2="512" y2="260" stroke={hoveredNode === 'marketplace' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
-            <line x1="750" y1="260" x2="512" y2="260" stroke={hoveredNode === 'pipeline' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="270" y1="260" x2="512" y2="260" stroke={hoveredNode === 'marketplace' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
+            <line x1="750" y1="260" x2="512" y2="260" stroke={hoveredNode === 'pipeline' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" className="transition-colors duration-300" />
 
             {/* Bottom Orchestration */}
-            <line x1="512" y1="290" x2="512" y2="350" stroke={hoveredNode === 'orchestration' ? '#F09819' : '#6366F1'} strokeWidth="2" strokeDasharray="4 4" />
-            <line x1="512" y1="390" x2="440" y2="440" stroke={hoveredNode === 'psp1' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" />
-            <line x1="512" y1="390" x2="584" y2="440" stroke={hoveredNode === 'psp2' ? '#F09819' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" />
+            <line x1="512" y1="290" x2="512" y2="350" stroke={hoveredNode === 'orchestration' ? '#0055D4' : '#6366F1'} strokeWidth="2" strokeDasharray="4 4" />
+            <line x1="512" y1="390" x2="440" y2="440" stroke={hoveredNode === 'psp1' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" />
+            <line x1="512" y1="390" x2="584" y2="440" stroke={hoveredNode === 'psp2' ? '#0055D4' : '#6366F1'} strokeWidth="1.5" strokeDasharray="4 4" />
           </svg>
 
           <div className="relative z-10 flex flex-col items-center gap-8">
@@ -219,7 +219,7 @@ export default function EcosystemArchitecture() {
                   onMouseLeave={() => setHoveredNode(null)}
                   className={`px-4 py-3 rounded-xl border text-left transition-all duration-200 ${
                     hoveredNode === item.id || activeNode === item.id
-                      ? 'bg-[#4F46E5] border-[#F09819] text-white shadow-lg shadow-[#4F46E5]/40 scale-105'
+                      ? 'bg-[#4F46E5] border-[#0055D4] text-white shadow-lg shadow-[#4F46E5]/40 scale-105'
                       : 'bg-[#181E3D]/80 border-white/10 text-gray-300 hover:border-white/30'
                   }`}
                 >
@@ -237,7 +237,7 @@ export default function EcosystemArchitecture() {
                 onMouseLeave={() => setHoveredNode(null)}
                 className={`px-5 py-2.5 rounded-lg border text-xs font-bold transition-all ${
                   hoveredNode === 'sdk' || activeNode === 'sdk'
-                    ? 'bg-[#6366F1] border-[#F09819] text-white shadow-md'
+                    ? 'bg-[#6366F1] border-[#0055D4] text-white shadow-md'
                     : 'bg-[#1E2548] border-white/10 text-gray-300 hover:border-white/30'
                 }`}
               >
@@ -250,7 +250,7 @@ export default function EcosystemArchitecture() {
                 onMouseLeave={() => setHoveredNode(null)}
                 className={`px-5 py-2.5 rounded-lg border text-xs font-bold transition-all ${
                   hoveredNode === 'events' || activeNode === 'events'
-                    ? 'bg-[#6366F1] border-[#F09819] text-white shadow-md'
+                    ? 'bg-[#6366F1] border-[#0055D4] text-white shadow-md'
                     : 'bg-[#1E2548] border-white/10 text-gray-300 hover:border-white/30'
                 }`}
               >
@@ -268,7 +268,7 @@ export default function EcosystemArchitecture() {
                 onMouseLeave={() => setHoveredNode(null)}
                 className={`w-full lg:w-64 p-4 rounded-2xl border text-left transition-all ${
                   hoveredNode === 'marketplace' || activeNode === 'marketplace'
-                    ? 'bg-[#1E2548] border-[#F09819] shadow-lg scale-102'
+                    ? 'bg-[#1E2548] border-[#0055D4] shadow-lg scale-102'
                     : 'bg-[#131936]/90 border-white/10 hover:border-white/30'
                 }`}
               >
@@ -291,9 +291,9 @@ export default function EcosystemArchitecture() {
                 onClick={() => setActiveNode('core')}
                 onMouseEnter={() => setHoveredNode('core')}
                 onMouseLeave={() => setHoveredNode(null)}
-                className="w-full lg:w-72 bg-gradient-to-b from-[#4F46E5] to-[#312E81] border-2 border-[#F09819] rounded-2xl p-6 text-center shadow-[0_0_50px_rgba(79,70,229,0.5)] cursor-pointer relative group"
+                className="w-full lg:w-72 bg-gradient-to-b from-[#4F46E5] to-[#312E81] border-2 border-[#0055D4] rounded-2xl p-6 text-center shadow-[0_0_50px_rgba(79,70,229,0.5)] cursor-pointer relative group"
               >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F09819] text-[#1A1311] px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0055D4] text-[#0F172A] px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">
                   Core Engine
                 </div>
                 <div className="my-2 flex justify-center">
@@ -313,13 +313,13 @@ export default function EcosystemArchitecture() {
                 onMouseLeave={() => setHoveredNode(null)}
                 className={`w-full lg:w-64 p-4 rounded-2xl border text-left transition-all ${
                   hoveredNode === 'pipeline' || activeNode === 'pipeline'
-                    ? 'bg-[#1E2548] border-[#F09819] shadow-lg scale-102'
+                    ? 'bg-[#1E2548] border-[#0055D4] shadow-lg scale-102'
                     : 'bg-[#131936]/90 border-white/10 hover:border-white/30'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-white">Data Pipeline</span>
-                  <MS name="insights" size={16} className="text-[#F09819]" />
+                  <MS name="insights" size={16} className="text-[#0055D4]" />
                 </div>
                 <p className="text-[11px] text-gray-400 leading-snug">
                   Real-time analytics, peak hour throughput & automated restocking triggers.
@@ -337,7 +337,7 @@ export default function EcosystemArchitecture() {
                 onMouseLeave={() => setHoveredNode(null)}
                 className={`px-8 py-3 rounded-xl border font-bold text-xs transition-all ${
                   hoveredNode === 'orchestration' || activeNode === 'orchestration'
-                    ? 'bg-[#4F46E5] border-[#F09819] text-white shadow-lg scale-105'
+                    ? 'bg-[#4F46E5] border-[#0055D4] text-white shadow-lg scale-105'
                     : 'bg-[#181E3D] border-white/10 text-gray-300 hover:border-white/30'
                 }`}
               >
@@ -351,7 +351,7 @@ export default function EcosystemArchitecture() {
                   onMouseLeave={() => setHoveredNode(null)}
                   className={`px-4 py-2 rounded-lg border text-[11px] font-mono transition-all ${
                     hoveredNode === 'psp1' || activeNode === 'psp1'
-                      ? 'bg-[#312E81] border-[#F09819] text-white'
+                      ? 'bg-[#312E81] border-[#0055D4] text-white'
                       : 'bg-[#131936] border-white/10 text-gray-400 hover:text-white'
                   }`}
                 >
@@ -363,7 +363,7 @@ export default function EcosystemArchitecture() {
                   onMouseLeave={() => setHoveredNode(null)}
                   className={`px-4 py-2 rounded-lg border text-[11px] font-mono transition-all ${
                     hoveredNode === 'psp2' || activeNode === 'psp2'
-                      ? 'bg-[#312E81] border-[#F09819] text-white'
+                      ? 'bg-[#312E81] border-[#0055D4] text-white'
                       : 'bg-[#131936] border-white/10 text-gray-400 hover:text-white'
                   }`}
                 >
@@ -379,13 +379,13 @@ export default function EcosystemArchitecture() {
           {/* ========================================================= */}
           <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-black/40 rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#F09819]/20 border border-[#F09819]/40 flex items-center justify-center text-[#F09819]">
+              <div className="w-10 h-10 rounded-lg bg-[#0055D4]/20 border border-[#0055D4]/40 flex items-center justify-center text-[#0055D4]">
                 <MS name={currentDisplay.icon || 'hub'} size={20} />
               </div>
               <div>
                 <div className="text-sm font-bold text-white flex items-center gap-2">
                   {currentDisplay.label}
-                  <span className="text-[10px] font-mono text-[#F09819] bg-[#F09819]/10 px-2 py-0.5 rounded border border-[#F09819]/20">
+                  <span className="text-[10px] font-mono text-[#0055D4] bg-[#0055D4]/10 px-2 py-0.5 rounded border border-[#0055D4]/20">
                     {currentDisplay.metric}
                   </span>
                 </div>

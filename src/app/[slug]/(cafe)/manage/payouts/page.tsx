@@ -23,7 +23,7 @@ function tone(status: string): { label: string; color: string; bg: string } {
   const s = status.toUpperCase();
   if (s.includes('SUCCESS') || s === 'PAID') return { label: 'Paid', color: '#1B7F4C', bg: 'rgba(27,127,76,.1)' };
   if (s.includes('FAIL') || s.includes('REVERS')) return { label: 'Failed', color: '#B3261E', bg: 'rgba(179,38,30,.1)' };
-  return { label: 'On the way', color: '#8A5A00', bg: 'rgba(138,90,0,.1)' };
+  return { label: 'On the way', color: '#003380', bg: 'rgba(138,90,0,.1)' };
 }
 
 export default function PayoutsPage() {

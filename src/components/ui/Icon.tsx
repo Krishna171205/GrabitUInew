@@ -89,7 +89,7 @@ export function GrabbitLogo({
   height = 26,
   mono = false,
   color = '#3d3d3d',
-  dot = '#FFB100',
+  dot = '#0055D4',
 }: {
   height?: number;
   mono?: boolean;

@@ -46,7 +46,7 @@ function SlotDemo() {
     fontSize: 13, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
     background: dashed ? 'transparent' : '#fff',
     border: `1px ${dashed ? 'dashed' : 'solid'} var(--gb-line-2)`,
-    color: selected ? '#241612' : dashed ? 'var(--gb-muted)' : 'var(--gb-text)',
+    color: selected ? '#0F172A' : dashed ? 'var(--gb-muted)' : 'var(--gb-text)',
   });
   const label = custom ? 'your time' : (mounted ? readyBy(READY_OPTS[sel].mins) : '—');
 
@@ -130,7 +130,7 @@ export default function WhyGrabbit() {
           {FEATURES.map((f, i) => (
             <motion.div key={f.n}
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              whileHover={{ y: -4, boxShadow: '0 22px 48px -18px rgba(120,70,0,.32)' }}
+              whileHover={{ y: -4, boxShadow: '0 22px 48px -18px rgba(0, 85, 212,.32)' }}
               transition={{ type: 'spring', stiffness: 200, damping: 22, delay: i * 0.08 }}
               style={{ position: 'relative', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-card)', padding: 28, overflow: 'hidden', boxShadow: 'var(--gb-shadow-card)', gridColumn: i === 0 ? 'span 1' : 'auto', cursor: 'pointer' }}
               className={i === 0 ? 'gb-why-lead' : undefined}>
