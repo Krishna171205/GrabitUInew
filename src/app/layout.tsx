@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 import type { Metadata, Viewport } from 'next';
-import { Baloo_2, Mukta } from 'next/font/google';
-=======
-import type { Metadata } from 'next';
-import { Baloo_2, Mukta, Poppins, Anton, Caveat } from 'next/font/google';
->>>>>>> new_source/master
+import { Baloo_2, Mukta, Anton, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
@@ -119,20 +114,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-<<<<<<< HEAD
       { url: '/grabbit-logo.svg', sizes: 'any', type: 'image/svg+xml' },
       { url: '/grabbit-logo.svg', rel: 'mask-icon', color: '#241612' },
-=======
-      { url: '/new-logo.svg', sizes: 'any', type: 'image/svg+xml' },
-      { url: '/new-logo.svg', rel: 'mask-icon', color: '#0F172A' },
->>>>>>> new_source/master
     ],
     apple: [{ url: '/grabbit-logo.svg', sizes: '180x180' }],
   },
-<<<<<<< HEAD
-=======
-  themeColor: '#F8FAFC',
->>>>>>> new_source/master
   category: 'Food & Dining',
 };
 
@@ -149,11 +135,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-<<<<<<< HEAD
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable}`}>
-=======
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${poppins.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
->>>>>>> new_source/master
+    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
       <head>
         {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link
