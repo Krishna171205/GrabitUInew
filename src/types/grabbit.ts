@@ -283,3 +283,33 @@ export interface GrabbitPaymentsSummary {
   daily_trend: GrabbitPaymentsTrendDay[];
   transactions: GrabbitPaymentsTransaction[];
 }
+
+/** GET /api/grabit/streak/mine: the weekly order streak, derived server-side. */
+export type StreakStatus = 'ACTIVE' | 'AT_RISK' | 'FROZEN' | 'BROKEN' | 'NONE';
+
+export interface StreakEarnBack {
+  weeks: number;
+  expires_at: string;
+}
+
+export interface StreakView {
+  weeks: number;
+  status: StreakStatus;
+  ordered_this_week: boolean;
+  week_ends_at: string;
+  freezes_available: number;
+  /** ISO weeks ("2026-W33") a freeze covered, newest first. */
+  frozen_weeks: string[];
+  longest_weeks: number;
+  weeks_to_milestone: number | null;
+  next_milestone: number | null;
+  earn_back: StreakEarnBack | null;
+  /** Last eight weeks, oldest first. The server labels them so the client does no
+   *  calendar maths: the client getting weeks wrong is what started all this. */
+  recent_weeks: StreakWeekCell[];
+}
+
+export interface StreakWeekCell {
+  week: string;
+  state: 'ORDERED' | 'FROZEN' | 'MISSED' | 'CURRENT';
+}

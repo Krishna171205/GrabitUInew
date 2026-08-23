@@ -6,33 +6,19 @@ import * as Sentry from '@sentry/nextjs';
 import { MS, NavSpacer } from '@/components/gb/kit';
 import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
 import { isRealOrder } from '@/components/gb/orders';
+import { StreakCard } from '@/components/gb/StreakCard';
 import type { RealCafe } from '@/components/gb/cards';
+import type { StreakView } from '@/types/grabbit';
 
 interface Me { customerId: number; name: string | null; email: string | null; phone: string; avatar_url: string | null; }
 interface OrderView { status: string; payment_method: string; payment_status: string; total_amount: number; created_at: string; }
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Index of the local calendar week (Monday to Sunday) a timestamp falls in.
  * The old version bucketed on floor(epoch / 7 days), which is a Thursday-to-Wednesday
  * UTC window, so "this week" rarely matched the week the customer is living in.
  */
-function weekIndex(ms: number): number {
-  const d = new Date(ms);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // back up to Monday
-  return Math.round(d.getTime() / WEEK_MS);
-}
-
-/** Consecutive weeks with at least one order, counting back from this week. */
-function computeWeeklyStreak(dates: string[]): number {
-  const weeks = new Set(dates.map((d) => weekIndex(new Date(d).getTime())));
-  let streak = 0;
-  for (let w = weekIndex(Date.now()); weeks.has(w); w--) streak++;
-  return streak;
-}
-
 function Stat({ value, label, color }: { value: string; label: string; color: string }) {
   return (
     <div style={{ flex: 1, textAlign: 'center' }}>
@@ -63,7 +49,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
-  const [orderStreak, setOrderStreak] = useState<number | null>(null);
+  const [streak, setStreak] = useState<StreakView | null>(null);
   const [favouritesCount, setFavouritesCount] = useState<number | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
@@ -92,11 +78,15 @@ export default function ProfilePage() {
           .then((orders: OrderView[]) => {
             // Same rule as the Orders tab: an abandoned or failed online checkout is
             // not an order. Counting those kept the streak alive without any order.
-            const real = orders.filter(isRealOrder);
-            setOrdersCount(real.length);
-            setOrderStreak(computeWeeklyStreak(real.map((o) => o.created_at)));
+            setOrdersCount(orders.filter(isRealOrder).length);
           })
-          .catch(() => { setOrdersCount(0); setOrderStreak(0); });
+          .catch(() => setOrdersCount(0));
+        // Derived server-side over the whole history, in the cafe's timezone: the browser
+        // saw only the last 50 orders and judged the week by the device clock.
+        fetch('/api/proxy/grabit/streak/mine')
+          .then((r) => (r.ok ? r.json() : null))
+          .then((v: StreakView | null) => setStreak(v))
+          .catch(() => setStreak(null));
       }
     });
   }, []);
@@ -265,24 +255,14 @@ export default function ProfilePage() {
         </form>
       )}
 
-      {/* stats */}
-      <div style={{ margin: '-30px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 20, border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-shadow-pop)', display: 'flex', padding: '16px 4px' }}>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" /></div>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={orderStreak === null ? '—' : `${orderStreak}🔥`} label="Order streak" color="var(--gb-green)" /></div>
-        <div style={{ flex: 1, textAlign: 'center' }}><Stat value={favouritesCount === null ? '—' : String(favouritesCount)} label="Favourites" color="#C1502E" /></div>
+      <div style={{ margin: '-30px 0 0', position: 'relative', zIndex: 2 }}>
+        <StreakCard streak={streak} slug={primaryCafe?.slug} />
       </div>
 
-      {/* gold membership */}
-      <div style={{ margin: '16px 16px 0', borderRadius: 20, padding: 18, background: 'linear-gradient(120deg,#2A1B10 0%,#8A5A00 55%,#FFB100 130%)', color: '#fff', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', right: -20, top: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <MS name="workspace_premium" size={19} fill color="#F2D48A" />
-          <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: '#F2D48A' }}>Grabbit Gold</span>
-        </div>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 8, lineHeight: 1.25, maxWidth: 250 }}>Priority pickup & member-only prices</div>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.34)', color: '#F2D48A', fontSize: 12.5, fontWeight: 800, padding: '9px 15px', borderRadius: 11, letterSpacing: '.03em' }}>
-          <MS name="schedule" size={16} />Coming soon
-        </div>
+      {/* stats */}
+      <div style={{ margin: '14px 16px 0', position: 'relative', zIndex: 1, background: '#fff', borderRadius: 20, border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-shadow-pop)', display: 'flex', padding: '16px 4px' }}>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" /></div>
+        <div style={{ flex: 1, textAlign: 'center' }}><Stat value={favouritesCount === null ? '—' : String(favouritesCount)} label="Favourites" color="#C1502E" /></div>
       </div>
 
       {/* wallet — top-up not live yet */}

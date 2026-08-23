@@ -468,7 +468,14 @@ button {
 }
 
 /* Bottom tab bar — mobile default */
+/* The spacer under scrolling pages must reserve at least what the bar occupies. It
+   reserved 76px while the bar renders 83 (11px top + content + 26px bottom), so the last
+   few pixels of the final element on any tab page sat underneath it. One value now, used
+   by both. */
+.gb-app { --gb-bottomnav-h: 84px; }
+
 .gb-bottomnav {
+  min-height: var(--gb-bottomnav-h);
   display: flex;
   position: fixed;
   bottom: 0; left: 0; right: 0;
@@ -567,4 +574,33 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .gb-hover-btn:hover, .gb-hover-lift:hover, .gb-hover-glass:hover, .gb-hover-soft:hover,
   .gb-hover-btn:active { transform: none; }
+}
+
+/* ── Streak card ────────────────────────────────────────────
+   The streak is presented as a cafe stamp card: espresso stock, a serif
+   numeral, and the weeks as stamps on a rail. Registering the ring angle as a
+   real custom property is what lets a conic-gradient animate at all - without
+   @property the browser treats it as a string and jumps. */
+@property --gb-streak-deg {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.gb-app .gb-streak-ring {
+  /* One entrance sweep, then still. The ring is the milestone progress. */
+  animation: gb-streak-sweep 900ms cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes gb-streak-sweep { from { --gb-streak-deg: 0deg; } }
+
+/* Only the week still in play breathes, so the motion means "your turn". */
+.gb-app .gb-streak-now { animation: gb-streak-breathe 2.4s ease-in-out infinite; }
+@keyframes gb-streak-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,177,0,.45); }
+  50%      { box-shadow: 0 0 0 5px rgba(255,177,0,0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-app .gb-streak-ring,
+  .gb-app .gb-streak-now { animation: none; }
 }

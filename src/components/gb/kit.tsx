@@ -60,7 +60,7 @@ export function BottomNav() {
 
 /** Spacer so scrollable content clears the fixed BottomNav (mobile only, desktop uses DesktopTopNav). */
 export function NavSpacer() {
-  return <div className="gb-nav-spacer" style={{ height: 'calc(76px + env(safe-area-inset-bottom))' }} />;
+  return <div className="gb-nav-spacer" style={{ height: 'calc(var(--gb-bottomnav-h, 84px) + 12px + env(safe-area-inset-bottom))' }} />;
 }
 
 /* ---------- Desktop top nav (replaces BottomNav ≥860px, signed-in only) ---------- */
