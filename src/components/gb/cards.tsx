@@ -83,6 +83,41 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
   );
 }
 
+/* ---------- Café signed up, not live yet ---------- */
+// A cafe that has confirmed it is joining but has not sent its menu. It earns a place
+// in the list so regulars see it coming, and nothing more: no link, no bookmark, no
+// hours, since there is nothing behind it to open yet. Delete its entry from
+// COMING_SOON the day it goes live in the API.
+export function ComingSoonCafeCard({ name, area, coverUrl, coverHeight = 132 }: { name: string; area?: string; coverUrl?: string; coverHeight?: number }) {
+  const initial = name.trim().charAt(0).toUpperCase();
+  return (
+    <div style={{ background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-elev-2)' }}>
+      <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, #8C8378 0%, #4A443D 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+        {coverUrl ? (
+          <>
+            <Image src={coverUrl} alt="" fill sizes="(max-width: 480px) 100vw, 448px" style={{ objectFit: 'cover' }} />
+            {/* Same darkened top strip as the live card, so the pill reads over any photo. */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,12,6,.42) 0%, rgba(20,12,6,0) 45%)' }} />
+          </>
+        ) : (
+          <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
+        )}
+        <div style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.94)', padding: '5px 10px', borderRadius: 999 }}>
+          <MS name="schedule" size={13} color="var(--gb-primary)" />
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-ink)' }}>Coming soon</span>
+        </div>
+      </div>
+      <div style={{ padding: '13px 16px' }}>
+        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, color: 'var(--gb-text)', lineHeight: 1.1 }}>{name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, color: '#7A6E60', fontSize: 12.5, fontWeight: 600 }}>
+          {area && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><MS name="near_me" size={15} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{area}</span></span>}
+          <span style={{ marginLeft: 'auto', flex: 'none' }}>Menu on the way</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Popular / favourite item card (horizontal carousel) ---------- */
 export function ItemCard({ item, heart }: { item: GbItem; heart?: boolean }) {
   const { addItem, items: cartItems } = useCart();

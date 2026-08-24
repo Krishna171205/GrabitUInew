@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
+import { RealCafeCard, ComingSoonCafeCard, type RealCafe } from '@/components/gb/cards';
 import { CafeGate } from '@/components/gb/CafeGate';
 import { useSavedLocation } from '@/components/gb/location';
 
@@ -8,6 +8,15 @@ import { useSavedLocation } from '@/components/gb/location';
 // cafés yet (ponytail: upgrade to real distance once the backend has coords).
 // Guests see this many café cards before a soft login gate; signed-in users see all.
 const FREE_CAFE_LIMIT = 1;
+
+// Cafés that have confirmed they are joining but have not sent a menu yet, so they
+// exist nowhere in the API. Listed as placeholders under the live ones; delete the
+// entry once the cafe is live and the API returns it for real.
+const COMING_SOON = [{
+  name: 'The Hims Cafe',
+  area: 'DTU, Delhi',
+  coverUrl: 'https://d1k5bio7n5wlqi.cloudfront.net/hims/cover.jpg',
+}];
 
 export function CafesNearYou({ cafes, cta, gate }: { cafes: RealCafe[]; cta: string; gate: boolean }) {
   const { city } = useSavedLocation();
@@ -30,6 +39,7 @@ export function CafesNearYou({ cafes, cta, gate }: { cafes: RealCafe[]; cta: str
       ) : (
         <div className="gb-cafe-grid">
           {shown.map((c) => <RealCafeCard key={c.slug} cafe={c} cta={cta} />)}
+          {COMING_SOON.map((c) => <ComingSoonCafeCard key={c.name} name={c.name} area={c.area} coverUrl={c.coverUrl} />)}
           {hiddenCount > 0 && <CafeGate next="/home" />}
         </div>
       )}
