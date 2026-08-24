@@ -275,11 +275,10 @@ const OFFER_ROW_H = 34;
 // offers were invisible from here otherwise. The action belongs to whichever offer
 // is showing; rotation pauses while a finger or cursor is on the card so the button
 // can't change under a tap.
-function OfferBanner({ rows, appliedId, onApply, onClaim, onUnclaim, onOpenPicker }: {
+function OfferBanner({ rows, appliedId, onChoose, onUnclaim, onOpenPicker }: {
   rows: { offer: GrabbitOffer; discount: number; shortfall: number; unclaimed: boolean }[];
   appliedId: number | undefined;
-  onApply: (offerId: number) => void;
-  onClaim: () => void;
+  onChoose: (offer: GrabbitOffer) => void;
   onUnclaim: () => void;
   onOpenPicker: () => void;
 }) {
@@ -326,11 +325,11 @@ function OfferBanner({ rows, appliedId, onApply, onClaim, onUnclaim, onOpenPicke
           ADDED<MS name="close" size={13} color="#fff" />
         </button>
       ) : applied && isFreeItem ? (
-        <button onClick={onClaim} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
+        <button onClick={() => onChoose(shown.offer)} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
       ) : applied ? (
         <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--gb-primary)', flex: 'none' }}>APPLIED</span>
       ) : (
-        <button onClick={() => onApply(shown.offer.id)} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Apply</button>
+        <button onClick={() => onChoose(shown.offer)} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Apply</button>
       )}
     </div>
   );
@@ -342,7 +341,7 @@ function OfferBanner({ rows, appliedId, onApply, onClaim, onUnclaim, onOpenPicke
 function OfferPicker({ rows, appliedId, onChoose, onClose }: {
   rows: { offer: GrabbitOffer; discount: number; shortfall: number; unclaimed: boolean }[];
   appliedId: number | undefined;
-  onChoose: (id: number) => void;
+  onChoose: (offer: GrabbitOffer) => void;
   onClose: () => void;
 }) {
   return (
@@ -372,7 +371,7 @@ function OfferPicker({ rows, appliedId, onChoose, onClose }: {
               <button
                 key={offer.id}
                 disabled={!eligible}
-                onClick={() => { onChoose(offer.id); onClose(); }}
+                onClick={() => { onChoose(offer); onClose(); }}
                 style={{
                   display: 'flex', alignItems: 'flex-start', gap: 11, textAlign: 'left', width: '100%',
                   background: '#fff', cursor: eligible ? 'pointer' : 'default', opacity: eligible ? 1 : .55,
@@ -693,8 +692,8 @@ export default function CartPage() {
     }
   }, [bestOffer, items, removeItem, updateQty]);
 
-  function claimFreeItem() {
-    const freeOffer = bestOffer?.offer.offer_type === 'FREE_ITEM' ? bestOffer.offer : null;
+  function claimFreeItem(offer: GrabbitOffer) {
+    const freeOffer = offer.offer_type === 'FREE_ITEM' ? offer : null;
     const targetId = freeOffer?.free_item_menu_item_id ?? null;
     if (targetId == null || items.some(i => i.menu_item_id === targetId)) return;
     addItem({
@@ -710,6 +709,16 @@ export default function CartPage() {
       hasCelebratedRef.current = true;
       setShowFreeItemCelebration(true);
     }
+  }
+
+  // Picking an offer is a single action: it becomes the applied offer, and a giveaway
+  // it grants goes into the cart, since a FREE_ITEM offer pays out nothing until its
+  // item is there. Both the banner's Add and the picker's row land here - the picker
+  // used to only set the choice, so tapping the free-item row it was already leading
+  // with looked dead.
+  function chooseOffer(offer: GrabbitOffer) {
+    setChosenOfferId(offer.id);
+    if (offer.offer_type === 'FREE_ITEM') claimFreeItem(offer);
   }
 
   // Lets the customer decline the free item after claiming it - only ever touches
@@ -928,7 +937,7 @@ export default function CartPage() {
         <OfferPicker
           rows={offerRows}
           appliedId={bestOffer?.offer.id}
-          onChoose={setChosenOfferId}
+          onChoose={chooseOffer}
           onClose={() => setShowOfferPicker(false)}
         />
       )}
@@ -956,8 +965,7 @@ export default function CartPage() {
         <OfferBanner
           rows={offerRows}
           appliedId={bestOffer?.offer.id}
-          onApply={setChosenOfferId}
-          onClaim={claimFreeItem}
+          onChoose={chooseOffer}
           onUnclaim={removeFreeItem}
           onOpenPicker={() => setShowOfferPicker(true)}
         />
