@@ -3,13 +3,11 @@
  * The cafe's live offers as one line that rotates: the current offer slides up and
  * out while the next comes in from below. Tapping the strip expands the full list.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { MS } from './kit';
 import { offerHeadline, offerTerms, type GrabbitOffer } from './offers';
+import { useOfferRotation, OFFER_SLIDE_MS } from './useOfferRotation';
 
-/** How long each offer holds before the strip advances. */
-const ROTATE_MS = 1000;
-const SLIDE_MS = 420;
 /** Line box height. The track slides by exactly this, so it must match the row. */
 const ROW = 20;
 
@@ -20,36 +18,9 @@ function offerLine(o: GrabbitOffer): string {
 }
 
 export function OfferStrip({ offers }: { offers: GrabbitOffer[] }) {
-  const [index, setIndex] = useState(0);
-  const [sliding, setSliding] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const reducedMotion = useRef(false);
-
-  useEffect(() => {
-    reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }, []);
-
-  useEffect(() => {
-    // One offer has nothing to rotate to, and an open list should stay still.
-    if (offers.length < 2 || expanded || reducedMotion.current) return;
-    const timer = setInterval(() => setIndex((i) => i + 1), ROTATE_MS + SLIDE_MS);
-    return () => clearInterval(timer);
-  }, [offers.length, expanded]);
-
-  // The track holds a copy of the first offer at the end, so the last-to-first step
-  // slides forward like every other one. Landing on the copy, jump back to the real
-  // first offer with the transition off, which is invisible: same pixels either way.
-  useEffect(() => {
-    if (index !== offers.length) return;
-    const timer = setTimeout(() => { setSliding(false); setIndex(0); }, SLIDE_MS);
-    return () => clearTimeout(timer);
-  }, [index, offers.length]);
-
-  useEffect(() => {
-    if (sliding) return;
-    const raf = requestAnimationFrame(() => setSliding(true));
-    return () => cancelAnimationFrame(raf);
-  }, [sliding]);
+  // An open list should stay still while it's being read.
+  const { index, sliding } = useOfferRotation(offers.length, expanded);
 
   if (offers.length === 0) return null;
 
@@ -65,7 +36,7 @@ export function OfferStrip({ offers }: { offers: GrabbitOffer[] }) {
         <MS name="local_offer" size={19} fill color="var(--gb-primary)" />
 
         <div style={{ flex: 1, minWidth: 0, height: ROW, overflow: 'hidden' }}>
-          <div style={{ transform: `translateY(-${index * ROW}px)`, transition: sliding ? `transform ${SLIDE_MS}ms cubic-bezier(.4,0,.2,1)` : 'none' }}>
+          <div style={{ transform: `translateY(-${index * ROW}px)`, transition: sliding ? `transform ${OFFER_SLIDE_MS}ms cubic-bezier(.4,0,.2,1)` : 'none' }}>
             {track.map((o, i) => (
               <div
                 key={`${o.id}-${i}`}

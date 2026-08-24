@@ -17,6 +17,8 @@ import { MS } from '@/components/gb/kit';
 import { LineNote } from '@/components/gb/LineNote';
 import { inr } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
+import { offerHeadline, offerTerms, type GrabbitOffer } from '@/components/gb/offers';
+import { useOfferRotation, OFFER_SLIDE_MS } from '@/components/gb/useOfferRotation';
 import { useBackTo } from '@/lib/useBackTo';
 
 interface SlotsData { slots: GrabbitAvailableSlot[]; label: string | null; }
@@ -39,20 +41,6 @@ function interleaveByCategory(items: GrabbitMenuItem[]): GrabbitMenuItem[] {
     for (const bucket of buckets) if (bucket[i]) result.push(bucket[i]);
   }
   return result;
-}
-
-interface GrabbitOffer {
-  id: number;
-  title: string;
-  description: string | null;
-  offer_type: 'PERCENT' | 'FLAT' | 'FIRST_ORDER' | 'FREE_ITEM';
-  percent_off: number | null;
-  flat_off: number | null;
-  max_discount: number | null;
-  min_order_value: number | null;
-  free_item_menu_item_id: number | null;
-  free_item_name: string | null;
-  free_item_price: number | null;
 }
 
 // Mirrors OfferService.discountFor in preorderservice: percent discounts round
@@ -279,6 +267,145 @@ const CONFETTI_COLORS = ['#E08A1E', '#3E8E4E', '#9E2A2B', '#2E6F9E', '#C9A227'];
 // Zomato-style "offer unlocked" popup: a burst of falling confetti behind a
 // small card. Pure CSS animation, no new dependency - see globals.css's
 // gb-confetti-fall/gb-celebrate-in keyframes.
+/** One offer's two lines in the rotating cart banner. */
+const OFFER_ROW_H = 34;
+
+// The cart's offer banner rotates through every live offer, like the strip on the
+// cafe page, instead of pinning the one the cart happens to lead with - two live
+// offers were invisible from here otherwise. The action belongs to whichever offer
+// is showing; rotation pauses while a finger or cursor is on the card so the button
+// can't change under a tap.
+function OfferBanner({ rows, appliedId, onApply, onClaim, onUnclaim, onOpenPicker }: {
+  rows: { offer: GrabbitOffer; discount: number; shortfall: number; unclaimed: boolean }[];
+  appliedId: number | undefined;
+  onApply: (offerId: number) => void;
+  onClaim: () => void;
+  onUnclaim: () => void;
+  onOpenPicker: () => void;
+}) {
+  const [paused, setPaused] = useState(false);
+  const { index, sliding } = useOfferRotation(rows.length, paused);
+  if (rows.length === 0) return null;
+  const shown = rows[index % rows.length];
+  const applied = shown.offer.id === appliedId;
+  const isFreeItem = shown.offer.offer_type === 'FREE_ITEM';
+  const track = [...rows, rows[0]];
+
+  return (
+    <div
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      style={{ margin: '10px 16px 0', background: 'linear-gradient(135deg, #FFF7ED, #FFEFD5)', border: '1px solid #F3D9A6', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}
+    >
+      <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}>
+        <MS name={isFreeItem ? 'celebration' : 'local_offer'} size={19} color="var(--gb-primary)" />
+      </div>
+
+      <button
+        onClick={onOpenPicker}
+        style={{ flex: 1, minWidth: 0, height: OFFER_ROW_H, overflow: 'hidden', background: 'transparent', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}
+      >
+        <span style={{ display: 'block', transform: `translateY(-${index * OFFER_ROW_H}px)`, transition: sliding ? `transform ${OFFER_SLIDE_MS}ms cubic-bezier(.4,0,.2,1)` : 'none' }}>
+          {track.map((r, i) => (
+            <span key={`${r.offer.id}-${i}`} style={{ display: 'block', height: OFFER_ROW_H }}>
+              <span style={{ display: 'block', height: 16, lineHeight: '16px', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {offerHeadline(r.offer)}
+              </span>
+              <span style={{ display: 'block', height: 15, lineHeight: '15px', marginTop: 3, fontSize: 11.5, fontWeight: 600, color: 'var(--gb-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {r.discount > 0 ? (r.offer.description || offerTerms(r.offer).join(' · ') || r.offer.title) : `Add ${inr(r.shortfall)} more to unlock`}
+              </span>
+            </span>
+          ))}
+        </span>
+      </button>
+
+      {shown.discount === 0 ? (
+        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--gb-muted-2)', flex: 'none' }}>LOCKED</span>
+      ) : applied && isFreeItem && !shown.unclaimed ? (
+        <button onClick={onUnclaim} aria-label="Remove free item" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}>
+          ADDED<MS name="close" size={13} color="#fff" />
+        </button>
+      ) : applied && isFreeItem ? (
+        <button onClick={onClaim} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
+      ) : applied ? (
+        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--gb-primary)', flex: 'none' }}>APPLIED</span>
+      ) : (
+        <button onClick={() => onApply(shown.offer.id)} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Apply</button>
+      )}
+    </div>
+  );
+}
+
+// Pick-one offer sheet: an order carries a single offer_id, so two live offers on
+// the same cafe are a choice, not a stack. Offers the cart doesn't reach yet stay
+// listed but disabled, with what it would take to unlock them.
+function OfferPicker({ rows, appliedId, onChoose, onClose }: {
+  rows: { offer: GrabbitOffer; discount: number; shortfall: number; unclaimed: boolean }[];
+  appliedId: number | undefined;
+  onChoose: (id: number) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: 'var(--gb-surface)', borderRadius: '20px 20px 0 0', width: '100%', maxHeight: '72vh', overflowY: 'auto', padding: '16px 16px calc(18px + env(safe-area-inset-bottom))' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500, color: 'var(--gb-text)' }}>Offers</div>
+            <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>Only one offer can be applied per order.</div>
+          </div>
+          <button onClick={onClose} aria-label="Close" style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--gb-line-2)', background: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer', flex: 'none' }}>
+            <MS name="close" size={18} color="var(--gb-ink)" />
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+          {rows.map(({ offer, discount, shortfall, unclaimed }) => {
+            const eligible = discount > 0;
+            const applied = offer.id === appliedId;
+            return (
+              <button
+                key={offer.id}
+                disabled={!eligible}
+                onClick={() => { onChoose(offer.id); onClose(); }}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 11, textAlign: 'left', width: '100%',
+                  background: '#fff', cursor: eligible ? 'pointer' : 'default', opacity: eligible ? 1 : .55,
+                  border: `1px solid ${applied ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`,
+                  borderRadius: 14, padding: '12px 13px',
+                }}
+              >
+                <MS
+                  name={applied ? 'radio_button_checked' : 'radio_button_unchecked'}
+                  size={19}
+                  color={applied ? 'var(--gb-primary)' : 'var(--gb-muted-2)'}
+                />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: 'var(--gb-text)' }}>{offerHeadline(offer)}</span>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{offer.description || offer.title}</span>
+                  {offerTerms(offer).length > 0 && (
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 4 }}>
+                      {offerTerms(offer).join(' · ')}
+                    </span>
+                  )}
+                </span>
+                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: eligible ? 'var(--gb-primary)' : 'var(--gb-muted-2)', whiteSpace: 'nowrap' }}>
+                  {!eligible ? `Add ${inr(shortfall)} more` : unclaimed ? 'Add the free item' : `-${inr(discount)}`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FreeItemCelebration({ offer, onDismiss }: { offer: GrabbitOffer; onDismiss: () => void }) {
   const pieces = useMemo(() => Array.from({ length: 26 }, (_, i) => ({
     id: i,
@@ -397,6 +524,10 @@ export default function CartPage() {
   // Offers for this cafe, client-side preview only - see discountFor's comment.
   const [offers, setOffers] = useState<GrabbitOffer[]>([]);
   const [offersLoading, setOffersLoading] = useState(true);
+  // Which offer the customer picked, when more than one fits the cart. null = let
+  // the best-saving one lead.
+  const [chosenOfferId, setChosenOfferId] = useState<number | null>(null);
+  const [showOfferPicker, setShowOfferPicker] = useState(false);
   useEffect(() => {
     if (!slug) { setOffersLoading(false); return; }
     let cancelled = false;
@@ -486,25 +617,47 @@ export default function CartPage() {
   // here?) that only the server knows - never auto-apply one here, since a
   // discount the checkout silently declines is worse than showing none.
   const applicableOffers = offers.filter((o) => o.offer_type !== 'FIRST_ORDER');
-  // A FREE_ITEM offer's own granted item is a line in `subtotal` too, so it must
-  // never count toward earning itself: mirrors the server-side fix in
-  // OfferService.applyToOrder (eligibilitySubtotal) - dropping real items below
-  // min_order_value must drop the free item too, not have the free item's own
-  // price prop the subtotal back above the line.
-  function eligibilitySubtotal(offer: GrabbitOffer): number {
-    if (offer.offer_type !== 'FREE_ITEM') return subtotal;
-    const freeLine = items.find(i => i.menu_item_id === offer.free_item_menu_item_id);
-    return freeLine ? subtotal - freeLine.price : subtotal;
-  }
-  const bestOffer = applicableOffers
-    .map((o) => ({ offer: o, discount: discountFor(o, eligibilitySubtotal(o)) }))
-    .filter((x) => x.discount > 0)
-    .sort((a, b) => b.discount - a.discount)[0];
+  // What the customer actually spent, which is what earns an offer: a giveaway line
+  // sitting in the cart never counts toward any min_order_value. For the FREE_ITEM
+  // offer that granted it this mirrors OfferService.applyToOrder (dropping real items
+  // below the threshold must drop the gift too, not have the gift's own price prop
+  // the subtotal back up); for every other offer it keeps claiming a gift from
+  // changing what else the cart qualifies for, so switching offers can't bounce the
+  // cart between two states. Conservative by a gift's price vs the server, which only
+  // nets it out for the offer that granted it - a preview may under-promise, never over.
+  const giftLine = items.find((i) => applicableOffers.some(
+    (o) => o.offer_type === 'FREE_ITEM' && o.free_item_menu_item_id === i.menu_item_id));
+  const earnedSubtotal = subtotal - (giftLine?.price ?? 0);
+  // Every live offer, with what it would take off this cart right now. An order
+  // carries a single offer_id (the server applies exactly one), so this is a
+  // pick-one list, not a stack: the customer chooses, and until they do we lead
+  // with the one that saves the most.
+  const rankedOffers = applicableOffers
+    .map((o) => ({ offer: o, discount: discountFor(o, earnedSubtotal) }))
+    .sort((a, b) => b.discount - a.discount);
+  const eligibleOffers = rankedOffers.filter((x) => x.discount > 0);
+  // What the picker lists: everything the cart already earns, plus the ones it only
+  // misses on cart value (those we can tell her how to unlock). Anything else is
+  // noise she can't act on.
+  const offerRows = rankedOffers
+    .filter((x) => x.discount > 0 || x.offer.min_order_value != null)
+    .map((x) => ({
+      ...x,
+      shortfall: Math.max(0, (x.offer.min_order_value ?? 0) - earnedSubtotal),
+      // A FREE_ITEM offer only pays out once its item is claimed into the cart, so
+      // the row says "add the item" rather than a saving the bill isn't showing.
+      unclaimed: x.offer.offer_type === 'FREE_ITEM'
+        && !items.some((i) => i.menu_item_id === x.offer.free_item_menu_item_id),
+    }));
+  // A choice that stops being eligible (cart shrank below its min) falls back to
+  // the best one rather than silently applying nothing; it comes back if the cart
+  // grows again, since chosenOfferId is left alone.
+  const bestOffer = eligibleOffers.find((x) => x.offer.id === chosenOfferId) ?? eligibleOffers[0];
   // Nearest offer the cart just misses, so we can nudge "add ₹X more" instead
   // of saying nothing.
   const nearMissOffer = !bestOffer
     ? applicableOffers
-        .filter((o) => o.min_order_value != null && eligibilitySubtotal(o) < o.min_order_value)
+        .filter((o) => o.min_order_value != null && earnedSubtotal < o.min_order_value)
         .sort((a, b) => a.min_order_value! - b.min_order_value!)[0]
     : undefined;
 
@@ -514,7 +667,11 @@ export default function CartPage() {
   // undercharges the display relative to what's actually in the cart.
   const freeItemClaimed = bestOffer?.offer.offer_type !== 'FREE_ITEM'
     || items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id);
-  const toPay = Math.max(0, bestOffer && freeItemClaimed ? subtotal - bestOffer.discount : subtotal);
+  // The only offer this order actually gets: eligibility alone (bestOffer) must
+  // never reach the bill or the create-order payload, or an unclaimed FREE_ITEM
+  // reads as auto-applied and the server grants it.
+  const appliedOffer = bestOffer && freeItemClaimed ? bestOffer : undefined;
+  const toPay = Math.max(0, appliedOffer ? subtotal - appliedOffer.discount : subtotal);
 
   // The customer claims the FREE_ITEM giveaway with an explicit tap (see claimFreeItem
   // below) rather than it being auto-added - not everyone wants the free item, and
@@ -525,7 +682,7 @@ export default function CartPage() {
     const freeOffer = bestOffer?.offer.offer_type === 'FREE_ITEM' ? bestOffer.offer : null;
     const targetId = freeOffer?.free_item_menu_item_id ?? null;
 
-    if (targetId == null && ownedFreeItemRef.current != null) {
+    if (ownedFreeItemRef.current != null && ownedFreeItemRef.current !== targetId) {
       const owned = ownedFreeItemRef.current;
       const line = items.find(i => i.menu_item_id === owned);
       if (line) {
@@ -660,7 +817,7 @@ export default function CartPage() {
     submitting.current = true;
     setPlacing(true);
     setError('');
-    const offerIdToSend = dropOffer === null ? undefined : bestOffer?.offer.id;
+    const offerIdToSend = dropOffer === null ? undefined : appliedOffer?.offer.id;
     try {
       const res = await fetch('/api/proxy/grabit/orders', {
         method: 'POST',
@@ -767,6 +924,15 @@ export default function CartPage() {
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 170 }}>
+      {showOfferPicker && (
+        <OfferPicker
+          rows={offerRows}
+          appliedId={bestOffer?.offer.id}
+          onChoose={setChosenOfferId}
+          onClose={() => setShowOfferPicker(false)}
+        />
+      )}
+
       {showFreeItemCelebration && bestOffer?.offer.offer_type === 'FREE_ITEM' && (
         <FreeItemCelebration offer={bestOffer.offer} onDismiss={() => setShowFreeItemCelebration(false)} />
       )}
@@ -786,29 +952,15 @@ export default function CartPage() {
         </div>
       )}
 
-      {bestOffer?.offer.offer_type === 'FREE_ITEM' && (
-        <div style={{ margin: '10px 16px 0', background: 'linear-gradient(135deg, #FFF7ED, #FFEFD5)', border: '1px solid #F3D9A6', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}>
-            <MS name="celebration" size={19} color="var(--gb-primary)" />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--gb-text)' }}>Special offer for you</div>
-            <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 1 }}>
-              Free {bestOffer.offer.free_item_name ?? 'item'} worth {inr(bestOffer.offer.free_item_price ?? 0)}
-            </div>
-          </div>
-          {items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id) ? (
-            <button
-              onClick={removeFreeItem}
-              aria-label="Remove free item"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}
-            >
-              ADDED<MS name="close" size={13} color="#fff" />
-            </button>
-          ) : (
-            <button onClick={claimFreeItem} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
-          )}
-        </div>
+      {!offersLoading && offerRows.length > 0 && (
+        <OfferBanner
+          rows={offerRows}
+          appliedId={bestOffer?.offer.id}
+          onApply={setChosenOfferId}
+          onClaim={claimFreeItem}
+          onUnclaim={removeFreeItem}
+          onOpenPicker={() => setShowOfferPicker(true)}
+        />
       )}
 
       {/* items */}
@@ -1031,15 +1183,29 @@ export default function CartPage() {
         {offersLoading && (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}><span>Checking for offers…</span></div>
         )}
-        {bestOffer && (
+        {appliedOffer && (
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 12.5, color: 'var(--gb-primary)', fontWeight: 700, padding: '4px 0' }}>
-            <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bestOffer.offer.title}</span>
-            <span style={{ flex: 'none' }}>-{inr(bestOffer.discount)}</span>
+            <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{appliedOffer.offer.title}</span>
+            <span style={{ flex: 'none' }}>-{inr(appliedOffer.discount)}</span>
           </div>
+        )}
+        {!offersLoading && offerRows.length > 1 && (
+          <button
+            onClick={() => setShowOfferPicker(true)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', background: 'transparent', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: '#6E6155' }}>
+              <MS name="local_offer" size={15} color="var(--gb-primary)" />
+              {eligibleOffers.length > 1 ? `${eligibleOffers.length} offers apply to this cart` : 'More offers at this cafe'}
+            </span>
+            <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-primary)' }}>
+              {appliedOffer ? 'Change' : 'View'}<MS name="chevron_right" size={16} color="var(--gb-primary)" />
+            </span>
+          </button>
         )}
         {!offersLoading && !bestOffer && nearMissOffer && (
           <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}>
-            Add {inr(nearMissOffer.min_order_value! - eligibilitySubtotal(nearMissOffer))} more to unlock {nearMissOffer.description || nearMissOffer.title}
+            Add {inr(nearMissOffer.min_order_value! - earnedSubtotal)} more to unlock {nearMissOffer.description || nearMissOffer.title}
           </div>
         )}
         <div style={{ height: 1, background: 'var(--gb-line)', margin: '8px 0' }} />
