@@ -51,6 +51,9 @@ function LoginForm() {
       setStep('otp');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
+      // A refused resend still has to sit out the cooldown, so the button comes back
+      // after the countdown rather than instantly, inviting the same rejection.
+      if (step === 'otp') setSends((n) => n + 1);
     } finally { setLoading(false); }
   }
 
@@ -218,7 +221,7 @@ function LoginForm() {
               })}
             </div>
 
-            {otpError && error && (
+            {error && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
                 <MS name="error" size={16} fill color="var(--gb-danger)" />
                 <span style={{ color: 'var(--gb-danger)', fontSize: 13.5, fontWeight: 600 }}>{error}</span>
