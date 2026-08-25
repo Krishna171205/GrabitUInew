@@ -351,7 +351,7 @@ function OfferPicker({ rows, appliedId, onChoose, onClose }: {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: 'var(--gb-surface)', borderRadius: '20px 20px 0 0', width: '100%', maxHeight: '72vh', overflowY: 'auto', padding: '16px 16px calc(18px + env(safe-area-inset-bottom))' }}
+        style={{ background: 'var(--gb-surface)', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 560, margin: '0 auto', maxHeight: '72vh', overflowY: 'auto', padding: '16px 16px calc(18px + env(safe-area-inset-bottom))' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -457,7 +457,12 @@ export default function CartPage() {
   // Retry-from-order does router.replace() onto this page, so the entry behind it
   // is the spent Cashfree checkout. Browser back matches the header back arrow.
   useBackTo(`/${slug}`);
-  const { items, updateQty, removeItem, total, addItem, setLineNote } = useCart();
+  const { items: heldItems, updateQty, removeItem, total, addItem, setLineNote, cafeSlug: cartCafe } = useCart();
+  // A basket held for another cafe is not this cafe's, and must never be priced or
+  // ordered under this cafe's id: this page reads it as empty, which is the same
+  // screen the customer would get by arriving here with nothing. The menu page
+  // applies the same rule, so the only way in is a stale link or a back button.
+  const items = cartCafe === null || cartCafe === slug ? heldItems : [];
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -932,7 +937,7 @@ export default function CartPage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 170 }}>
+    <div className="gb-cart-root gb-wide-lg" style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 170 }}>
       {showOfferPicker && (
         <OfferPicker
           rows={offerRows}
@@ -947,13 +952,22 @@ export default function CartPage() {
       )}
 
       {/* header */}
-      <div style={{ background: '#fff', padding: 'calc(11px + env(safe-area-inset-top)) 16px 12px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--gb-line)' }}>
-        <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={19} color="var(--gb-ink)" /></button>
-        <div>
-          <div className="gb-serif" style={{ fontSize: 17.5, fontWeight: 500, lineHeight: 1 }}>{cafeName}</div>
-          <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : 'Pickup'}</div>
+      <div style={{ background: '#fff', padding: 'calc(11px + env(safe-area-inset-top)) 16px 12px', borderBottom: '1px solid var(--gb-line)' }}>
+        {/* The bar stays full-bleed; what is written on it lines up with the columns
+            below, so the back arrow isn't stranded in the far corner of a wide screen. */}
+        <div className="gb-cart-head" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={19} color="var(--gb-ink)" /></button>
+          <div>
+            <div className="gb-serif" style={{ fontSize: 17.5, fontWeight: 500, lineHeight: 1 }}>{cafeName}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : 'Pickup'}</div>
+          </div>
         </div>
       </div>
+
+      {/* Below the header the page is two columns on a laptop: the order on the left,
+          what it costs and the button parked on the right. One column on a phone. */}
+      <div className="gb-cart-cols">
+      <div>
 
       {showCancelledBanner && (
         <div style={{ margin: '10px 16px 0', background: '#FDECEA', color: 'var(--gb-danger)', fontSize: 13, fontWeight: 700, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1184,6 +1198,9 @@ export default function CartPage() {
         </div>
       )}
 
+      </div>
+
+      <aside className="gb-cart-aside">
       {/* bill */}
       <div style={{ margin: '12px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
@@ -1233,7 +1250,7 @@ export default function CartPage() {
       {/* Zomato-style payment footer: static PAY USING label + Place Order.
           Method selection isn't ours to make - Cashfree's own checkout() page
           shows the real picker (UPI/card/wallet/netbanking) after this. */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '12px 14px calc(18px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
+      <div className="gb-paybar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '12px 14px calc(18px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 2, padding: '2px 2px 2px 4px' }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', color: 'var(--gb-muted-2)' }}>PAY USING</span>
@@ -1254,6 +1271,9 @@ export default function CartPage() {
             </span>
           </button>
         </div>
+      </div>
+
+      </aside>
       </div>
 
       {showLoginPrompt && (

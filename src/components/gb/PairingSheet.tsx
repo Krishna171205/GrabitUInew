@@ -74,6 +74,7 @@ export function PairingSheet({ pairings, qtyOf, onAdd, onQty, placeholderFor, ph
       {/* collapsed strip, sitting on top of the floating cart bar */}
       {stripPrompt && <button
         onClick={() => setShown(pairings)}
+        className="gb-pairing-strip"
         style={{
           position: 'fixed', bottom: 'calc(92px + env(safe-area-inset-bottom))', left: 16, right: 16,
           maxWidth: 448, margin: '0 auto', zIndex: 34, background: 'var(--gb-primary-soft)',
@@ -104,7 +105,7 @@ export function PairingSheet({ pairings, qtyOf, onAdd, onQty, placeholderFor, ph
 
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: 'var(--gb-surface)', borderRadius: '20px 20px 0 0', width: '100%', maxHeight: '60vh', overflowY: 'auto', padding: '18px 16px calc(18px + env(safe-area-inset-bottom))' }}
+            style={{ background: 'var(--gb-surface)', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 560, margin: '0 auto', maxHeight: '60vh', overflowY: 'auto', padding: '18px 16px calc(18px + env(safe-area-inset-bottom))' }}
           >
             {(shown ?? []).map((p, pi) => (
               <div key={p.prompt} style={{ marginTop: pi === 0 ? 0 : 22 }}>

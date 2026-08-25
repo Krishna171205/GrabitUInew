@@ -138,7 +138,15 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [query, setQuery] = useState(initialQuery ?? '');
   const [customizeItem, setCustomizeItem] = useState<GrabbitMenuItem | null>(null);
-  const { addItem, updateQty, clearCart, items: cartItems, total } = useCart();
+  const { addItem, updateQty, clearCart, items: heldItems, total, cafeSlug: cartCafe } = useCart();
+  // The cart survives moving between cafes, but it belongs to exactly one: adding
+  // anything here replaces it wholesale (see the store's addItem). Until that happens
+  // another cafe's basket is not this page's, so nothing here counts it - the rail
+  // would otherwise list food this kitchen doesn't make, and the pill would offer a
+  // checkout for it under this cafe's slug.
+  const cartIsThisCafe = cartCafe === null || cartCafe === slug;
+  const cartItems = cartIsThisCafe ? heldItems : [];
+  const cartTotal = () => (cartIsThisCafe ? total() : 0);
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   // Inline steppers (menu grid + carousels) have no addon context, so they only ever
   // adjust the plain (no-addon) line. Addon-variant quantities are adjusted on the cart page.
@@ -251,6 +259,22 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   // since nothing here can be added anyway.
   const pairings = open ? pairingsFor(items, cartItems.map(i => i.menu_item_id)) : [];
 
+  // Desktop category rail rows. Same two states as the chips, laid out as a list:
+  // the active row is inked and carries the marigold marker on its leading edge.
+  const railItem = (active: boolean) => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+    width: '100%', textAlign: 'left' as const, cursor: 'pointer',
+    border: 'none', borderLeft: `3px solid ${active ? 'var(--gb-primary)' : 'transparent'}`,
+    background: active ? 'var(--gb-primary-pale)' : 'transparent',
+    color: active ? 'var(--gb-text-strong)' : '#5A4E42',
+    fontSize: 14, fontWeight: active ? 800 : 600, padding: '10px 12px',
+    borderRadius: '0 var(--gb-r-xs) var(--gb-r-xs) 0',
+  });
+  const railSub = (active: boolean) => ({
+    ...railItem(active), fontSize: 12.5, padding: '7px 10px', borderLeft: 'none',
+    borderRadius: 'var(--gb-r-xs)',
+  });
+
   const chip = (active: boolean) => ({
     flex: 'none' as const, display: 'inline-flex', alignItems: 'center', gap: 5,
     border: `1px solid ${active ? 'var(--gb-ink)' : 'var(--gb-line-3)'}`,
@@ -333,13 +357,16 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   };
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? (pairings.length > 0 ? 166 : 110) : 24 }}>
+    <div className="gb-menu-root gb-wide" style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? (pairings.length > 0 ? 166 : 110) : 24 }}>
       {closedToast && (
         <div className="gb-glass-ink" style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, borderRadius: 'var(--gb-r-sm)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
           <MS name="storefront" size={18} color="#fff" />
           This cafe is closed now, please try again later
         </div>
       )}
+      {/* Everything the page owns sits in one measured column on a laptop; on a phone
+          this div is inert. */}
+      <div className="gb-wide-body">
       {/* CSS filter greys a subtree, not individual children, so ordering is split into two
           filtered blocks around the login nudge below — that stays full colour even when
           closed, since logging in to see past orders/profile doesn't need the cafe to be open. */}
@@ -477,6 +504,37 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
         </div>
       )}
 
+      {/* Menu proper. One column on a phone; on a laptop the categories move into a
+          rail and the cart out of the pill, so the middle is only ever the food. */}
+      <div className="gb-menu-cols">
+
+      <aside className="gb-cat-rail">
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-muted-2)', padding: '0 12px 10px' }}>Menu</div>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <button style={railItem(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>
+            All items<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gb-muted-2)' }}>{available.length}</span>
+          </button>
+          {categoriesPresent.map(c => (
+            <div key={c}>
+              <button style={railItem(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>
+                {CATEGORY_LABELS[c]}
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gb-muted-2)' }}>{available.filter(i => i.category === c).length}</span>
+              </button>
+              {/* Subcategories belong to the open category, so they only show under it. */}
+              {activeCat === c && subsPresent.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, margin: '3px 0 8px 14px', paddingLeft: 8, borderLeft: '1px solid var(--gb-line-3)' }}>
+                  <button style={railSub(activeSub === 'all')} onClick={() => setActiveSub('all')}>Everything</button>
+                  {subsPresent.map(sc => (
+                    <button key={sc} style={railSub(activeSub === sc)} onClick={() => setActiveSub(sc)}>{sc}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      <div>
       {/* menu search */}
       <div style={{ padding: '18px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 'var(--gb-r-sm)', padding: '12px 14px', boxShadow: 'var(--gb-elev-1)' }}>
@@ -495,6 +553,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
         <button style={chip(sortMode !== 'recommended')} onClick={() => setShowSortSheet(true)} aria-label="Sort and filter menu">
           <MS name="tune" size={17} color={sortMode !== 'recommended' ? '#fff' : 'var(--gb-primary)'} />Filters
         </button>
+        <div className="gb-cat-chips">
         <button style={chip(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>All</button>
         {categoriesPresent.map(c => (
           <button key={c} style={chip(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>{CATEGORY_LABELS[c]}</button>
@@ -515,6 +574,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* menu */}
@@ -528,7 +588,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           return (
             <div key={cat}>
               <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, paddingBottom: 6 }}>
+              <div className="gb-menu-grid">
                 {catItems.map(item => (
                   <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)' }}>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
@@ -566,13 +626,80 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           );
         })}
       </div>
+      </div>
+
+      {/* The cart the phone can only afford to show as a pill. Same store and the same
+          steppers as the grid; checkout still happens on the cart page. */}
+      <aside className="gb-cart-rail">
+        <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', boxShadow: 'var(--gb-elev-2)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px', borderBottom: '1px solid var(--gb-line)' }}>
+            <MS name="shopping_bag" size={18} fill color="var(--gb-primary)" />
+            <span className="gb-serif" style={{ flex: 1, fontSize: 16, fontWeight: 500 }}>Your order</span>
+            {cartCount > 0 && (
+              <button onClick={() => setShowClearConfirm(true)} style={{ border: 'none', background: 'transparent', color: 'var(--gb-muted)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Clear</button>
+            )}
+          </div>
+
+          {cartCount === 0 ? (
+            <div style={{ padding: '28px 20px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: 'var(--gb-muted)', lineHeight: 1.5 }}>
+              Nothing here yet.<br />Add something from the menu.
+            </div>
+          ) : (
+            <>
+              <div className="gb-scroll" style={{ maxHeight: '46vh', overflowY: 'auto', padding: '4px 0' }}>
+                {cartItems.map(line => {
+                  const key = cartLineKey(line);
+                  const extras = [
+                    ...(line.variation ? [line.variation.name] : []),
+                    ...(line.options ?? []).map(o => o.name),
+                    ...(line.addons ?? []).map(a => a.name),
+                  ];
+                  const unit = line.price
+                    + (line.addons ?? []).reduce((sum, a) => sum + a.price, 0)
+                    + (line.options ?? []).reduce((sum, o) => sum + o.price, 0);
+                  return (
+                    <div key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 16px' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)', lineHeight: 1.3 }}>{line.name}</div>
+                        {extras.length > 0 && (
+                          <div className="clamp2" style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{extras.join(' · ')}</div>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 7 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', overflow: 'hidden' }}>
+                            <button onClick={() => updateQty(key, line.quantity - 1)} aria-label={`Remove one ${line.name}`} style={{ width: 24, height: 26, border: 'none', background: 'transparent', color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}><MS name="remove" size={15} /></button>
+                            <span style={{ minWidth: 16, textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-primary)' }}>{line.quantity}</span>
+                            <button onClick={() => guardedAdd(line.menu_item_id, () => updateQty(key, line.quantity + 1))} aria-label={`Add one ${line.name}`} style={{ width: 24, height: 26, border: 'none', background: 'transparent', color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}><MS name="add" size={15} /></button>
+                          </div>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(unit * line.quantity)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--gb-line)', padding: '12px 16px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>
+                  <span>Item total</span><span>{inr(cartTotal())}</span>
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3 }}>Offers and the pickup slot come next.</div>
+                <Link href={`/${slug}/cart`} className="gb-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, borderRadius: 'var(--gb-r-sm)', padding: '12px 0', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14.5, fontWeight: 800, boxShadow: '0 12px 24px -14px rgba(177,90,50,.6)' }}>
+                  Checkout<MS name="arrow_forward" size={18} />
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      </aside>
+
+      </div>
 
       {/* floating cart bar */}
       {cartCount > 0 && (
-        <div className="gb-glass-ink gb-press" style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, borderRadius: 'var(--gb-r-md)', padding: '12px 12px 12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="gb-glass-ink gb-press gb-cart-pill" style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, borderRadius: 'var(--gb-r-md)', padding: '12px 12px 12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: '#fff', minWidth: 0 }}>
             <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 'var(--gb-r-xs)', padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
-            <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(total())}</span>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(cartTotal())}</span>
             {/* The arrow gets its own well rather than floating beside the label: the
                 CTA reads as one machined part instead of text with an icon after it. */}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>
@@ -588,6 +715,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
         </div>
       )}
 
+      </div>
       </div>
 
       {/* Rendered outside the grayscale-filtered block above: CSS `filter` on an ancestor

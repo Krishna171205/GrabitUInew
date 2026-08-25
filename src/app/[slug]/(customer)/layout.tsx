@@ -11,7 +11,9 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   return (
     <QueryClientProvider client={queryClient}>
       <div className="gb-app">
-        <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', position: 'relative' }}>
+        {/* Phone column by default. A screen that has a desktop layout marks itself
+            .gb-wide and the shell lets go of the cap (see globals.css). */}
+        <div className="gb-cust-shell">
           {children}
         </div>
       </div>
