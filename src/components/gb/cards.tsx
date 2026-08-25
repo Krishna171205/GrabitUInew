@@ -84,35 +84,39 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
 }
 
 /* ---------- Café signed up, not live yet ---------- */
-// A cafe that has confirmed it is joining but has not sent its menu. It earns a place
-// in the list so regulars see it coming, and nothing more: no link, no bookmark, no
-// hours, since there is nothing behind it to open yet. Delete its entry from
+// A cafe that has confirmed it is joining but has not sent its menu. Deliberately not
+// shaped like a live cafe card: a pill on an otherwise identical card read as a small
+// difference between two orderable cafes. Here the photo sits far back behind a wash,
+// "Coming soon" is the headline, and there is no cover/body split, no bookmark, no
+// hours, no link, since there is nothing behind it to open yet. Delete its entry from
 // COMING_SOON the day it goes live in the API.
-export function ComingSoonCafeCard({ name, area, coverUrl, coverHeight = 132 }: { name: string; area?: string; coverUrl?: string; coverHeight?: number }) {
-  const initial = name.trim().charAt(0).toUpperCase();
+export function ComingSoonCafeCard({ name, area, coverUrl, height = 210 }: { name: string; area?: string; coverUrl?: string; height?: number }) {
   return (
-    <div style={{ background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-elev-2)' }}>
-      <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, #8C8378 0%, #4A443D 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
-        {coverUrl ? (
-          <>
-            <Image src={coverUrl} alt="" fill sizes="(max-width: 480px) 100vw, 448px" style={{ objectFit: 'cover' }} />
-            {/* Same darkened top strip as the live card, so the pill reads over any photo. */}
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,12,6,.42) 0%, rgba(20,12,6,0) 45%)' }} />
-          </>
-        ) : (
-          <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
+    <div
+      aria-label={`${name}, coming soon`}
+      style={{ position: 'relative', height, marginTop: 16, borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', border: '1.5px dashed #E0C89F', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center' }}
+    >
+      {coverUrl && (
+        <>
+          <Image src={coverUrl} alt="" fill sizes="(max-width: 480px) 100vw, 448px" style={{ objectFit: 'cover', filter: 'grayscale(.12) saturate(1.05)' }} />
+          {/* The photo is a promise, not a storefront anyone can walk into yet, so it sits
+              behind a warm wash rather than competing with the live cafe card above it. */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,246,231,.86) 0%, rgba(255,236,209,.91) 100%)' }} />
+        </>
+      )}
+      <div style={{ position: 'relative', padding: '0 22px', textAlign: 'center' }}>
+        <div style={{ fontSize: 29, fontWeight: 800, letterSpacing: '-.02em', color: 'var(--gb-ink)', lineHeight: 1.05 }}>Coming soon</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '12px auto 11px', maxWidth: 210 }}>
+          <span style={{ flex: 1, height: 1, background: '#DFC79E' }} />
+          <MS name="local_cafe" size={17} color="var(--gb-primary)" />
+          <span style={{ flex: 1, height: 1, background: '#DFC79E' }} />
+        </div>
+        <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500, color: 'var(--gb-text)', lineHeight: 1.1 }}>{name}</div>
+        {area && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, color: '#7A6E60', fontSize: 12.5, fontWeight: 700 }}>
+            <MS name="near_me" size={14} />{area}
+          </div>
         )}
-        <div style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.94)', padding: '5px 10px', borderRadius: 999 }}>
-          <MS name="schedule" size={13} color="var(--gb-primary)" />
-          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-ink)' }}>Coming soon</span>
-        </div>
-      </div>
-      <div style={{ padding: '13px 16px' }}>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, color: 'var(--gb-text)', lineHeight: 1.1 }}>{name}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, color: '#7A6E60', fontSize: 12.5, fontWeight: 600 }}>
-          {area && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><MS name="near_me" size={15} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{area}</span></span>}
-          <span style={{ marginLeft: 'auto', flex: 'none' }}>Menu on the way</span>
-        </div>
       </div>
     </div>
   );
