@@ -21,6 +21,10 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [otpError, setOtpError] = useState(false);
   const [timer, setTimer] = useState(0);
+  // Bumped on every send. The cooldown used to key off `step`, which does not change
+  // when someone taps Resend, so after the first 28s the button stayed live forever and
+  // each tap bought another SMS.
+  const [sends, setSends] = useState(0);
   const [showNoAccount, setShowNoAccount] = useState(false);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   const valid = phone.length === 10;
@@ -43,6 +47,7 @@ function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+      setSends((n) => n + 1);
       setStep('otp');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -71,11 +76,13 @@ function LoginForm() {
 
   useEffect(() => {
     if (step !== 'otp') return;
-    setTimer(28);
+    // 30s to match the server's cooldown. A shorter countdown just offers a button that
+    // comes back with "please wait 4 seconds".
+    setTimer(30);
     const iv = setInterval(() => setTimer((t) => (t <= 1 ? (clearInterval(iv), 0) : t - 1)), 1000);
     const f = setTimeout(() => boxes.current[0]?.focus(), 250);
     return () => { clearInterval(iv); clearTimeout(f); };
-  }, [step]);
+  }, [step, sends]);
 
   // Auto-submit once all 6 digits are in (typed or SMS-autofilled), after a brief
   // animated pause on the button so the submit doesn't feel instant/jarring. Guarded
@@ -226,7 +233,9 @@ function LoginForm() {
             </button>
 
             <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: 'var(--gb-muted)', fontWeight: 600 }}>
-              {timer > 0 ? <span>Resend code in {timer}s</span> : <button onClick={sendOtp} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Resend OTP</button>}
+              {timer > 0
+                ? <span>Resend code in {timer}s</span>
+                : <button onClick={sendOtp} disabled={loading} style={{ border: 'none', background: 'transparent', color: 'var(--gb-primary)', fontWeight: 700, fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.55 : 1 }}>{loading ? 'Sending…' : 'Resend OTP'}</button>}
             </div>
           </>
         )}

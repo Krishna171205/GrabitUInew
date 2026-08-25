@@ -13,6 +13,9 @@ export default function PartnerSignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(0);
+  // Same as the customer login: keyed off sends, not `step`, so a resend restarts the
+  // cooldown instead of leaving the button live for good.
+  const [sends, setSends] = useState(0);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
 
   async function sendOtp() {
@@ -26,6 +29,7 @@ export default function PartnerSignupPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+      setSends((n) => n + 1);
       setStep('otp');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -55,11 +59,12 @@ export default function PartnerSignupPage() {
 
   useEffect(() => {
     if (step !== 'otp') return;
-    setTimer(28);
+    // 30s, matching the server cooldown.
+    setTimer(30);
     const iv = setInterval(() => setTimer((t) => (t <= 1 ? (clearInterval(iv), 0) : t - 1)), 1000);
     const f = setTimeout(() => boxes.current[0]?.focus(), 250);
     return () => { clearInterval(iv); clearTimeout(f); };
-  }, [step]);
+  }, [step, sends]);
 
   const digits = otp.padEnd(6).slice(0, 6).split('');
   const setDigit = (i: number, v: string) => {
