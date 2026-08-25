@@ -21,6 +21,14 @@ async function proxyRequest(req: NextRequest, pathParts: string[], method: strin
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
+  // This call is server-to-server, so the API sees THIS box as the client for every
+  // customer of the site and rate-limits them as one. Pass on the client our own nginx
+  // observed; the API only honours it from its own web tier. x-real-ip first because
+  // nginx overwrites it, unlike x-forwarded-for, whose first hop is caller-supplied text.
+  const clientIp = req.headers.get('x-real-ip')?.trim()
+    || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  if (clientIp) headers['X-Grabit-Client-Ip'] = clientIp;
+
   const body = ['POST', 'PATCH'].includes(method) ? await req.text() : undefined;
 
   const res = await fetch(url, { method, headers, body });
