@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { MS } from '@/components/gb/kit';
-import CoffeeCup3D from './CoffeeCup3D';
+import GrabbitCup3D from '@/components/cup3d/GrabbitCup3D';
 
 export default function LandingFooter() {
   return (
@@ -43,8 +43,8 @@ export default function LandingFooter() {
 
           {/* Column 4: Far Right 3D GRABBIT Coffee Cup */}
           <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex items-center justify-center lg:justify-end relative pr-0 lg:pr-4">
-            <div className="w-full max-w-[160px] sm:max-w-[185px] lg:max-w-[210px] h-[200px] sm:h-[230px] lg:h-[250px] relative pointer-events-auto">
-              <CoffeeCup3D />
+            <div className="w-full max-w-[190px] sm:max-w-[215px] lg:max-w-[250px] h-[220px] sm:h-[250px] lg:h-[290px] relative pointer-events-auto">
+              <GrabbitCup3D variant="showcase" />
             </div>
           </div>
 

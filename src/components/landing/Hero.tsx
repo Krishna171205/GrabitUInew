@@ -118,7 +118,7 @@ export default function Hero() {
       onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
       className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-x-clip bg-[#F8FAFC]"
     >
-      {/* FULL BACKGROUND ILLUSTRATION */}
+      {/* FULL BACKGROUND VIDEO */}
       <motion.div 
         className="absolute inset-0 z-0 overflow-hidden"
         initial={!prefersReducedMotion ? { scale: 0.98 } : false}
@@ -128,9 +128,13 @@ export default function Hero() {
       >
         <div className="absolute inset-0 bg-[#F8FAFC] -z-10" />
         <motion.div style={{ y: bgParallaxY }} className="w-full h-full">
-          <img
-            src="/hero-cafe-illustration.jpg"
-            alt="Campus Cafe Isometric Illustration"
+          <video
+            src="/grabv1.mp4"
+            poster="/hero-cafe-illustration.jpg"
+            autoPlay
+            loop
+            muted
+            playsInline
             className="w-full h-full object-cover object-center opacity-85"
           />
         </motion.div>

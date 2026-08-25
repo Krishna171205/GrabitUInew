@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useCart } from '@/store/cart';
+import { useCart, cartLineKey } from '@/store/cart';
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 
@@ -111,10 +111,12 @@ export default function CheckoutPage() {
         // added. Drop it and let the customer retry instead of a dead-end error - the
         // old flow left them stuck on the same items forever.
         if (data.code === 'ITEMS_UNAVAILABLE' && Array.isArray(data.invalid_item_ids)) {
-          const staleNames = items
-            .filter(i => data.invalid_item_ids.includes(i.menu_item_id))
-            .map(i => i.name);
-          data.invalid_item_ids.forEach((id: number) => removeItem(id));
+          const staleLines = items.filter(i => data.invalid_item_ids.includes(i.menu_item_id));
+          const staleNames = staleLines.map(i => i.name);
+          // removeItem keys off the cart *line* (menu item + its add-on set), not the
+          // bare menu_item_id - one stale item can be several lines, and passing the id
+          // straight through matched nothing, so the cart never actually cleared.
+          staleLines.forEach(line => removeItem(cartLineKey(line)));
           const who = staleNames.length ? staleNames.join(', ') : 'One or more items';
           const plural = staleNames.length !== 1;
           setError(`${who} ${plural ? 'are' : 'is'} no longer available and ${plural ? 'were' : 'was'} removed from your cart. Please review and try again.`);

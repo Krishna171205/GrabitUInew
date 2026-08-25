@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start --port 3004",
     "lint": "next lint",
+    "build:cup": "node scripts/build-cup-model.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,7 +20,7 @@
     "framer-motion": "^11.0.0",
     "gsap": "^3.14.2",
     "imagetracerjs": "^1.2.6",
-    "lucide-react": "^1.32.0",
+    "lucide-react": "^1.33.0",
     "next": "15.5.15",
     "ogl": "^1.0.11",
     "react": "^19.0.0",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "26.2.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.185.4",

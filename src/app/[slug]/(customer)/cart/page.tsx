@@ -16,6 +16,7 @@ import type { GrabbitAvailableSlot, GrabbitMenuCategory, GrabbitMenuItem } from 
 import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
+import GrabbitCup3D from '@/components/cup3d/GrabbitCup3D';
 
 interface SlotsData { slots: GrabbitAvailableSlot[]; label: string | null; }
 
@@ -543,8 +544,20 @@ export default function CartPage() {
           <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={22} color="var(--gb-ink)" /></button>
           <div className="gb-serif" style={{ fontSize: 21, fontWeight: 500 }}>Your order</div>
         </div>
-        <div style={{ padding: '70px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 92, height: 92, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center' }}><MS name="shopping_bag" size={42} color="var(--gb-primary)" /></div>
+        <div style={{ padding: '48px 32px 70px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          {/* The cup carries the empty state instead of a bag glyph. Falls back to
+              the old icon wherever WebGL isn't available. */}
+          <div style={{ width: 180, height: 180, marginBottom: -8 }}>
+            <GrabbitCup3D
+              variant="spot"
+              interactive={false}
+              fallback={
+                <div style={{ width: 92, height: 92, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', margin: '44px auto' }}>
+                  <MS name="shopping_bag" size={42} color="var(--gb-primary)" />
+                </div>
+              }
+            />
+          </div>
           <div className="gb-serif" style={{ fontSize: 22, fontWeight: 500 }}>Your cart is empty</div>
           <div style={{ fontSize: 13.5, color: 'var(--gb-muted)', fontWeight: 500, maxWidth: 240 }}>Add a few things from the menu and pick a pickup slot.</div>
           <Link href={`/${slug}`} style={{ background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', borderRadius: 14, padding: '13px 22px', fontSize: 15, fontWeight: 800 }}>Browse the menu</Link>
@@ -659,33 +672,19 @@ export default function CartPage() {
 
       {dineInTable ? (
         /* dine-in: table service, no pickup slot */
-<<<<<<< HEAD
-        <div style={{ margin: '14px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <MS name="restaurant" size={18} fill color="var(--gb-primary)" />
-            <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500 }}>Dine-in · Table {dineInTable}</div>
-=======
         <div style={{ margin: '22px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(15, 23, 42,.4)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <MS name="restaurant" size={20} fill color="var(--gb-primary)" />
             <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500 }}>Dine-in · Table {dineInTable}</div>
->>>>>>> new_source/master
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>We&apos;ll bring your order to the table.</div>
         </div>
       ) : (
       /* pickup slot */
-<<<<<<< HEAD
-      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '14px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <MS name="schedule" size={18} fill color="var(--gb-primary)" />
-          <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500, flex: 1 }}>Pickup time</div>
-=======
       <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '22px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 20, padding: 18, boxShadow: '0 12px 26px -20px rgba(15, 23, 42,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MS name="schedule" size={20} fill color="var(--gb-primary)" />
           <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, flex: 1 }}>Pickup time</div>
->>>>>>> new_source/master
           {slotsData && slotsData.slots.length > 0 && (
             <button
               onClick={() => setShowCustomTime((v) => !v)}
@@ -802,7 +801,6 @@ export default function CartPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14.5, fontWeight: 800, color: 'var(--gb-text)' }}><span>To pay</span><span>{inr(toPay)}</span></div>
       </div>
 
-<<<<<<< HEAD
       {error && (
         <div style={{ margin: '14px 16px 0', color: 'var(--gb-danger)', fontSize: 13.5, fontWeight: 600, padding: '12px 14px', background: '#FDECEA', borderRadius: 14 }}>{error}</div>
       )}
@@ -816,7 +814,7 @@ export default function CartPage() {
       {/* Zomato-style payment footer: static PAY USING label + Place Order.
           Method selection isn't ours to make - Cashfree's own checkout() page
           shows the real picker (UPI/card/wallet/netbanking) after this. */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '12px 14px calc(18px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(60,40,25,.4)' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '12px 14px calc(18px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(15, 23, 42,.4)' }}>
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 2, padding: '2px 2px 2px 4px' }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', color: 'var(--gb-muted-2)' }}>PAY USING</span>
@@ -828,7 +826,7 @@ export default function CartPage() {
             style={{
               flex: 1.4, border: 'none', borderRadius: 15, padding: '10px 16px', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
-              boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)', cursor: placing || checkingAuth ? 'not-allowed' : 'pointer', opacity: placing || checkingAuth ? 0.65 : 1,
+              boxShadow: '0 12px 24px -10px rgba(0,85,212,.6)', cursor: placing || checkingAuth ? 'not-allowed' : 'pointer', opacity: placing || checkingAuth ? 0.65 : 1,
             }}
           >
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.02em' }}>{inr(toPay)} TOTAL</span>
@@ -836,13 +834,6 @@ export default function CartPage() {
               {placing ? 'Placing…' : checkingAuth ? 'Checking…' : canProceed ? 'Place Order' : 'Pick a slot'}<MS name="arrow_forward" size={18} />
             </span>
           </button>
-=======
-      {/* pay bar */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 35, maxWidth: 480, margin: '0 auto', background: '#fff', borderTop: '1px solid #EEE4D6', padding: '14px 16px calc(26px + env(safe-area-inset-bottom))', boxShadow: '0 -10px 24px -16px rgba(15, 23, 42,.4)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11, color: '#6E6155', fontSize: 12.5, fontWeight: 600 }}>
-          <MS name="account_balance_wallet" size={19} color="var(--gb-primary)" />Paying with UPI · you@okbank
-          <MS name="expand_more" size={18} color="#B0A392" style={{ marginLeft: 'auto' }} />
->>>>>>> new_source/master
         </div>
       </div>
 
