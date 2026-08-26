@@ -1,140 +1,294 @@
 'use client';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { useRef } from 'react';
-import { MS } from '@/components/gb/kit';
 import { Annotation } from './Annotation';
 import { Sticker } from './Sticker';
+import { CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 
-export default function HowItWorks() {
-  const containerRef = useRef(null);
+const STEP_1_ITEMS = [
+  { name: 'Cold Brew', price: '₹220', tag: 'Popular' },
+  { name: 'Flat White', price: '₹280', tag: 'Artisan' },
+];
+
+const STEP_2_OPTIONS = [
+  { label: 'Milk Choice', value: 'Oat Milk (+₹30)' },
+  { label: 'Espresso Roast', value: 'Dark Single-Origin' },
+  { label: 'Sweetness', value: 'Zero Sugar' },
+];
+
+const STEPS = [
+  {
+    step: '01',
+    title: 'Choose Your Spot',
+    subtitle: 'Browse nearby campus cafes',
+    desc: 'Instantly view live prep times, open counters, and curated menus across your campus before leaving your desk or classroom.',
+    tag: 'Live ETA',
+  },
+  {
+    step: '02',
+    title: 'Customize in 10s',
+    subtitle: 'Your drink, made your way',
+    desc: 'Oat milk, extra shot, less sweet, or double ice. Customize with a tap and checkout securely via UPI in under 10 seconds.',
+    tag: 'Bespoke',
+  },
+  {
+    step: '03',
+    title: 'Walk In & Grab',
+    subtitle: 'Zero lines. Zero friction.',
+    desc: 'Your drink is freshly brewed and labeled at the counter when you arrive. Flash your token, grab your order, and keep moving.',
+    tag: 'Instant Pickup',
+  }
+];
+
+const SPRING_CONFIG = {
+  stiffness: 85,
+  damping: 24,
+  mass: 0.2,
+  restDelta: 0.0005,
+};
+
+function HowItWorksHeader() {
+  const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
-    target: containerRef,
+    target: ref,
     offset: ['start end', 'end start']
   });
 
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.08, 0.32, 0.75, 0.95], [0, 1, 1, 0]);
+  const y = useTransform(smoothProgress, [0.08, 0.32, 0.75, 0.95], [40, 0, 0, -30]);
+  const scale = useTransform(smoothProgress, [0.08, 0.32, 0.75, 0.95], [0.94, 1, 1, 0.96]);
+
+  return (
+    <motion.div 
+      ref={ref}
+      style={{ opacity, y, scale }}
+      className="text-center max-w-3xl mx-auto mb-20 md:mb-28 relative transform-gpu"
+    >
+      <div className="absolute -top-10 left-[6%] md:left-[10%] rotate-[-8deg] pointer-events-none">
+        <Annotation text="three simple steps" arrowDirection="down-right" delay={0.2} />
+      </div>
+      
+      <h2 className="text-[54px] sm:text-[72px] md:text-[90px] font-black tracking-wider leading-[0.88] text-[#0F172A] uppercase drop-shadow-sm" style={{ fontFamily: 'var(--font-anton)' }}>
+        HOW IT WORKS?
+      </h2>
+      <p className="text-slate-500 font-semibold text-base sm:text-lg max-w-lg mx-auto mt-4">
+        Built for campus hustle. Fresh food & specialty coffee without wasting 20 minutes standing in line.
+      </p>
+    </motion.div>
+  );
+}
+
+function Step1Row() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'end start']
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0, 1, 1, 0]);
+  const leftX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [-60, 0, 0, -40]);
+  const rightX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [60, 0, 0, 40]);
+  const y = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [30, 0, 0, -20]);
+  const scale = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0.94, 1, 1, 0.96]);
+
+  return (
+    <div ref={rowRef} className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 relative">
+      <motion.div 
+        style={{ opacity, x: leftX, y, scale }}
+        className="w-full md:w-5/12 order-2 md:order-1 flex justify-center md:justify-end relative transform-gpu"
+      >
+        <Sticker text="CAMPUS RADAR" color="blue" rotation={-10} className="top-2 -left-4 z-30" />
+        <div className="w-full max-w-[360px] bg-white rounded-[24px] p-5 shadow-[8px_8px_0px_#0F172A] border-[3px] border-[#0F172A] relative z-10 rotate-[1.5deg] hover:rotate-0 transition-transform duration-300">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+            <div>
+              <div className="text-[16px] font-black text-[#0F172A] leading-tight">The Raydee Cafe</div>
+              <div className="text-[11px] font-semibold text-slate-500">DTU Main Block · 150m away</div>
+            </div>
+            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">
+              Open
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {STEP_1_ITEMS.map((it, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                <div>
+                  <div className="font-bold text-[13px] text-[#0F172A]">{it.name}</div>
+                  <span className="text-[10px] font-extrabold text-[#0055D4] bg-[#0055D4]/10 px-1.5 py-0.5 rounded">
+                    {it.tag}
+                  </span>
+                </div>
+                <span className="font-black text-[13px] text-[#0F172A]">{it.price}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+            <span className="flex items-center gap-1"><Clock size={12} className="text-[#0055D4]" /> 5-8 min prep</span>
+            <span className="text-[#0055D4] font-black">Tap to order →</span>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div 
+        style={{ opacity, x: rightX, y, scale }}
+        className="w-full md:w-5/12 order-1 md:order-2 pl-0 md:pl-8 transform-gpu"
+      >
+        <span className="text-[64px] font-black text-[#0055D4]/20 leading-none block -mb-4 font-sans">01</span>
+        <h3 className="text-[34px] sm:text-[44px] font-black leading-[0.92] mb-3 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
+          {STEPS[0].title} <br />
+          <span className="text-[#0055D4] text-[22px] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>{STEPS[0].subtitle}</span>
+        </h3>
+        <p className="text-slate-600 text-[15px] sm:text-[16px] font-semibold leading-relaxed border-l-4 border-[#0055D4] pl-4">
+          {STEPS[0].desc}
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
+function Step2Row() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'end start']
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0, 1, 1, 0]);
+  const leftX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [-60, 0, 0, -40]);
+  const rightX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [60, 0, 0, 40]);
+  const y = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [30, 0, 0, -20]);
+  const scale = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0.94, 1, 1, 0.96]);
+
+  return (
+    <div ref={rowRef} className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 relative">
+      <motion.div 
+        style={{ opacity, x: leftX, y, scale }}
+        className="w-full md:w-5/12 pr-0 md:pr-8 text-left md:text-right transform-gpu"
+      >
+        <span className="text-[64px] font-black text-[#0055D4]/20 leading-none block -mb-4 font-sans">02</span>
+        <h3 className="text-[34px] sm:text-[44px] font-black leading-[0.92] mb-3 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
+          {STEPS[1].title} <br />
+          <span className="text-[#0055D4] text-[22px] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>{STEPS[1].subtitle}</span>
+        </h3>
+        <p className="text-slate-600 text-[15px] sm:text-[16px] font-semibold leading-relaxed border-l-4 md:border-l-0 md:border-r-4 border-[#0055D4] pl-4 md:pl-0 md:pr-4">
+          {STEPS[1].desc}
+        </p>
+      </motion.div>
+
+      <motion.div 
+        style={{ opacity, x: rightX, y, scale }}
+        className="w-full md:w-5/12 pl-0 md:pl-8 flex justify-center md:justify-start relative transform-gpu"
+      >
+        <Sticker text="ONE TAP UPI" color="cream" rotation={12} className="-bottom-3 -right-4 z-30" />
+        <div className="w-full max-w-[360px] bg-white rounded-[24px] p-5 shadow-[8px_8px_0px_#0F172A] border-[3px] border-[#0F172A] relative z-10 rotate-[-1.5deg] hover:rotate-0 transition-transform duration-300">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-3">
+            <div>
+              <div className="text-[17px] font-black text-[#0F172A]">Iced Americano</div>
+              <div className="text-[11px] text-slate-500 font-bold">Double Espresso · Chilled</div>
+            </div>
+            <span className="text-[18px] font-black text-[#0F172A]">₹180</span>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            {STEP_2_OPTIONS.map((opt, idx) => (
+              <div key={idx} className="flex justify-between items-center p-2 rounded-xl bg-slate-50 border border-slate-200/60 text-[12px]">
+                <span className="text-slate-500 font-medium">{opt.label}</span>
+                <span className="text-white font-bold bg-[#0055D4] px-2 py-0.5 rounded-md text-[11px]">{opt.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <button className="w-full bg-[#0055D4] text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:bg-[#0040A1] transition-colors">
+            <span>Pay ₹180 via UPI</span>
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function Step3Row() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'end start']
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0, 1, 1, 0]);
+  const leftX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [-60, 0, 0, -40]);
+  const rightX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [60, 0, 0, 40]);
+  const y = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [30, 0, 0, -20]);
+  const scale = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0.94, 1, 1, 0.96]);
+
+  return (
+    <div ref={rowRef} className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 relative">
+      <motion.div 
+        style={{ opacity, x: leftX, y, scale }}
+        className="w-full md:w-5/12 order-2 md:order-1 flex justify-center md:justify-end relative transform-gpu"
+      >
+        <Sticker text="ZERO LINE" color="navy" rotation={-6} className="-top-4 right-6 z-30" />
+        <div className="w-full max-w-[360px] bg-white rounded-[24px] p-6 text-center shadow-[8px_8px_0px_#0F172A] border-[3px] border-[#0F172A] flex flex-col items-center justify-center text-[#0F172A] relative z-10 rotate-[1.5deg] hover:rotate-0 transition-transform duration-300">
+          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-3 text-[#0055D4] border-2 border-[#0F172A] shadow-sm">
+            <CheckCircle2 size={32} strokeWidth={2.5} />
+          </div>
+          <div className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-0.5">Order Status</div>
+          <div className="text-[32px] font-black leading-none mb-4 text-[#0F172A]" style={{ fontFamily: 'var(--font-anton)' }}>
+            READY FOR PICKUP
+          </div>
+          
+          <div className="bg-[#F8FAFC] text-[#0F172A] w-full py-3.5 px-4 rounded-2xl border-2 border-[#0F172A] shadow-inner flex items-center justify-between">
+            <div className="text-left">
+              <div className="text-[9px] font-bold tracking-widest uppercase text-slate-500">Pickup Counter</div>
+              <div className="text-[13px] font-black text-[#0F172A]">Main Block #2</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[9px] font-bold tracking-widest uppercase text-slate-500">Token</div>
+              <div className="text-[20px] font-black text-[#0055D4] leading-none">#GB-408</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div 
+        style={{ opacity, x: rightX, y, scale }}
+        className="w-full md:w-5/12 order-1 md:order-2 pl-0 md:pl-8 transform-gpu"
+      >
+        <span className="text-[64px] font-black text-[#0055D4]/20 leading-none block -mb-4 font-sans">03</span>
+        <h3 className="text-[34px] sm:text-[44px] font-black leading-[0.92] mb-3 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
+          {STEPS[2].title} <br />
+          <span className="text-[#0055D4] text-[22px] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>{STEPS[2].subtitle}</span>
+        </h3>
+        <p className="text-slate-600 text-[15px] sm:text-[16px] font-semibold leading-relaxed border-l-4 border-[#0055D4] pl-4">
+          {STEPS[2].desc}
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function HowItWorks() {
+  const containerRef = useRef(null);
+
   return (
     <section ref={containerRef} className="relative py-24 md:py-32 bg-[#F8FAFC] text-[#0F172A] overflow-hidden border-b-2 border-[#0F172A]/10">
-      <div className="max-w-[1200px] mx-auto px-6">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-24 md:mb-40 relative">
-          <div className="absolute -top-10 left-[10%] md:-left-[10%] rotate-[-10deg]">
-            <Annotation text="three simple steps" arrowDirection="down-right" delay={0.2} />
-          </div>
-          <h2 className="text-[60px] md:text-[90px] font-black tracking-[-0.03em] leading-[0.85] text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
-            HOW IT WORKS?
-          </h2>
+      <div className="max-w-[1240px] mx-auto px-6">
+        <HowItWorksHeader />
+
+        {/* 3-Step Alternating Grid */}
+        <div className="relative space-y-24 md:space-y-32">
+          {/* Vertical Center Connector Line on Desktop */}
+          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-0.5 border-l-2 border-dashed border-[#0055D4]/30 -translate-x-1/2" />
+
+          <Step1Row />
+          <Step2Row />
+          <Step3Row />
         </div>
-
-        <div className="relative">
-          {/* Vertical Connecting Line (Hand-drawn feel) */}
-          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 bg-[#0055D4]/20 border-l border-dashed border-[#0055D4]/40 -translate-x-1/2" />
-
-          {/* --- STEP 01: DISCOVER --- */}
-          <div className="flex flex-col md:flex-row items-center justify-between mb-24 md:mb-32 gap-10 relative">
-            <div className="w-full md:w-5/12 order-2 md:order-1 flex justify-end md:pr-10 relative">
-              <Sticker text="NEAR YOU" color="blue" rotation={-15} className="top-0 -left-6 z-30" />
-              <div className="w-full max-w-[340px] bg-white rounded-[16px] p-4 shadow-[8px_8px_0px_#0F172A] border-2 border-[#0F172A] relative z-10 rotate-[2deg] hover:rotate-0 transition-transform duration-500">
-                <div className="flex items-center gap-2 mb-4 bg-gray-50 p-3 rounded-xl border border-[#0F172A]/10">
-                  <MS name="search" size={18} color="#64748B" />
-                  <div className="text-sm font-bold text-[#94A3B8]">Find cafes...</div>
-                </div>
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex gap-3 items-center">
-                      <div className="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0 border border-[#0F172A]/10">
-                        <img src={`https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&q=80&sig=${i}`} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="h-3 w-3/4 bg-[#0F172A] rounded-full mb-2" />
-                        <div className="flex gap-2">
-                          <div className="h-2 w-10 bg-[#0055D4] rounded-full" />
-                          <div className="h-2 w-16 bg-gray-200 rounded-full" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="w-full md:w-5/12 order-1 md:order-2 pl-0 md:pl-10">
-              <div className="text-[#0055D4] text-[80px] leading-none mb-4 opacity-20 absolute -top-10 -left-4 pointer-events-none" style={{ fontFamily: 'var(--font-anton)' }}>1.</div>
-              <h3 className="text-[40px] font-black leading-[0.9] mb-4 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
-                Take the quiz. <br />
-                <span className="text-[#0055D4] text-[24px]" style={{ fontFamily: 'var(--font-caveat)' }}>Or just browse.</span>
-              </h3>
-              <p className="text-[#64748B] text-[16px] font-semibold leading-relaxed border-l-4 border-[#0055D4] pl-4">
-                Instantly find the best cafés around you. See live pickup times, read reviews, and explore curated menus tailored to your taste.
-              </p>
-            </div>
-          </div>
-
-          {/* --- STEP 02: PRE-ORDER --- */}
-          <div className="flex flex-col md:flex-row items-center justify-between mb-24 md:mb-32 gap-10 relative">
-            <div className="w-full md:w-5/12 pr-0 md:pr-10 text-left md:text-right">
-              <div className="text-[#0055D4] text-[80px] leading-none mb-4 opacity-20 absolute -top-10 -right-4 pointer-events-none" style={{ fontFamily: 'var(--font-anton)' }}>2.</div>
-              <h3 className="text-[40px] font-black leading-[0.9] mb-4 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
-                Get your plan. <br />
-                <span className="text-[#0055D4] text-[24px]" style={{ fontFamily: 'var(--font-caveat)' }}>Customize everything.</span>
-              </h3>
-              <p className="text-[#64748B] text-[16px] font-semibold leading-relaxed border-r-0 md:border-r-4 border-l-4 md:border-l-0 border-[#0055D4] pl-4 md:pl-0 md:pr-4">
-                Oat milk? Extra shot? Customize your order exactly how you like it. Pay securely ahead of time with a single tap.
-              </p>
-            </div>
-            <div className="w-full md:w-5/12 pl-0 md:pl-10 relative">
-              <Sticker text="BESPOKE" color="cream" rotation={10} className="bottom-0 -right-6 z-30" />
-              <div className="w-full max-w-[340px] bg-[#0F172A] rounded-[16px] overflow-hidden shadow-[8px_8px_0px_#0055D4] border-2 border-[#0F172A] relative z-10 rotate-[-2deg] hover:rotate-0 transition-transform duration-500 flex flex-col text-white">
-                <div className="h-40 relative border-b-2 border-[#0055D4]">
-                  <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80" className="w-full h-full object-cover opacity-80" />
-                  <div className="absolute bottom-4 left-4">
-                    <div className="text-[20px] font-black uppercase tracking-wider">Iced Americano</div>
-                    <div className="text-[16px] font-bold text-[#0055D4]">₹180</div>
-                  </div>
-                </div>
-                <div className="p-5 space-y-4">
-                  <div className="flex justify-between items-center pb-3 border-b border-white/10">
-                    <div className="text-[14px] font-bold">Milk</div>
-                    <div className="text-[12px] font-bold bg-[#0055D4] text-white px-2 py-1 rounded">Oat Milk</div>
-                  </div>
-                  <div className="flex justify-between items-center pb-3 border-b border-white/10">
-                    <div className="text-[14px] font-bold">Espresso</div>
-                    <div className="text-[12px] font-bold bg-white/20 px-2 py-1 rounded">Extra Shot</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* --- STEP 03: PICK UP --- */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative">
-            <div className="w-full md:w-5/12 order-2 md:order-1 flex justify-end md:pr-10 relative">
-              <Sticker text="GRAB & GO" color="navy" rotation={-5} className="-top-6 right-10 z-30" />
-              <div className="w-full max-w-[340px] bg-[#0055D4] rounded-[16px] p-8 text-center shadow-[8px_8px_0px_#0F172A] border-2 border-[#0F172A] flex flex-col items-center justify-center text-white h-[360px] relative z-10 rotate-[2deg] hover:rotate-0 transition-transform duration-500">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-6 text-[#0055D4] border-2 border-[#0F172A]">
-                  <MS name="check" size={32} />
-                </div>
-                <div className="text-[12px] font-bold tracking-widest uppercase opacity-90 mb-1" style={{ fontFamily: 'var(--font-anton)' }}>Status</div>
-                <div className="text-[40px] font-black leading-none mb-6" style={{ fontFamily: 'var(--font-anton)' }}>ORDER READY</div>
-                
-                <div className="bg-[#0F172A] text-white w-full py-4 rounded-xl border-2 border-[#0F172A] shadow-inner">
-                  <div className="text-[11px] font-bold tracking-widest uppercase opacity-80 mb-1">Pickup Counter</div>
-                  <div className="text-[42px] font-black leading-none" style={{ fontFamily: 'var(--font-anton)' }}>04</div>
-                </div>
-              </div>
-            </div>
-            <div className="w-full md:w-5/12 order-1 md:order-2 pl-0 md:pl-10">
-              <div className="text-[#0055D4] text-[80px] leading-none mb-4 opacity-20 absolute -top-10 -left-4 pointer-events-none" style={{ fontFamily: 'var(--font-anton)' }}>3.</div>
-              <h3 className="text-[40px] font-black leading-[0.9] mb-4 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
-                Eat & Enjoy. <br />
-                <span className="text-[#0055D4] text-[24px]" style={{ fontFamily: 'var(--font-caveat)' }}>Walk in. Walk out.</span>
-              </h3>
-              <p className="text-[#64748B] text-[16px] font-semibold leading-relaxed border-l-4 border-[#0055D4] pl-4">
-                Skip the entire queue. Your order is prepared exactly for your arrival time. Just grab it from the counter and go.
-              </p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </section>
   );

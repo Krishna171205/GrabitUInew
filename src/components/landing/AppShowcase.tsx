@@ -256,7 +256,7 @@ export default function AppShowcase() {
       <div className="w-full relative flex-1 flex items-start justify-center min-h-[580px] lg:min-h-[620px] pb-10 overflow-visible mt-12 pointer-events-none">
         
         {/* Stickers adding editorial context */}
-        <Sticker text="SMART FOOD" rotation={6} color="blue" className="hidden lg:flex top-10 left-[15%]" delay={1.2} />
+
         <Sticker text="REAL RESULTS" rotation={-10} color="cream" className="hidden lg:flex bottom-20 right-[15%]" delay={1.4} />
 
         {/* We enable pointer events on the stage wrapper so the phone/cards are clickable */}

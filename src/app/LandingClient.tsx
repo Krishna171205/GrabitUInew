@@ -4,11 +4,10 @@ import LandingNav from '@/components/landing/LandingNav';
 import Hero from '@/components/landing/Hero';
 import TrustBand from '@/components/landing/TrustBand';
 import HowItWorks from '@/components/landing/HowItWorks';
-import WhyGrabbit from '@/components/landing/WhyGrabbit';
+import AppShowcase from '@/components/landing/AppShowcase';
 import ProductPreview from '@/components/landing/ProductPreview';
 import PartnerPitch from '@/components/landing/PartnerPitch';
 import FinalCTA from '@/components/landing/FinalCTA';
-import { TestimonialsSection } from '@/components/ui/testimonials-columns';
 import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
 import LandingFooter from '@/components/landing/LandingFooter';
 
@@ -20,9 +19,8 @@ export default function LandingClient() {
         <Hero />
         <TrustBand />
         <HowItWorks />
-        <WhyGrabbit />
+        <AppShowcase />
         <ProductPreview />
-        <TestimonialsSection />
         <PartnerPitch />
         <FinalCTA />
       </main>

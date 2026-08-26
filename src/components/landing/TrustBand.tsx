@@ -1,15 +1,14 @@
 // grabbit/src/components/landing/TrustBand.tsx
 'use client';
-import { MS } from '@/components/gb/kit';
-
 import { motion } from 'framer-motion';
+import { Zap, SmartphoneNfc, MessageCircleHeart, Flame, BadgeCheck } from 'lucide-react';
 
 const PILLARS = [
-  { icon: 'bolt', label: 'Skip the wait' },
-  { icon: 'payments', label: 'Pay online, skip the queue' },
-  { icon: 'chat', label: 'WhatsApp updates' },
-  { icon: 'local_cafe', label: 'Freshly brewed' },
-  { icon: 'verified', label: 'Verified Partners' },
+  { icon: Zap, label: 'Skip the wait' },
+  { icon: SmartphoneNfc, label: 'Pay online, skip the queue' },
+  { icon: MessageCircleHeart, label: 'WhatsApp updates' },
+  { icon: Flame, label: 'Freshly brewed' },
+  { icon: BadgeCheck, label: 'Verified Partners' },
 ];
 
 export default function TrustBand() {
@@ -17,23 +16,30 @@ export default function TrustBand() {
   const marqueeItems = [...PILLARS, ...PILLARS, ...PILLARS, ...PILLARS];
 
   return (
-    <section className="relative overflow-hidden py-16 bg-[#F8FAFC] flex items-center justify-center -mt-8 mb-8 z-10">
+    <section className="relative overflow-hidden pt-28 pb-20 bg-[#F8FAFC] flex items-center justify-center z-10">
       <div 
-        className="w-[110%] bg-[#0055D4] flex items-center shadow-lg border-y border-[#0040A1]"
-        style={{ transform: 'rotate(-2deg)' }}
+        className="w-[110%] bg-[#0055D4] flex items-center shadow-[0_12px_40px_rgba(0,85,212,0.25)]"
+        style={{ transform: 'rotate(-2.5deg)' }}
       >
         <motion.div
           animate={{ x: [0, "-50%"] }}
           transition={{ repeat: Infinity, ease: 'linear', duration: 40 }}
-          className="flex items-center gap-12 py-3 px-6 shrink-0 w-max"
+          className="flex items-center gap-16 py-4 md:py-5 px-8 shrink-0 w-max"
         >
-          {marqueeItems.map((p, idx) => (
-            <div key={`${p.label}-${idx}`} className="flex items-center gap-2 shrink-0">
-              <MS name={p.icon} size={20} fill color="#F8FAFC" />
-              <span className="text-[14px] font-bold text-[#F8FAFC] uppercase tracking-widest">{p.label}</span>
-              <span className="text-[#F8FAFC] opacity-40 ml-10">✦</span>
-            </div>
-          ))}
+          {marqueeItems.map((p, idx) => {
+            const Icon = p.icon;
+            return (
+              <div key={`${p.label}-${idx}`} className="flex items-center gap-3.5 shrink-0 group">
+                <Icon size={26} strokeWidth={2.5} className="text-[#FFEA00] -rotate-3 transition-transform group-hover:rotate-12 group-hover:scale-110" />
+                <span 
+                  className="text-[18px] md:text-[24px] font-normal text-white uppercase tracking-[0.15em]"
+                  style={{ fontFamily: 'var(--font-anton)' }}
+                >
+                  {p.label}
+                </span>
+              </div>
+            );
+          })}
         </motion.div>
       </div>
     </section>

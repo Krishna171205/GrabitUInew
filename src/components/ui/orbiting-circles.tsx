@@ -35,12 +35,12 @@ export function OrbitingCircles({
           className="pointer-events-none absolute inset-0 size-full"
         >
           <circle
-            className="stroke-[#0F172A]/[0.08] stroke-[1.5] dark:stroke-white/10"
+            className="stroke-[#0F172A]/20 stroke-[3] dark:stroke-white/20"
             cx="50%"
             cy="50%"
             r={radius}
             fill="none"
-            strokeDasharray="4 4"
+            strokeDasharray="12 12"
           />
         </svg>
       )}

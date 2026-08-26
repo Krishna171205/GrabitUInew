@@ -2,8 +2,7 @@
 import Image from 'next/image';
 import { useState, useRef, useEffect, MouseEvent } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionTemplate, useReducedMotion, type MotionValue } from 'framer-motion';
-import { OrbitingCircles } from '@/components/ui/orbiting-circles';
-import { Sparkles, Star, MapPin, Timer, Zap, Coffee, Check, ArrowRight, ShieldCheck, ShoppingBag, Clock, Heart, RotateCcw } from 'lucide-react';
+import { Star, MapPin, Check, ArrowRight, Clock, RotateCcw } from 'lucide-react';
 
 interface MenuItem {
   id: string;
@@ -44,110 +43,6 @@ const ITEMS: MenuItem[] = [
     img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&q=80' 
   },
 ];
-
-type OrbDef = { img: string; size: number; top: string; left?: string; right?: string; from: number; to: number; blur: number; op: number };
-const ORBS: OrbDef[] = [
-  { img: ITEMS[0].img, size: 160, top: '12%', left: '2%', from: -40, to: 40, blur: 4, op: 0.3 },
-  { img: ITEMS[1].img, size: 190, top: '58%', right: '2%', from: 50, to: -30, blur: 5, op: 0.25 },
-];
-
-function Orb({ o, p }: { o: OrbDef; p: MotionValue<number> }) {
-  const y = useTransform(p, [0, 1], [o.from, o.to]);
-  const isReduced = useReducedMotion();
-  return (
-    <motion.div
-      aria-hidden
-      style={{
-        position: 'absolute', top: o.top, left: o.left, right: o.right, width: o.size, height: o.size, y: isReduced ? 0 : y,
-        borderRadius: '50%', overflow: 'hidden', filter: `blur(${o.blur}px)`, opacity: o.op,
-        zIndex: 0, pointerEvents: 'none', boxShadow: '0 25px 60px -15px rgba(0, 85, 212, 0.25)',
-      }}>
-      <Image src={o.img} alt="" fill loading="lazy" sizes="200px" style={{ objectFit: 'cover' }} />
-    </motion.div>
-  );
-}
-
-// ----------------------------------------------------------------------
-// Enhanced Orbital Badges
-// ----------------------------------------------------------------------
-
-const NeoBadge = ({ 
-  icon, 
-  title, 
-  subtitle, 
-  accentColor = "#0055D4",
-  badgeTag
-}: { 
-  icon: React.ReactNode; 
-  title: string; 
-  subtitle: string; 
-  accentColor?: string;
-  badgeTag?: string;
-}) => (
-  <div className="relative group/badge cursor-default">
-    <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-[4px_4px_0px_#0F172A] border-2 border-[#0F172A] flex items-center gap-2 text-[#0F172A] whitespace-nowrap transition-all duration-300 hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 hover:scale-105">
-      <span className="text-[16px] flex items-center justify-center">{icon}</span>
-      <span className="text-[12px] font-black tracking-wider uppercase font-sans">{title}</span>
-      {badgeTag && (
-        <span className="bg-[#0055D4]/10 text-[#0055D4] text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-tight">
-          {badgeTag}
-        </span>
-      )}
-    </div>
-    
-    {/* Micro Tooltip */}
-    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/badge:opacity-100 transition-all duration-200 pointer-events-none z-50 transform group-hover/badge:translate-y-0 translate-y-1">
-      <div className="bg-[#0F172A] text-white text-[11px] font-medium px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-2xl flex flex-col items-center gap-0.5 border border-white/10">
-        <span className="font-bold text-white flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
-          {title}
-        </span>
-        <span className="text-slate-300 text-[10px]">{subtitle}</span>
-      </div>
-    </div>
-  </div>
-);
-
-const UserAvatarBadge = ({ 
-  src, 
-  name, 
-  role, 
-  savedText 
-}: { 
-  src: string; 
-  name: string; 
-  role: string; 
-  savedText: string; 
-}) => (
-  <div className="relative group/badge cursor-default">
-    <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-[4px_4px_0px_#0F172A] border-2 border-[#0F172A] transition-all duration-300 hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 hover:scale-105">
-      <div className="w-8 h-8 rounded-full overflow-hidden border border-[#0F172A]/20 relative flex-none">
-        <img src={src} alt={name} className="w-full h-full object-cover" />
-      </div>
-      <div className="flex flex-col text-left">
-        <span className="text-[11px] font-black text-[#0F172A] leading-tight flex items-center gap-1">
-          {name}
-          <Check size={10} className="text-[#0055D4] stroke-[3]" />
-        </span>
-        <span className="text-[9px] font-bold text-[#0055D4] tracking-tight">{role}</span>
-      </div>
-    </div>
-
-    {/* Micro Tooltip */}
-    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/badge:opacity-100 transition-all duration-200 pointer-events-none z-50 transform group-hover/badge:translate-y-0 translate-y-1">
-      <div className="bg-[#0F172A] text-white text-[11px] font-medium px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-2xl flex flex-col items-center border border-white/10">
-        <span className="font-bold text-white">{name} · {role}</span>
-        <span className="text-green-400 font-semibold text-[10px] flex items-center gap-1">
-          <span>⚡</span> {savedText}
-        </span>
-      </div>
-    </div>
-  </div>
-);
-
-// ----------------------------------------------------------------------
-// Main Section Component
-// ----------------------------------------------------------------------
 
 type OrderState = 'MENU' | 'CART' | 'CONFIRMING' | 'PREPARING' | 'READY';
 
@@ -240,120 +135,134 @@ export default function ProductPreview() {
     : ITEMS.filter(it => it.category === selectedCategory);
 
   return (
-    <section ref={sectionRef} className="relative bg-[#F8FAFC] pt-[140px] pb-[160px] min-h-[110vh] overflow-hidden flex flex-col items-center justify-center border-b-2 border-[#0F172A]/10">
+    <section ref={sectionRef} className="relative bg-[#F8FAFC] pt-[140px] pb-[160px] min-h-[110vh] overflow-hidden flex flex-col items-center justify-center border-b-[3px] border-[#0F172A]">
       
-      {/* Ambient Radial Glowing Backdrop */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
-        <div className="w-[850px] h-[850px] rounded-full bg-gradient-to-tr from-[#0055D4]/10 via-[#3B82F6]/5 to-transparent blur-[120px]" />
-        <div className="absolute w-[500px] h-[500px] rounded-full bg-[#0055D4]/8 blur-[90px]" />
-      </div>
-
-      {/* Background Soft Orbs */}
-      {ORBS.map((o, i) => <Orb key={i} o={o} p={scrollYProgress} />)}
+      {/* Neo-Brutalist Grid Background */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.05] mix-blend-multiply" 
+        style={{ backgroundImage: 'radial-gradient(#0F172A 2px, transparent 2px)', backgroundSize: '40px 40px' }} 
+      />
 
       {/* Main Content Container */}
       <div className="relative z-20 w-full max-w-[1180px] mx-auto px-4 text-center">
         
         {/* Top Feature Pill */}
         <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
+          whileHover={{ y: -2 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#0F172A]/10 shadow-sm mb-5 text-[11px] font-bold text-[#0F172A] uppercase tracking-wider"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border-2 border-[#0F172A] shadow-[4px_4px_0px_#0055D4] hover:shadow-[6px_6px_0px_#0F172A] mb-8 text-[11px] font-black text-[#0F172A] uppercase tracking-wider transition-all cursor-default"
         >
-          <span className="w-2 h-2 rounded-full bg-[#0055D4] animate-pulse" />
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+          </span>
           <span>Interactive Live Demo</span>
           <span className="text-[#0055D4] font-black">·</span>
-          <span className="text-[#0055D4]">Try Ordering Below</span>
+          <span className="text-[#0055D4]">Tap to Order</span>
         </motion.div>
 
         {/* Editorial Heading Block */}
         <div className="mb-14 flex flex-col items-center justify-center relative">
           <motion.h2 
-            className="text-[52px] sm:text-[76px] md:text-[98px] font-black tracking-[-0.03em] text-[#0F172A] leading-[0.88] uppercase drop-shadow-sm"
-            style={{ opacity: orderOpacity, y: orderY, fontFamily: 'var(--font-anton)' }}
+            className="text-[48px] sm:text-[68px] md:text-[88px] font-black tracking-normal leading-[0.92] uppercase"
+            style={{ 
+              opacity: orderOpacity, 
+              y: orderY, 
+              fontFamily: 'var(--font-anton)',
+            }}
           >
-            ORDER IN SECONDS.
+            <span className="text-[#0F172A] block">ORDER IN SECONDS.</span>
+            <span className="text-[#0055D4] block mt-1">PICK UP IN MINUTES.</span>
           </motion.h2>
           
-          <motion.div 
-            className="mt-3.5 relative inline-block"
+          <motion.p 
+            className="text-slate-500 font-semibold text-sm sm:text-base max-w-md mx-auto mt-4"
             style={{ opacity: pickupOpacity, scale: pickupScale }}
           >
-            <span className="text-[34px] sm:text-[42px] md:text-[48px] text-[#0055D4] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>
-              Pick up in minutes.
-            </span>
-          </motion.div>
+            Experience the real student ordering flow. Pick your brew, customize, and watch it brew live.
+          </motion.p>
         </div>
 
-        {/* Central Card Anchor Container */}
+        {/* Central Showcase Container with Floating Badges */}
         <div className="relative w-full max-w-[390px] mx-auto">
           
-          {/* Radial & Orbiting Circles Background System */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 w-[1200px] h-[1200px] flex items-center justify-center">
-            
-            {/* Inner Orbit (Clockwise, Radius 300) */}
-            <OrbitingCircles radius={300} duration={24} speed={1} iconSize={48} path={true}>
-              <NeoBadge 
-                icon="⏱️" 
-                title="5 MIN PREP" 
-                subtitle="Ready before you arrive at counter" 
-                badgeTag="Live"
-                accentColor="#10B981"
-              />
-              <NeoBadge 
-                icon={<Star size={15} className="fill-[#F59E0B] text-[#F59E0B]" />} 
-                title="4.9 RATED" 
-                subtitle="Based on 1.4k+ verified campus reviews" 
-                accentColor="#F59E0B"
-              />
-              <NeoBadge 
-                icon={<MapPin size={15} className="text-[#0055D4]" />} 
-                title="200M AWAY" 
-                subtitle="~3 min walk from DTU lecture hall" 
-                accentColor="#0055D4"
-              />
-            </OrbitingCircles>
-
-            {/* Outer Orbit (Reverse/Counter-Clockwise, Radius 480) */}
-            <OrbitingCircles radius={480} duration={38} speed={1} iconSize={52} reverse={true} path={true}>
-              <UserAvatarBadge 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&q=80" 
-                name="Sarah P." 
-                role="DTU Student" 
-                savedText="Saved 14 mins on Flat White"
-              />
-              <NeoBadge 
-                icon={<Zap size={15} className="text-[#0055D4] fill-[#0055D4]" />} 
-                title="ZERO QUEUE" 
-                subtitle="Direct contactless counter pickup" 
-                badgeTag="Fast"
-                accentColor="#0055D4"
-              />
-              <UserAvatarBadge 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80" 
-                name="Rohan M." 
-                role="Coffee Regular" 
-                savedText="28 orders this month"
-              />
-              <NeoBadge 
-                icon={<Coffee size={15} className="text-[#0F172A]" />} 
-                title="BREWED FRESH" 
-                subtitle="Crafted freshly upon order placement" 
-                accentColor="#8B5CF6"
-              />
-            </OrbitingCircles>
-
-          </div>
-
-          {/* Halo Glow behind Phone Card */}
+          {/* FLOATING FEATURE BADGES (Clean, Minimal, Non-Chaotic) */}
+          {/* 1. Top Left Badge */}
           <motion.div 
-            style={{ opacity: cardOpacity }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] pointer-events-none z-0"
+            initial={{ opacity: 0, x: -40, y: 20 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
+            className="hidden lg:flex absolute -left-52 top-12 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
           >
-            <div className="absolute inset-0 bg-[#0055D4]/15 rounded-full blur-[90px]" />
+            <div className="w-10 h-10 rounded-xl bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
+              ⚡
+            </div>
+            <div className="text-left">
+              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">5 Min Prep</div>
+              <div className="text-[10px] font-bold text-slate-500">Fresh on counter</div>
+            </div>
           </motion.div>
+
+          {/* 2. Top Right Badge */}
+          <motion.div 
+            initial={{ opacity: 0, x: 40, y: 20 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, type: "spring", bounce: 0.4, delay: 0.1 }}
+            className="hidden lg:flex absolute -right-52 top-24 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+              <MapPin size={18} />
+            </div>
+            <div className="text-left">
+              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">150m Away</div>
+              <div className="text-[10px] font-bold text-slate-500">DTU Main Block</div>
+            </div>
+          </motion.div>
+
+          {/* 3. Bottom Left Badge */}
+          <motion.div 
+            initial={{ opacity: 0, x: -40, y: -20 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, type: "spring", bounce: 0.4, delay: 0.2 }}
+            className="hidden lg:flex absolute -left-48 bottom-28 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#F59E0B] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Star size={18} className="fill-white" />
+            </div>
+            <div className="text-left">
+              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">4.9 / 5.0</div>
+              <div className="text-[10px] font-bold text-slate-500">1.4k+ Reviews</div>
+            </div>
+          </motion.div>
+
+          {/* 4. Bottom Right Badge */}
+          <motion.div 
+            initial={{ opacity: 0, x: 40, y: -20 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, type: "spring", bounce: 0.4, delay: 0.3 }}
+            className="hidden lg:flex absolute -right-44 bottom-12 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#10B981] text-white flex items-center justify-center font-black text-lg group-hover:scale-110 transition-transform">
+              #
+            </div>
+            <div className="text-left">
+              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">Zero Queue</div>
+              <div className="text-[10px] font-bold text-slate-500">Direct Token Grab</div>
+            </div>
+          </motion.div>
+
+          {/* Ambient Glow behind the phone */}
+          <motion.div
+            style={{ opacity: cardOpacity, scale: uiScale }}
+            className="absolute inset-0 bg-[#0055D4] blur-[120px] opacity-15 rounded-full z-0" 
+          />
 
           {/* Interactive Smartphone UI */}
           <motion.div
@@ -368,7 +277,7 @@ export default function ProductPreview() {
               transformPerspective: 1200, 
               transformStyle: 'preserve-3d', 
             }}
-            className="relative z-10 w-full bg-[#FFFFFF] rounded-[36px] overflow-hidden shadow-[14px_14px_0px_#0F172A] border-[4px] border-[#0F172A] text-left select-none"
+            className="relative z-10 w-full bg-[#FFFFFF] rounded-[38px] overflow-hidden shadow-[16px_16px_0px_#0F172A] border-[4px] border-[#0F172A] text-left select-none"
           >
             {/* Realistic Smartphone Status Bar */}
             <div className="bg-[#0F172A] text-white px-6 pt-3 pb-2 flex items-center justify-between text-[11px] font-semibold tracking-tight">
@@ -504,7 +413,7 @@ export default function ProductPreview() {
                               <motion.button 
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => handleAdd(it.id)}
-                                className="h-8 px-3 rounded-full bg-[#0F172A] text-white flex items-center gap-1 text-[11px] font-bold shadow-sm hover:bg-[#0055D4] transition-colors"
+                                className="h-8 px-3 rounded-full bg-[#0F172A] text-white flex items-center gap-1 text-[11px] font-bold border-2 border-[#0F172A] shadow-[2px_2px_0px_#0055D4] hover:bg-[#0055D4] hover:shadow-[2px_2px_0px_#0F172A] transition-all"
                               >
                                 <span>Add</span>
                                 <span>+</span>
@@ -527,7 +436,7 @@ export default function ProductPreview() {
                       >
                         <button 
                           onClick={() => setOrderState('CART')}
-                          className="w-full bg-[#0055D4] text-white px-4 py-3 rounded-2xl font-bold shadow-lg shadow-[#0055D4]/35 flex items-center justify-between hover:bg-[#0040A1] transition-all hover:scale-[1.01]"
+                          className="w-full bg-[#0055D4] text-white px-4 py-3 rounded-xl font-bold border-[3px] border-[#0F172A] shadow-[6px_6px_0px_#0F172A] flex items-center justify-between hover:translate-y-[2px] hover:shadow-[4px_4px_0px_#0F172A] active:translate-y-[6px] active:shadow-none transition-all"
                         >
                           <div className="flex items-center gap-2">
                             <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-black">

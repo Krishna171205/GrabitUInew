@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MS } from '@/components/gb/kit';
 import GrabbitCup3D from '@/components/cup3d/GrabbitCup3D';
 
@@ -8,6 +9,11 @@ export default function LandingFooter() {
     <footer className="bg-[#F4F4F4] pt-12 md:pt-20 pb-8 md:pb-12 overflow-hidden">
       <div className="bg-white rounded-[40px] px-8 sm:px-12 md:px-14 pt-12 pb-8 max-w-[1360px] mx-auto relative overflow-hidden shadow-sm mx-4 sm:mx-8">
         
+        {/* GRABBIT LOGO */}
+        <div className="mb-10 lg:mb-12">
+          <Image src="/new-logo.svg" alt="Grabbit Logo" width={180} height={54} className="object-contain" />
+        </div>
+
         {/* Main Footer Layout (12-column grid) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 mb-8 relative z-10 items-center">
           

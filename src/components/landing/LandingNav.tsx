@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
 
 export default function LandingNav() {
@@ -40,35 +42,24 @@ export default function LandingNav() {
           justifyContent: 'space-between',
         }}
       >
-        {/* KOFIKAFI Style Stadium/Pill Outline Logo Badge */}
+        {/* NEW GRABBIT LOGO */}
         <Link
           href="/"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 10,
-            border: '2.5px solid #FFFFFF',
-            borderRadius: 9999,
-            padding: '7px 22px',
-            color: '#FFFFFF',
-            textDecoration: 'none',
-            transition: 'transform 0.2s ease, background-color 0.2s ease',
+            transition: 'transform 0.2s ease',
           }}
-          className="hover:bg-white/10 active:scale-95"
+          className="hover:opacity-90 active:scale-95"
         >
-          <MS name="local_cafe" size={24} color="#FFFFFF" fill />
-          <span
-            style={{
-              fontSize: 22,
-              fontWeight: 900,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontFamily: 'var(--font-headline), system-ui, sans-serif',
-              lineHeight: 1,
-            }}
-          >
-            GRABBIT
-          </span>
+          <Image 
+            src="/new-logo.svg" 
+            alt="Grabbit Logo" 
+            width={120} 
+            height={40} 
+            className="object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
         </Link>
 
         {/* Right Navigation Links (Desktop) */}
@@ -158,80 +149,127 @@ export default function LandingNav() {
         {/* Mobile Hamburger Menu Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden relative z-50 focus:outline-none"
+          aria-label="Toggle menu"
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#FFFFFF',
-            cursor: 'pointer',
-            padding: 8,
+            width: 40,
+            height: 40,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 6,
           }}
-          className="md:hidden"
-          aria-label="Toggle menu"
         >
-          <MS name={mobileMenuOpen ? 'close' : 'menu'} size={28} color="#FFFFFF" />
+          <motion.div
+            animate={mobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={{ width: 24, height: 2, background: '#FFFFFF', borderRadius: 999, transformOrigin: 'center' }}
+          />
+          <motion.div
+            animate={mobileMenuOpen ? { opacity: 0, scale: 0.5 } : { opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            style={{ width: 24, height: 2, background: '#FFFFFF', borderRadius: 999, transformOrigin: 'center' }}
+          />
+          <motion.div
+            animate={mobileMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={{ width: 24, height: 2, background: '#FFFFFF', borderRadius: 999, transformOrigin: 'center' }}
+          />
         </button>
       </nav>
 
       {/* Mobile Drawer Dropdown */}
-      {mobileMenuOpen && (
-        <div
-          style={{
-            background: '#0055D4',
-            borderTop: '1px solid rgba(255,255,255,0.2)',
-            padding: '16px 24px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-          }}
-          className="md:hidden"
-        >
-          {navLinks.map((link) => {
-            const isActive = link.href === '/' ? pathname === '/' : pathname === link.href;
-            return (
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -15, scaleY: 0.95 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -15, scaleY: 0.95 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            style={{
+              position: 'absolute',
+              top: 76,
+              left: 0,
+              right: 0,
+              background: '#0055D4',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              padding: '16px 24px 28px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              boxShadow: '0 12px 30px -5px rgba(0, 85, 212, 0.4)',
+              transformOrigin: 'top center',
+            }}
+            className="md:hidden"
+          >
+            {navLinks.map((link, i) => {
+              const isActive = link.href === '/' ? pathname === '/' : pathname === link.href;
+              return (
+                <motion.div
+                  key={link.label}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ delay: i * 0.04 + 0.05, duration: 0.2 }}
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      display: 'block',
+                      color: isActive ? '#0055D4' : '#FFFFFF',
+                      background: isActive ? '#FFFFFF' : 'transparent',
+                      fontWeight: 900,
+                      fontSize: 15,
+                      letterSpacing: '0.1em',
+                      padding: '12px 20px',
+                      borderRadius: 12,
+                      textDecoration: 'none',
+                      transition: 'background 0.2s',
+                    }}
+                    className={isActive ? '' : 'hover:bg-white/10'}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              );
+            })}
+            
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ delay: navLinks.length * 0.04 + 0.1, duration: 0.2 }}
+            >
               <Link
-                key={link.label}
-                href={link.href}
+                href="/home"
                 onClick={() => setMobileMenuOpen(false)}
                 style={{
-                  color: isActive ? '#0055D4' : '#FFFFFF',
-                  background: isActive ? '#FFFFFF' : 'transparent',
+                  display: 'block',
+                  background: '#FFFFFF',
+                  color: '#0055D4',
                   fontWeight: 900,
-                  fontSize: 14,
-                  letterSpacing: '0.1em',
-                  padding: '10px 20px',
-                  borderRadius: 9999,
+                  fontSize: 15,
+                  letterSpacing: '0.12em',
+                  padding: '14px 24px',
+                  borderRadius: 12,
                   textDecoration: 'none',
-                  width: 'fit-content',
+                  textAlign: 'center',
+                  marginTop: 12,
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 }}
+                className="active:scale-[0.98]"
               >
-                {link.label}
+                ORDER NOW
               </Link>
-            );
-          })}
-          <Link
-            href="/home"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{
-              background: '#FFFFFF',
-              color: '#0055D4',
-              fontWeight: 900,
-              fontSize: 14,
-              letterSpacing: '0.12em',
-              padding: '12px 24px',
-              borderRadius: 9999,
-              textDecoration: 'none',
-              textAlign: 'center',
-              marginTop: 8,
-              boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-            }}
-          >
-            ORDER NOW
-          </Link>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
