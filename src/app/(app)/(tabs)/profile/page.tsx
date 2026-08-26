@@ -259,7 +259,7 @@ export default function ProfilePage() {
         </form>
       )}
 
-      <div style={{ margin: '-30px 0 0', position: 'relative', zIndex: 2 }}>
+      <div className="gb-streak-slot" style={{ margin: '-30px 0 0', position: 'relative', zIndex: 2 }}>
         <StreakCard streak={streak} slug={primaryCafe?.slug} />
       </div>
       </div>

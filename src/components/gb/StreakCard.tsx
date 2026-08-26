@@ -120,7 +120,7 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
           backgroundSize: '7px 7px',
         }} />
 
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="gb-streak-head" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
           {/* The anchor: milestone progress drawn around the number itself. */}
           <div
             className="gb-streak-ring"
@@ -143,7 +143,7 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
             </div>
           </div>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="gb-streak-copy" style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
                 onClick={() => setRulesOpen(true)}

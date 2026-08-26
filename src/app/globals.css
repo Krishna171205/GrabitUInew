@@ -687,8 +687,10 @@ button {
     gap: 26px; align-items: start; padding-top: 8px;
   }
   .gb-profile-side, .gb-profile-main { min-width: 0; }
-  /* The gradient panel is a card here, not a band across the top of the page. */
-  .gb-profile-side > div:first-child { border-radius: 22px; overflow: hidden; }
+  /* The gradient panel is a card here, not a band across the top of the page.
+     Its deep bottom padding existed to sit under the streak card's overlap; the
+     streak has its own edge now, so the panel stops trailing empty gradient. */
+  .gb-profile-side > div:first-child { border-radius: 22px; overflow: hidden; padding-bottom: 26px !important; }
   /* Cards carry 16px side margins from the phone layout; the columns supply the
      gutter now, so those margins would read as a double indent. */
   .gb-profile-side > *, .gb-profile-main > * { margin-left: 0 !important; margin-right: 0 !important; }
@@ -696,6 +698,20 @@ button {
   /* Avatar over name rather than beside it: in a 340px panel the name would run
      under the notification and settings buttons pinned to the panel's corner. */
   .gb-profile-side .gb-id-row { flex-direction: column; align-items: flex-start; gap: 13px; padding-top: 30px; }
+
+  /* The streak, in a 340px column, was a ring beside copy that wrapped both of
+     its lines twice. Stacked it reads as the thing it is meant to be, a stamp
+     card: the ring is the face, the copy sits under it, the rail is the foot.
+     It also stops overlapping the identity panel, which now has a card's edge
+     to be cut into. */
+  .gb-profile-side .gb-streak-slot { margin-top: 14px !important; }
+  .gb-profile-side .gb-streak-head { flex-direction: column; gap: 14px; text-align: center; }
+  .gb-profile-side .gb-streak-head .gb-streak-ring { width: 104px !important; height: 104px !important; }
+  .gb-profile-side .gb-streak-head .gb-streak-ring > div { width: 86px !important; height: 86px !important; }
+  .gb-profile-side .gb-streak-head .gb-streak-ring span { font-size: 36px !important; }
+  .gb-profile-side .gb-streak-copy > div:first-child { justify-content: center; }
+  .gb-profile-side .gb-streak-copy > div:nth-child(2) { font-size: 15px !important; margin-top: 8px !important; }
+  .gb-profile-side .gb-streak-copy > div:nth-child(3) { font-size: 12.5px !important; }
 }
 
 /* Signing in on a laptop: the photo stops being a band across the top of a
