@@ -127,6 +127,8 @@ export interface GrabbitOrder {
   updated_at: string;
   cafe_gstin?: string | null; // null = not GST-registered, not missing data
   cafe_fssai_number?: string | null;
+  // GST already inside the prices, carved out on the receipt. Null or 0 = cafe collects none.
+  cafe_gst_rate?: number | string | null;
 }
 
 export interface GrabbitOrderItem {

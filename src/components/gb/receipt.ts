@@ -3,7 +3,8 @@ import type { GrabbitOrderWithItems } from '@gradient365/gradient-commons';
 
 // jsPDF's built-in fonts have no ₹ glyph (renders as a missing-box), so
 // amounts use "Rs." here instead of the inr() helper used on-screen.
-const rs = (n: number) => `Rs. ${n.toLocaleString('en-IN')}`;
+const rs = (n: number) => `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 const PAGE_W = 595.28; // A4 at 72dpi
 const MARGIN = 40;
@@ -16,10 +17,11 @@ const MUTED: [number, number, number] = [122, 110, 96];
 /**
  * Order receipt in the spirit of the Blinkit/Zomato reference layouts (bordered
  * header block, boxed item table, bold total) but explicitly NOT a GST tax
- * invoice: no HSN codes or CGST/SGST breakdown, since whether a cafe charges
- * GST at all varies per cafe and isn't fully modeled here. FSSAI/GSTIN print
- * when the cafe has them on file, same placement Blinkit uses (right under
- * the seller block).
+ * invoice: no HSN codes. It does now show the CGST/SGST the customer paid, because
+ * the cafe's rate reaches Grabit with the rest of its details and the price already
+ * contains the tax - the same split, in the same words, as the cafe's own POS bill.
+ * A cafe that collects no GST shows no split. FSSAI/GSTIN print when the cafe has
+ * them on file, same placement Blinkit uses (right under the seller block).
  */
 export function downloadReceipt(order: GrabbitOrderWithItems, cafeName: string) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -111,6 +113,32 @@ export function downloadReceipt(order: GrabbitOrderWithItems, cafeName: string) 
     doc.line(MARGIN, y, RIGHT, y);
   }
 
+  // ---- tax split ----
+  // Menu prices contain the GST, so the bill shows what the tax was carved out of and the
+  // two halves, exactly as the cafe's own POS bill does. Same arithmetic on both sides:
+  // half rounded down, odd paisa to SGST, so the rows add back to what was paid.
+  const gstRate = Number(order.cafe_gst_rate ?? 0);
+  const taxed = gstRate > 0;
+  if (taxed) {
+    const taxable = round2(order.total_amount / (1 + gstRate / 100));
+    const gst = round2(order.total_amount - taxable);
+    const cgst = Math.floor((gst / 2) * 100) / 100;
+    const halfPct = String(Math.round((gstRate / 2) * 100) / 100);
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(...MUTED);
+    for (const [label, amount] of [
+      ['Taxable value', taxable],
+      [`CGST @ ${halfPct}%`, cgst],
+      [`SGST @ ${halfPct}%`, round2(gst - cgst)],
+    ] as [string, number][]) {
+      doc.text(label, colItemX, y + 13);
+      doc.text(rs(amount), colAmtX, y + 13, { align: 'right' });
+      y += 17;
+    }
+    y += 3;
+    doc.setTextColor(...INK);
+  }
+
   // total row
   doc.setFillColor(250, 246, 238);
   doc.rect(MARGIN, y, RIGHT - MARGIN, 30, 'F');
@@ -123,7 +151,10 @@ export function downloadReceipt(order: GrabbitOrderWithItems, cafeName: string) 
 
   // ---- footer ----
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  doc.text('This is an order receipt, not a GST tax invoice.', MARGIN, y);
+  doc.text(
+    taxed ? 'Inclusive of all taxes.' : 'This is an order receipt, not a GST tax invoice.',
+    MARGIN, y,
+  );
   y += 13;
   doc.text('Thanks for ordering on Grabbit.', MARGIN, y);
 
