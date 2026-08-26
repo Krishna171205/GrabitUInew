@@ -523,7 +523,10 @@ export default function CartPage() {
   const prepMinutes = prepByItem.size === 0 || items.length === 0
     ? 0
     : Math.max(...items.map(i => prepByItem.get(i.menu_item_id) ?? DEFAULT_PREP_MINUTES));
-  const readyAtMs = Date.now() + prepMinutes * 60_000;
+  // Counted from the top of the current minute, not from this instant: slots start
+  // on the minute, so measuring from 10:23:40 put the floor at 10:30:40 and threw
+  // away the 10:30 slot that is exactly the seven minutes away we just promised.
+  const readyAtMs = new Date().setSeconds(0, 0) + prepMinutes * 60_000;
   // Everything downstream reads this rather than slotsData.slots: what the cafe
   // offers, minus what it cannot cook in time.
   const bookableSlots = (slotsData?.slots ?? []).filter(
@@ -536,7 +539,7 @@ export default function CartPage() {
   // rather than send the counter a time it cannot hit.
   useEffect(() => {
     if (!selectedSlot) return;
-    if (new Date(selectedSlot).getTime() >= Date.now() + prepMinutes * 60_000) return;
+    if (new Date(selectedSlot).getTime() >= new Date().setSeconds(0, 0) + prepMinutes * 60_000) return;
     setSelectedSlot(null);
     setShowCustomTime(false);
     setCustomTimeIso(null);
@@ -1167,7 +1170,7 @@ export default function CartPage() {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
             const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const label = !slotsData?.label && idx === 0 ? 'ASAP' : time;
+            const asap = !slotsData?.label && idx === 0;
             return (
               <button
                 key={slot.slot_start}
@@ -1180,7 +1183,9 @@ export default function CartPage() {
                   cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.6 : 1,
                 }}
               >
-                {full ? `${label} · Full` : label}
+                {asap
+                  ? <>ASAP<span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, opacity: 0.75, marginTop: 2 }}>{full ? 'Full' : time}</span></>
+                  : full ? `${time} · Full` : time}
               </button>
             );
           })}
