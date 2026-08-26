@@ -506,6 +506,8 @@ export default function CartPage() {
   }, []);
   // Complete-your-meal recommendations
   const [recs, setRecs] = useState<GrabbitMenuItem[]>([]);
+  /** menu_item_id -> minutes the counter needs for one of them, from the menu row. */
+  const [prepByItem, setPrepByItem] = useState<Map<number, number>>(new Map());
   const [recCat, setRecCat] = useState<GrabbitMenuCategory | 'all'>('all');
   useEffect(() => {
     setDineInTable(sessionStorage.getItem('grabbit_table'));
@@ -513,6 +515,34 @@ export default function CartPage() {
     setNotes(savedNotes);
     if (savedNotes) setShowNoteInput(true);
   }, []);
+  // The kitchen cannot have the order ready before its slowest item is made, so
+  // the picker must not offer a time that is. Times are per item on the menu row
+  // (prep_time_minutes); the counter works items in parallel, so the cart is
+  // ready when its slowest item is, not when the sum of them would be.
+  const DEFAULT_PREP_MINUTES = 10;
+  const prepMinutes = prepByItem.size === 0 || items.length === 0
+    ? 0
+    : Math.max(...items.map(i => prepByItem.get(i.menu_item_id) ?? DEFAULT_PREP_MINUTES));
+  const readyAtMs = Date.now() + prepMinutes * 60_000;
+  // Everything downstream reads this rather than slotsData.slots: what the cafe
+  // offers, minus what it cannot cook in time.
+  const bookableSlots = (slotsData?.slots ?? []).filter(
+    s => new Date(s.slot_start).getTime() >= readyAtMs);
+  /** The cafe has slots left today, but none of them far enough out for this cart. */
+  const tooLateForToday = (slotsData?.slots.length ?? 0) > 0 && bookableSlots.length === 0;
+
+  // A cart edited after the time was picked can outgrow it: adding nachos to a
+  // coffee moves the earliest time past the slot already chosen. Drop the choice
+  // rather than send the counter a time it cannot hit.
+  useEffect(() => {
+    if (!selectedSlot) return;
+    if (new Date(selectedSlot).getTime() >= Date.now() + prepMinutes * 60_000) return;
+    setSelectedSlot(null);
+    setShowCustomTime(false);
+    setCustomTimeIso(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSlot, prepMinutes]);
+
   const canProceed = dineInTable ? true : !!selectedSlot;
 
   // Habit is to jump straight to Pay: instead of a dead disabled button, point at
@@ -575,8 +605,14 @@ export default function CartPage() {
       .then(r => (r.ok ? r.json() : null))
       .then(d => {
         if (cancelled || !d?.items) return;
+        const menu = d.items as (GrabbitMenuItem & { prep_time_minutes?: number | null })[];
+        // Built from the whole menu, not the filtered recommendations below: the
+        // items we need prep times for are exactly the ones already in the cart.
+        setPrepByItem(new Map(menu
+          .filter(i => i.prep_time_minutes != null)
+          .map(i => [i.id, i.prep_time_minutes as number])));
         const inCart = new Set(items.map(i => i.menu_item_id));
-        setRecs((d.items as GrabbitMenuItem[]).filter(i => i.is_available && !inCart.has(i.id)));
+        setRecs(menu.filter(i => i.is_available && !inCart.has(i.id)));
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -768,7 +804,7 @@ export default function CartPage() {
       sessionStorage.removeItem('grabbit_slot_asap');
     } else {
       sessionStorage.setItem('grabbit_slot', selectedSlot!);
-      const isAsap = !slotsData?.label && slotsData?.slots[0]?.slot_start === selectedSlot;
+      const isAsap = !slotsData?.label && bookableSlots[0]?.slot_start === selectedSlot;
       if (isAsap) sessionStorage.setItem('grabbit_slot_asap', '1');
       else sessionStorage.removeItem('grabbit_slot_asap');
     }
@@ -1090,13 +1126,13 @@ export default function CartPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
           <MS name="schedule" size={18} fill color="var(--gb-primary)" />
           <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500, flex: 1 }}>Pickup time</div>
-          {slotsData && slotsData.slots.length > 0 && (
+          {bookableSlots.length > 0 && (
             showCustomTime ? (
               <button
                 onClick={() => setPickerOpen(true)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 'none', border: '1.5px solid var(--gb-primary)', background: 'var(--gb-primary-pale)', color: 'var(--gb-primary)', fontSize: 12.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
               >
-                {fmtWallClock(customTimeIso ?? slotsData.slots[0].slot_start)}
+                {fmtWallClock(customTimeIso ?? bookableSlots[0].slot_start)}
                 <MS name="schedule" size={15} />
               </button>
             ) : (
@@ -1112,10 +1148,22 @@ export default function CartPage() {
         <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>
           It&apos;ll be fresh &amp; waiting, no waiting in line{slotsData?.label ? ` · ${slotsData.label}` : ''}
         </div>
+        {/* Why the earliest time moves between carts: it is this cart's own cooking
+            time, not a fixed number, so a chai and a plate of nachos differ. */}
+        {prepMinutes > 0 && bookableSlots.length > 0 && (
+          <div style={{ fontSize: 11.5, color: 'var(--gb-primary)', fontWeight: 700, marginTop: 6, marginLeft: 25 }}>
+            Earliest is about {prepMinutes} min: what this cart takes to make. It shifts with what you order.
+          </div>
+        )}
         {slotsLoading && <p style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 10 }}>Loading slots…</p>}
         {!slotsLoading && slotsData?.slots.length === 0 && <p style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 10 }}>No slots available. Try again tomorrow.</p>}
+        {!slotsLoading && tooLateForToday && (
+          <p style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 10, fontWeight: 600 }}>
+            This cart needs about {prepMinutes} min and the counter closes before that. Try a smaller order, or tomorrow.
+          </p>
+        )}
         <div className="gb-scroll" style={{ display: 'flex', gap: 7, overflowX: 'auto', marginTop: 11 }}>
-          {slotsData?.slots.map((slot, idx) => {
+          {bookableSlots.map((slot, idx) => {
             const full = slot.available_count === 0;
             const sel = selectedSlot === slot.slot_start;
             const time = new Date(slot.slot_start).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -1139,12 +1187,16 @@ export default function CartPage() {
         </div>
       </div>
       )}
-      {pickerOpen && slotsData && slotsData.slots.length > 0 && (
+      {pickerOpen && bookableSlots.length > 0 && (
         <TimeWheelSheet
-          initialIso={customTimeIso ?? slotsData.slots[nearestAvailableSlotIndexToNow(slotsData.slots)].slot_start}
+          initialIso={customTimeIso ?? bookableSlots[nearestAvailableSlotIndexToNow(bookableSlots)].slot_start}
           onConfirm={(iso) => {
-            setCustomTimeIso(iso);
-            setSelectedSlot(iso);
+            // A wheel can be spun to any time, including one before the food exists.
+            // Clamp rather than reject: the customer asked for "as early as possible".
+            const clamped = Math.max(new Date(iso).getTime(), readyAtMs);
+            const chosen = new Date(clamped).toISOString();
+            setCustomTimeIso(chosen);
+            setSelectedSlot(chosen);
             setShowCustomTime(true);
             setPickerOpen(false);
           }}
