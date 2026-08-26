@@ -138,7 +138,11 @@ export default function OrderPage() {
   if (denied) return <div style={center}>You don&apos;t have access to this order</div>;
   if (!order) return <div style={center}>Order not found</div>;
 
-  const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'the café';
+  // The cafe's own name, from the order. Title-casing the URL slug is a guess that reads
+  // fine on screen and wrong on a receipt: "raydee" is not what the cafe calls itself. The
+  // slug stays the fallback for an order placed before the name was synced.
+  const cafeName = order.cafe_name
+    || (slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'the café');
   const pickupTime = new Date(order.pickup_slot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
   const idx = stepIndex(order.status);
   const nodeState = (threshold: number): NodeState => idx > threshold ? 'done' : idx === threshold ? 'current' : 'upcoming';

@@ -125,6 +125,7 @@ export interface GrabbitOrder {
   suggested_prep_minutes?: number | null; // chef-time estimate, staff accept from it
   created_at: string;
   updated_at: string;
+  cafe_name?: string | null; // the cafe's own name; the URL slug is only a fallback
   cafe_gstin?: string | null; // null = not GST-registered, not missing data
   cafe_fssai_number?: string | null;
   // GST already inside the prices, carved out on the receipt. Null or 0 = cafe collects none.
