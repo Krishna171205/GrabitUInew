@@ -6,157 +6,150 @@ import type { GrabbitOrderWithItems } from '@gradient365/gradient-commons';
 const rs = (n: number) => `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-const PAGE_W = 595.28; // A4 at 72dpi
-const MARGIN = 40;
+// 80mm thermal roll, the width the cafe's own printer uses. The page grows with the
+// order rather than sitting on a fixed A4 sheet with white space under it.
+const PAGE_W = 226.77;
+const MARGIN = 14;
 const RIGHT = PAGE_W - MARGIN;
-const AMBER: [number, number, number] = [255, 177, 0];
-const INK: [number, number, number] = [36, 22, 18];
-const LINE: [number, number, number] = [225, 217, 205];
-const MUTED: [number, number, number] = [122, 110, 96];
+const INK: [number, number, number] = [0, 0, 0];
+const MUTED: [number, number, number] = [90, 90, 90];
+const RULE: [number, number, number] = [170, 170, 170];
+
+const LINE_H = 11;
+const ROW_H = 12;
+
+// Right edges of the three number columns, measured back from the margin. At 80mm
+// there is no room to guess: "Rs. 160.00" is ~44pt at this size, so the columns are
+// pitched to clear each other rather than laid out by eye.
+const COL_QTY = 100;
+const COL_RATE = 52;
+const NAME_W = 92;
 
 /**
- * Order receipt in the spirit of the Blinkit/Zomato reference layouts (bordered
- * header block, boxed item table, bold total) but explicitly NOT a GST tax
- * invoice: no HSN codes. It does now show the CGST/SGST the customer paid, because
- * the cafe's rate reaches Grabit with the rest of its details and the price already
- * contains the tax - the same split, in the same words, as the cafe's own POS bill.
- * A cafe that collects no GST shows no split. FSSAI/GSTIN print when the cafe has
- * them on file, same placement Blinkit uses (right under the seller block).
+ * The customer's copy of the cafe's own bill.
+ *
+ * Deliberately the same document as the POS prints (omegaservice ReceiptController):
+ * same monospace column, same section order, same wording, same tax split. A customer
+ * who orders at the counter one day and through Grabbit the next should get one bill,
+ * not two that look like they came from different companies. The header block and
+ * boxed table this used to draw were a second design maintained for no reason.
+ *
+ * Not a GST tax invoice - no HSN codes - but it carries the cafe's GSTIN, FSSAI and
+ * the CGST/SGST already inside the price, which is what a customer needs from it.
  */
 export function downloadReceipt(order: GrabbitOrderWithItems, cafeName: string) {
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  let y = 0;
+  // Drawn twice: once on a throwaway page to find where the content ends, then for real
+  // on a page cut to exactly that. A receipt roll ends where the bill ends - estimating
+  // the height instead leaves the customer with a strip of blank paper under the total.
+  const { end } = render(order, cafeName, new jsPDF({ unit: 'pt', format: [PAGE_W, 2000] }));
+  const { doc } = render(order, cafeName, new jsPDF({ unit: 'pt', format: [PAGE_W, end] }));
+  doc.save(`grabbit-order-GB-${order.id}.pdf`);
+}
 
-  // ---- header band ----
-  doc.setFillColor(...AMBER);
-  doc.rect(0, 0, PAGE_W, 92, 'F');
-  doc.setTextColor(...INK);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.text('Grabbit', MARGIN, 40);
-  doc.setFontSize(10.5);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Order Receipt', MARGIN, 58);
-  doc.setFontSize(9);
-  doc.text(`GB-${order.id}`, RIGHT, 40, { align: 'right' });
-  doc.text(
-    new Date(order.created_at).toLocaleString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    }),
-    RIGHT, 58, { align: 'right' },
-  );
-  y = 92 + 28;
-
-  // ---- seller / buyer block (bordered, two columns) ----
-  const blockTop = y;
-  const blockH = 92;
-  doc.setDrawColor(...LINE);
-  doc.setLineWidth(1);
-  doc.rect(MARGIN, blockTop, RIGHT - MARGIN, blockH);
-  doc.line((MARGIN + RIGHT) / 2, blockTop, (MARGIN + RIGHT) / 2, blockTop + blockH);
-
-  const colL = MARGIN + 14;
-  const colR = (MARGIN + RIGHT) / 2 + 14;
-  let yl = blockTop + 20;
-  let yr = blockTop + 20;
-
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  doc.text('SOLD BY', colL, yl); yl += 14;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(...INK);
-  doc.text(cafeName, colL, yl); yl += 16;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...MUTED);
-  if (order.cafe_fssai_number) { doc.text(`FSSAI: ${order.cafe_fssai_number}`, colL, yl); yl += 13; }
-  if (order.cafe_gstin) { doc.text(`GSTIN: ${order.cafe_gstin}`, colL, yl); yl += 13; }
-
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  doc.text('BILLED TO', colR, yr); yr += 14;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(...INK);
-  doc.text(order.customer_name || 'Guest', colR, yr); yr += 16;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...MUTED);
-  if (order.customer_phone) { doc.text(order.customer_phone, colR, yr); yr += 13; }
-  doc.text(`Paid via ${order.payment_method === 'online' ? 'online payment' : 'counter payment'}`, colR, yr);
-
-  y = blockTop + blockH + 26;
-
-  // ---- item table ----
-  const colItemX = MARGIN + 10;
-  const colQtyX = RIGHT - 150;
-  const colAmtX = RIGHT - 10;
-  const rowH = 24;
-
-  doc.setFillColor(...INK);
-  doc.rect(MARGIN, y, RIGHT - MARGIN, rowH, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('ITEM', colItemX, y + 15.5);
-  doc.text('QTY', colQtyX, y + 15.5, { align: 'right' });
-  doc.text('AMOUNT', colAmtX, y + 15.5, { align: 'right' });
-  y += rowH;
-
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK);
-  for (const item of order.items) {
-    const lineTotal = item.unit_price * item.quantity + (item.addons_total ?? 0);
-    const hasAddons = item.addons && item.addons.length > 0;
-    const thisRowH = hasAddons ? rowH + 12 : rowH;
-
-    doc.setFontSize(10);
-    doc.text(item.menu_item_name, colItemX, y + 15.5, { maxWidth: colQtyX - colItemX - 20 });
-    doc.text(String(item.quantity), colQtyX, y + 15.5, { align: 'right' });
-    doc.text(rs(lineTotal), colAmtX, y + 15.5, { align: 'right' });
-    if (hasAddons) {
-      doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-      doc.text(`+ ${item.addons!.map(a => a.name).join(', ')}`, colItemX, y + 28);
-      doc.setTextColor(...INK);
-    }
-    y += thisRowH;
-    doc.setDrawColor(...LINE);
-    doc.line(MARGIN, y, RIGHT, y);
-  }
-
-  // ---- tax split ----
-  // Menu prices contain the GST, so the bill shows what the tax was carved out of and the
-  // two halves, exactly as the cafe's own POS bill does. Same arithmetic on both sides:
-  // half rounded down, odd paisa to SGST, so the rows add back to what was paid.
+function render(order: GrabbitOrderWithItems, cafeName: string, doc: jsPDF): { doc: jsPDF; end: number } {
   const gstRate = Number(order.cafe_gst_rate ?? 0);
   const taxed = gstRate > 0;
+  let y = MARGIN + 10;
+
+  const centre = (text: string, size: number, bold = false, colour = INK) => {
+    doc.setFont('courier', bold ? 'bold' : 'normal');
+    doc.setFontSize(size);
+    doc.setTextColor(...colour);
+    doc.text(text, PAGE_W / 2, y, { align: 'center' });
+    y += LINE_H;
+  };
+
+  const rule = (dashed = true) => {
+    doc.setDrawColor(...(dashed ? RULE : INK));
+    doc.setLineWidth(dashed ? 0.5 : 1);
+    if (dashed) doc.setLineDashPattern([1.5, 1.5], 0);
+    doc.line(MARGIN, y, RIGHT, y);
+    doc.setLineDashPattern([], 0);
+    y += 8;
+  };
+
+  const row = (label: string, amount: string, bold = false, size = 7.5) => {
+    doc.setFont('courier', bold ? 'bold' : 'normal');
+    doc.setFontSize(size);
+    doc.setTextColor(...INK);
+    doc.text(label, MARGIN, y);
+    doc.text(amount, RIGHT, y, { align: 'right' });
+    y += LINE_H;
+  };
+
+  // ---- who sold it ----
+  centre(cafeName, 9.5, true);
+  if (order.cafe_gstin) centre(`GSTIN: ${order.cafe_gstin}`, 6.5, false, MUTED);
+  if (order.cafe_fssai_number) centre(`FSSAI: ${order.cafe_fssai_number}`, 6.5, false, MUTED);
+  y += 3;
+
+  const placed = new Date(order.created_at).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+  centre(`Order GB-${order.id} - ${placed}`, 6.5, false, MUTED);
+  centre(`${order.customer_name || 'Guest'}${order.customer_phone ? ` - ${order.customer_phone}` : ''}`, 6.5, false, MUTED);
+  y += 4;
+
+  // ---- what they bought ----
+  rule();
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(...MUTED);
+  doc.text('ITEM', MARGIN, y);
+  doc.text('QTY', RIGHT - COL_QTY, y, { align: 'right' });
+  doc.text('RATE', RIGHT - COL_RATE, y, { align: 'right' });
+  doc.text('AMOUNT', RIGHT, y, { align: 'right' });
+  y += LINE_H;
+  rule();
+
+  for (const item of order.items) {
+    const lineTotal = item.unit_price * item.quantity + (item.addons_total ?? 0);
+    const nameLines = doc.splitTextToSize(item.menu_item_name, NAME_W).length;
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(...INK);
+    doc.text(item.menu_item_name, MARGIN, y, { maxWidth: NAME_W });
+    doc.text(String(item.quantity), RIGHT - COL_QTY, y, { align: 'right' });
+    doc.text(rs(item.unit_price), RIGHT - COL_RATE, y, { align: 'right' });
+    doc.text(rs(lineTotal), RIGHT, y, { align: 'right' });
+    y += ROW_H + (nameLines - 1) * (LINE_H - 2);
+    if (item.addons && item.addons.length > 0) {
+      doc.setFontSize(6.5);
+      doc.setTextColor(...MUTED);
+      doc.text(`+ ${item.addons.map(a => a.name).join(', ')}`, MARGIN + 6, y);
+      y += LINE_H;
+    }
+  }
+
+  // ---- what it cost ----
+  rule();
   if (taxed) {
+    // The price already contains the GST, so the bill shows the value it was carved
+    // out of and the two halves. Same arithmetic as the POS bill, down to the odd
+    // paisa going to SGST, so the two documents agree to the last rupee.
     const taxable = round2(order.total_amount / (1 + gstRate / 100));
     const gst = round2(order.total_amount - taxable);
     const cgst = Math.floor((gst / 2) * 100) / 100;
     const halfPct = String(Math.round((gstRate / 2) * 100) / 100);
-
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(...MUTED);
-    for (const [label, amount] of [
-      ['Taxable value', taxable],
-      [`CGST @ ${halfPct}%`, cgst],
-      [`SGST @ ${halfPct}%`, round2(gst - cgst)],
-    ] as [string, number][]) {
-      doc.text(label, colItemX, y + 13);
-      doc.text(rs(amount), colAmtX, y + 13, { align: 'right' });
-      y += 17;
-    }
-    y += 3;
-    doc.setTextColor(...INK);
+    row('Taxable value', rs(taxable));
+    row(`CGST @ ${halfPct}%`, rs(cgst));
+    row(`SGST @ ${halfPct}%`, rs(round2(gst - cgst)));
+  } else {
+    row('Subtotal', rs(order.total_amount));
   }
 
-  // total row
-  doc.setFillColor(250, 246, 238);
-  doc.rect(MARGIN, y, RIGHT - MARGIN, 30, 'F');
-  doc.setDrawColor(...LINE);
-  doc.rect(MARGIN, y, RIGHT - MARGIN, 30);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-  doc.text('Total paid', colItemX, y + 19.5);
-  doc.text(rs(order.total_amount), colAmtX, y + 19.5, { align: 'right' });
-  y += 30 + 26;
+  y += 2;
+  rule(false);
+  row('Total', rs(order.total_amount), true, 9);
+  if (taxed) centre('(Inclusive of all taxes)', 6.5, false, MUTED);
+  y += 4;
 
-  // ---- footer ----
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  doc.text(
-    taxed ? 'Inclusive of all taxes.' : 'This is an order receipt, not a GST tax invoice.',
-    MARGIN, y,
-  );
-  y += 13;
-  doc.text('Thanks for ordering on Grabbit.', MARGIN, y);
+  // ---- how it was paid ----
+  rule();
+  row(order.payment_method === 'online' ? 'PAID ONLINE' : 'PAY AT COUNTER', rs(order.total_amount));
+  y += 6;
 
-  doc.save(`grabbit-order-GB-${order.id}.pdf`);
+  centre('Thanks for ordering on Grabbit.', 6.5, false, MUTED);
+
+  return { doc, end: y - LINE_H + MARGIN };
 }
