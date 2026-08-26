@@ -42,7 +42,12 @@ export function downloadReceipt(order: GrabbitOrderWithItems, cafeName: string) 
   // on a page cut to exactly that. A receipt roll ends where the bill ends - estimating
   // the height instead leaves the customer with a strip of blank paper under the total.
   const { end } = render(order, cafeName, new jsPDF({ unit: 'pt', format: [PAGE_W, 2000] }));
-  const { doc } = render(order, cafeName, new jsPDF({ unit: 'pt', format: [PAGE_W, end] }));
+  // jsPDF's portrait mode sorts the format so the width is the shorter side. A one-item
+  // bill is shorter than the roll is wide, so [226.77, 208] came back as a 208pt-wide page
+  // and the AMOUNT column was cut off the right edge. Never let the page be shorter than
+  // it is wide; a stub bill carries a little blank tail instead of losing a column.
+  const height = Math.max(end, PAGE_W);
+  const { doc } = render(order, cafeName, new jsPDF({ unit: 'pt', format: [PAGE_W, height] }));
   doc.save(`grabbit-order-GB-${order.id}.pdf`);
 }
 
