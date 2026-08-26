@@ -59,7 +59,7 @@ export default function FavouritesPage() {
   const empty = !loading && !signedOut && items.length === 0 && cafes.length === 0;
 
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-wide">
       <TopBar title="Favourites" />
 
       {loading && (
@@ -87,14 +87,20 @@ export default function FavouritesPage() {
       {items.length > 0 && (
         <>
           <Eyebrow style={{ padding: '16px 20px 6px' }}>Saved dishes</Eyebrow>
-          {items.map((i) => <ItemRow key={i.menu_item_id} item={i} />)}
+          {/* Rows on a phone, separated by rules; cards once they sit side by side,
+              where a rule under each one reads as a stray line. */}
+          <div className="gb-card-grid gb-row-cards">
+            {items.map((i) => <ItemRow key={i.menu_item_id} item={i} />)}
+          </div>
         </>
       )}
 
       {cafes.length > 0 && (
         <div style={{ padding: '0 16px' }}>
           <Eyebrow style={{ padding: '20px 4px 0' }}>Saved cafés</Eyebrow>
-          {cafes.map((c) => <RealCafeCard key={c.slug} cafe={c} cta="View menu" />)}
+          <div className="gb-cafe-grid">
+            {cafes.map((c) => <RealCafeCard key={c.slug} cafe={c} cta="View menu" />)}
+          </div>
         </div>
       )}
 

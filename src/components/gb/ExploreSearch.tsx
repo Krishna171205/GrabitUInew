@@ -51,7 +51,7 @@ export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-1)' }}>
+      <div className="gb-search-wide" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-1)' }}>
         <MS name="search" size={21} color="#B0A08C" />
         <input
           value={q}

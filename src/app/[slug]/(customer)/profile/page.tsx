@@ -109,7 +109,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
+    <div className="gb-cust-page gb-wide-sm" style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
       <TopBar title="My Profile" onBack={() => router.push(`/${slug}`)} />
 
       {/* Identity */}

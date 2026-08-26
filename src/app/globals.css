@@ -498,7 +498,7 @@ button {
   justify-content: space-between;
   max-width: 1080px;
   margin: 0 auto;
-  padding: 20px 8px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--gb-line-2);
 }
 
@@ -508,6 +508,45 @@ button {
 
 @media (min-width: 860px) {
   .gb-shell-wide { max-width: 1080px; }
+  /* Lists and forms are read, not scanned: they get a column that stays legible
+     instead of one that fills the desk. Cards get a grid, see .gb-card-grid. */
+  .gb-shell-read { max-width: 720px; }
+  .gb-shell-wide, .gb-shell-read { padding-left: 16px; padding-right: 16px; }
+
+  /* One card grid for every list of cards in the app: orders, offers, saved
+     items. Matches .gb-cafe-grid's rhythm so the app reads as one system. */
+  .gb-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  .gb-card-grid > * { margin-left: 0 !important; margin-right: 0 !important; }
+  /* List rows that become grid cells need to look like cards, since the divider
+     that separated them in a column has nothing to separate any more. */
+  .gb-row-cards > * {
+    background: var(--gb-card);
+    border: 1px solid var(--gb-line-2) !important;
+    border-radius: var(--gb-r-md);
+    box-shadow: var(--gb-elev-1);
+  }
+
+  /* A search field as wide as the page is harder to aim at, not easier. */
+  .gb-search-cap { max-width: 420px; }
+  /* Explore's field is the screen's main action, so it stays generous, but a
+     1080px-wide text input is a target with nothing to aim at. */
+  .gb-search-wide { max-width: 620px; }
+
+  /* Home's hero keeps its full width as a panel, but the words and the search
+     inside it get a measure, and the line earns the size the panel implies. */
+  .gb-hero-lede { max-width: 560px !important; font-size: 30px !important; margin-top: 26px !important; }
+  .gb-hero-search { max-width: 560px; }
+  /* The cravings row stops being a scroller once every craving fits at once. */
+  .gb-shell-wide .gb-cravings {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 14px !important; overflow: visible !important;
+  }
 
   /* Wide container earns more hero breathing room — the mobile 66px bottom
      padding reads cramped once the shell is 1080px instead of 480px. */
@@ -525,6 +564,7 @@ button {
   .gb-nav-spacer { height: 0; }
   .gb-topnav { display: flex; }
 
+  /* /location, the standalone picker: full page on a phone, centred modal here. */
   .gb-location-backdrop {
     position: fixed; inset: 0; z-index: 50;
     background: rgba(20,10,5,.55);
@@ -532,9 +572,25 @@ button {
   }
   .gb-location-card {
     width: 520px; max-height: 80vh; overflow-y: auto;
+    /* The page sets 100dvh for the phone's full-screen version; a modal that is
+       always taller than the window it sits in is not a modal. */
+    min-height: 0 !important;
     border-radius: 22px;
     box-shadow: 0 30px 60px -20px rgba(0,0,0,.5);
   }
+
+  /* Location gate: the espresso ground stays, the content becomes a card in the
+     middle of it instead of a sheet pinned across the whole window. */
+  .gb-locgate { display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .gb-locgate-card {
+    width: 520px; max-width: 100%; max-height: calc(100dvh - 64px); overflow-y: auto;
+    background: rgba(0,0,0,.16);
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 24px;
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,.6);
+  }
+  .gb-locgate-card > div:first-child { padding-top: 34px !important; }
+  .gb-locgate-card > div:last-child { border-radius: 0 0 24px 24px; }
 }
 
 @media (min-width: 640px) { .gb-nav-partner { display: inline-flex !important; } }
@@ -620,6 +676,59 @@ button {
 .gb-cat-chips { display: contents; }
 .gb-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-bottom: 6px; }
 
+/* Account screen: identity on the left, everything you can act on to its right.
+   1024 rather than 860, because a 340px panel plus a usable list needs the room. */
+@media (min-width: 1024px) {
+  .gb-profile {
+    /* Below this it holds the 720px reading measure rather than stretching a
+       single column across the whole shell. */
+    max-width: 1080px;
+    display: grid; grid-template-columns: 340px minmax(0, 1fr);
+    gap: 26px; align-items: start; padding-top: 8px;
+  }
+  .gb-profile-side, .gb-profile-main { min-width: 0; }
+  /* The gradient panel is a card here, not a band across the top of the page. */
+  .gb-profile-side > div:first-child { border-radius: 22px; overflow: hidden; }
+  /* Cards carry 16px side margins from the phone layout; the columns supply the
+     gutter now, so those margins would read as a double indent. */
+  .gb-profile-side > *, .gb-profile-main > * { margin-left: 0 !important; margin-right: 0 !important; }
+  .gb-profile-main > button { width: 100% !important; }
+  /* Avatar over name rather than beside it: in a 340px panel the name would run
+     under the notification and settings buttons pinned to the panel's corner. */
+  .gb-profile-side .gb-id-row { flex-direction: column; align-items: flex-start; gap: 13px; padding-top: 30px; }
+}
+
+/* Signing in on a laptop: the photo stops being a band across the top of a
+   phone-width strip and becomes the left half of one card, with the form beside
+   it. The card is the only thing on the page, so it can afford the room. */
+@media (min-width: 1024px) {
+  .gb-login-shell {
+    max-width: 960px !important;
+    min-height: 0 !important;
+    margin: 56px auto !important;
+    flex-direction: row !important;
+    background: var(--gb-card) !important;
+    border: 1px solid var(--gb-line-2);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--gb-elev-3);
+  }
+  /* The card is the whole page here, so it sits in the middle of it. */
+  .gb-login-page { min-height: 100dvh; display: flex; align-items: center; justify-content: center; }
+  .gb-login-hero { width: 380px; height: auto !important; align-self: stretch; }
+  /* The phone scrim fades to the page colour at its bottom edge so the image
+     melts into the sheet below it. Side by side there is nothing below to melt
+     into, so it goes back to a plain bottom-weighted scrim. */
+  .gb-login-scrim {
+    background: linear-gradient(180deg, rgba(40,24,16,.45) 0%, rgba(40,24,16,.05) 40%, rgba(40,24,16,.65) 100%) !important;
+  }
+  .gb-login-form {
+    background: var(--gb-card) !important;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 44px 48px !important;
+  }
+}
+
 /* Every wide layout hangs off :has() on the shell. A browser without it (Firefox
    before 121) keeps the phone column at all widths, which is exactly what shipped
    before this, so it degrades to the old screen rather than to a broken one. */
@@ -627,6 +736,11 @@ button {
 
   @media (min-width: 860px) {
     .gb-cust-shell:has(.gb-wide) { max-width: none; }
+    .gb-cust-shell:has(.gb-wide-sm) { max-width: none; }
+    /* One measure for the secondary account screens: wallet top-up, referrals,
+       the cafe profile, completing your details. Wider than a phone, still a
+       single column, because none of them has a second thing to show. */
+    .gb-cust-page { max-width: 560px !important; margin-left: auto !important; margin-right: auto !important; }
 
     /* A gutter so the rail's text never sits against the window edge between the
        breakpoint and the cap. */
@@ -655,6 +769,8 @@ button {
 
   @media (min-width: 1180px) {
     .gb-cust-shell:has(.gb-wide-lg) { max-width: none; }
+    /* Screens whose desktop layout sets its own width from the inside. */
+    .gb-cust-page-lg { max-width: none !important; }
 
     .gb-menu-cols { grid-template-columns: 210px minmax(0, 1fr) 320px; }
     .gb-cart-rail { display: block; position: sticky; top: 16px; padding-top: 20px; }
@@ -664,7 +780,26 @@ button {
     .gb-pairing-strip { bottom: 24px !important; }
     .gb-menu-root { padding-bottom: 32px !important; }
 
-    /* Cart: items on the left, the bill and the pay button parked on the right. */
+    /* Wallet: the ledger is the long half, so it takes the second column and the
+     balance, top-up and streak cards stack in the first. */
+  .gb-wallet-cols {
+    display: grid !important;
+    grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+    gap: 20px; align-items: start;
+    max-width: 900px; margin: 0 auto;
+  }
+  .gb-wallet-cols > .gb-wallet-ledger { grid-column: 2; grid-row: 1 / span 5; }
+
+  /* Order tracking: status on the left, the order itself on the right. */
+  .gb-track-cols {
+    display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    gap: 26px; align-items: start; max-width: 1000px; margin: 0 auto; padding: 24px 16px 0;
+  }
+  .gb-track-status > div:first-child { border-radius: 22px; }
+  .gb-track-status > *, .gb-track-detail > * { margin-left: 0 !important; margin-right: 0 !important; }
+  .gb-track-detail > button { width: 100% !important; }
+
+  /* Cart: items on the left, the bill and the pay button parked on the right. */
     .gb-cart-cols {
       display: grid; grid-template-columns: minmax(0, 1fr) 360px;
       gap: 26px; align-items: start; max-width: 1100px; margin: 0 auto; padding: 8px 8px 0;

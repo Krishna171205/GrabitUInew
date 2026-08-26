@@ -116,10 +116,12 @@ export default function WalletPage() {
   const autoRechargeEnabled = wallet.auto_recharge_enabled;
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
+    <div className="gb-cust-page-lg gb-wide-lg" style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
       <TopBar title="My Wallet" onBack={() => router.push(`/${slug}`)} />
 
-      <div style={{ padding: '14px 20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Balance and streak on the left, what you spent on the right, once there
+          is room for two columns. */}
+      <div className="gb-wallet-cols" style={{ padding: '14px 20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Balance card */}
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           style={{ background: 'var(--inverse-surface)', borderRadius: 'var(--r-xl)', padding: 24, boxShadow: 'var(--shadow-pop)' }}>
@@ -166,7 +168,7 @@ export default function WalletPage() {
         </Card>
 
         {/* Transactions */}
-        <div>
+        <div className="gb-wallet-ledger">
           <div className="t-label" style={{ color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 11, marginBottom: 12 }}>Recent transactions</div>
           {transactions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--muted)' }}>

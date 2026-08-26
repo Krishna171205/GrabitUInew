@@ -20,7 +20,7 @@ function Row({ n }: { n: GbNotif }) {
 export default function NotificationsPage() {
   const groups: GbNotif['group'][] = ['Today', 'Earlier'];
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-read">
       <TopBar
         title="Notifications"
         right={<span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-primary)' }}>Mark all read</span>}

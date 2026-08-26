@@ -197,13 +197,13 @@ export default function OrdersPage() {
   });
 
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-wide">
       <div style={{ paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 20, paddingRight: 20, paddingBottom: 6 }}>
         <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, letterSpacing: '-.01em' }}>Your orders</div>
       </div>
 
       <div style={{ padding: '10px 20px 0' }}>
-        <div style={{ position: 'relative' }}>
+        <div className="gb-search-cap" style={{ position: 'relative' }}>
           <MS name="search" size={19} color="var(--gb-muted-2)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             value={query}
@@ -227,9 +227,12 @@ export default function OrdersPage() {
             {q ? 'No orders match your search.' : tab === 'active' ? 'No active orders right now.' : 'No past orders yet.'}
           </div>
         ) : (
-          shown.map((o) => (
-            <OrderRow key={o.id} o={o} cafeName={cafeById.get(o.cafe_id)?.name ?? 'Grabbit'} cafeSlug={cafeById.get(o.cafe_id)?.slug} cafeLogo={cafeById.get(o.cafe_id)?.logo_url} />
-          ))
+          /* One order per row on a phone, a grid of them on a laptop. */
+          <div className="gb-card-grid">
+            {shown.map((o) => (
+              <OrderRow key={o.id} o={o} cafeName={cafeById.get(o.cafe_id)?.name ?? 'Grabbit'} cafeSlug={cafeById.get(o.cafe_id)?.slug} cafeLogo={cafeById.get(o.cafe_id)?.logo_url} />
+            ))}
+          </div>
         )}
       </div>
       <NavSpacer />

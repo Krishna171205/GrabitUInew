@@ -50,7 +50,7 @@ export default function SettingsPage() {
   const { location } = useSavedLocation();
 
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-read">
       <TopBar title="Settings" />
       <div style={{ padding: '6px 16px 30px' }}>
         <Eyebrow style={{ padding: '16px 4px 8px' }}>Notifications</Eyebrow>

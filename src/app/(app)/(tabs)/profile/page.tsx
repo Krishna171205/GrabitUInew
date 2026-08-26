@@ -196,14 +196,18 @@ export default function ProfilePage() {
   const initial = (me?.name?.trim()?.[0] || me?.phone?.slice(-1) || '?').toUpperCase();
 
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-read gb-profile">
+      {/* Who you are, and the streak that depends on you coming back: on a laptop
+          these become the left column, so the espresso panel anchors the page
+          instead of being a band across the top of a phone-width strip. */}
+      <div className="gb-profile-side">
       {/* header */}
       <div style={{ background: 'var(--gb-hero)', paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 58, color: '#fff', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 'calc(26px + env(safe-area-inset-top))', right: 22, display: 'flex', gap: 10 }}>
           <Link href="/notifications" style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MS name="notifications" size={20} /></Link>
           <Link href="/settings" style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MS name="settings" size={20} /></Link>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+        <div className="gb-id-row" style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
           <div style={{ position: 'relative', width: 66, height: 66, flex: 'none' }}>
             <div style={{ width: 66, height: 66, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 700, background: 'rgba(255,255,255,.16)' }}>
               {me?.avatar_url
@@ -258,7 +262,9 @@ export default function ProfilePage() {
       <div style={{ margin: '-30px 0 0', position: 'relative', zIndex: 2 }}>
         <StreakCard streak={streak} slug={primaryCafe?.slug} />
       </div>
+      </div>
 
+      <div className="gb-profile-main">
       {/* stats */}
       <div style={{ margin: '14px 16px 0', position: 'relative', zIndex: 1, background: '#fff', borderRadius: 20, border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-shadow-pop)', display: 'flex', padding: '16px 4px' }}>
         <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" /></div>
@@ -291,6 +297,8 @@ export default function ProfilePage() {
       <button onClick={logout} style={{ width: 'calc(100% - 32px)', margin: '4px 16px 0', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, color: 'var(--gb-danger)', fontSize: 14, fontWeight: 800 }}>
         <MS name="logout" size={19} />Log out
       </button>
+      </div>
+
       <NavSpacer />
     </div>
   );

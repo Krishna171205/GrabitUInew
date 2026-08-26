@@ -18,7 +18,7 @@ export default function SupportPage() {
   const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject || 'Grabbit support')}&body=${encodeURIComponent(body)}`;
 
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-read">
       <TopBar title="Help & support" />
       <div style={{ padding: '18px 16px 30px' }}>
         <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, lineHeight: 1.3, padding: '0 4px' }}>How can we help?</div>

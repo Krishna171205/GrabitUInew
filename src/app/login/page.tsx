@@ -113,11 +113,11 @@ function LoginForm() {
 
   return (
     <>
-      {/* hero image */}
-      <div style={{ position: 'relative', height: 296, flex: 'none' }}>
+      {/* hero image — a band above the form on a phone, the left half of the card on a laptop */}
+      <div className="gb-login-hero" style={{ position: 'relative', height: 296, flex: 'none' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ph('photo-1495474472287-4d71bcdd2085', 900, 1000)} alt="Café" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(40,24,16,.45) 0%,rgba(40,24,16,0) 26%,rgba(40,24,16,.55) 74%,#FAF6F0 100%)' }} />
+        <div className="gb-login-scrim" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(40,24,16,.45) 0%,rgba(40,24,16,0) 26%,rgba(40,24,16,.55) 74%,#FAF6F0 100%)' }} />
         <div style={{ position: 'absolute', bottom: 30, left: 26, right: 26, color: '#fff' }}>
           <div className="gb-serif" style={{ fontSize: 40, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>Grabbit</div>
           <div className="gb-serif" style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.3, marginTop: 6, maxWidth: 280 }}>
@@ -127,7 +127,7 @@ function LoginForm() {
       </div>
 
       {/* form sheet */}
-      <div style={{ flex: 1, background: 'var(--gb-surface)', padding: '14px 26px 30px', position: 'relative', zIndex: 2 }}>
+      <div className="gb-login-form" style={{ flex: 1, background: 'var(--gb-surface)', padding: '14px 26px 30px', position: 'relative', zIndex: 2 }}>
         {step === 'phone' ? (
           <>
             {item && (
@@ -283,8 +283,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="gb-app">
-      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--gb-surface)' }}>
+    <div className="gb-app gb-login-page">
+      <div className="gb-login-shell" style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--gb-surface)' }}>
         <Suspense fallback={null}>
           <LoginForm />
         </Suspense>

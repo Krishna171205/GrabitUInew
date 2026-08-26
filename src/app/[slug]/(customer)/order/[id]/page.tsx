@@ -221,7 +221,11 @@ export default function OrderPage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
+    <div className="gb-track gb-wide-lg" style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: 40 }}>
+      {/* Where the order stands on the left, what is in it on the right, once
+          there is room for both. One column on a phone. */}
+      <div className="gb-track-cols">
+      <div className="gb-track-status">
       {/* success header */}
       <div style={{ background: 'linear-gradient(158deg,#2A5238 0%,#38743F 100%)', paddingTop: 'calc(40px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 30, color: '#fff', textAlign: 'center' }}>
         <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
@@ -245,6 +249,9 @@ export default function OrderPage() {
         <TimelineNode state={idx >= 2 ? (idx >= 3 ? 'done' : 'current') : 'upcoming'} icon="shopping_bag" title="Ready for pickup" sub="We'll ping you, skip the queue" last />
       </div>
 
+      </div>
+
+      <div className="gb-track-detail">
       {/* café row */}
       <div style={{ margin: '4px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: 15, display: 'flex', alignItems: 'center', gap: 13 }}>
         <div style={{ width: 46, height: 46, borderRadius: 12, overflow: 'hidden', flex: 'none' }}>
@@ -292,6 +299,8 @@ export default function OrderPage() {
       <button onClick={() => router.replace('/home')} style={{ width: 'calc(100% - 32px)', margin: '12px 16px 0', border: '1px solid #E7DCCC', background: '#fff', color: 'var(--gb-ink)', fontSize: 15, fontWeight: 700, padding: 15, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
         Back to home
       </button>
+      </div>
+      </div>
     </div>
   );
 }

@@ -68,7 +68,10 @@ export function LocationGate() {
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Choose your location" style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'var(--gb-hero)', color: '#fff', overflowY: 'auto' }}>
+    /* Full screen on a phone; a card in the middle of the window on a laptop,
+       where a full-bleed sheet reads as a broken page rather than a dialog. */
+    <div role="dialog" aria-modal="true" aria-label="Choose your location" className="gb-locgate" style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'var(--gb-hero)', color: '#fff', overflowY: 'auto' }}>
+      <div className="gb-locgate-card">
       {/* faint brand mark */}
       <div style={{ padding: 'calc(40px + env(safe-area-inset-top)) 26px 0', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.22)', backdropFilter: 'blur(4px)', padding: '7px 14px', borderRadius: 999 }}>
@@ -141,6 +144,7 @@ export function LocationGate() {
         {!searching && results.length === 0 && (
           <p style={{ padding: '12px 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>No matches, try a different search.</p>
         )}
+      </div>
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ const heroStyle = {
 
 function SearchBar() {
   return (
-    <Link href="/explore" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-2)' }}>
+    <Link href="/explore" className="gb-hero-search" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-2)' }}>
       <MS name="search" size={21} color="#9A8C7B" />
       <span style={{ fontSize: 14.5, color: '#9A8C7B', fontWeight: 500 }}>Search cafés, dishes, drinks</span>
     </Link>
@@ -63,7 +63,8 @@ function Categories() {
   return (
     <div style={{ padding: '24px 0 0' }}>
       <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500, padding: '0 20px 14px' }}>Browse by craving</div>
-      <div className="gb-scroll" style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '0 20px 4px' }}>
+      {/* A scroller on a phone; on a laptop there is room to lay them all out. */}
+      <div className="gb-scroll gb-cravings" style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '0 20px 4px' }}>
         {CATEGORIES.map((c) => <CategoryCircle key={c.label} cat={c} />)}
       </div>
     </div>
@@ -84,7 +85,7 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
           </Link>
         </div>
         <LocationPill />
-        <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 280 }}>
+        <div className="gb-serif gb-hero-lede" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 280 }}>
           Browse cafés & menus freely. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Sign in when you&apos;re ready to order.</span>
         </div>
         <SearchBar />

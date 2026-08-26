@@ -63,9 +63,14 @@ export function NavSpacer() {
   return <div className="gb-nav-spacer" style={{ height: 'calc(var(--gb-bottomnav-h, 84px) + 12px + env(safe-area-inset-bottom))' }} />;
 }
 
-/* ---------- Desktop top nav (replaces BottomNav ≥860px, signed-in only) ---------- */
-export function DesktopTopNav() {
+/* ---------- Desktop top nav (replaces BottomNav ≥860px) ----------
+   A phone has the bottom bar; a laptop has nothing else, so this is the only
+   way around the app there. It shows for guests too, with the tabs that work
+   signed-out plus a way in - a signed-out laptop visitor previously got no
+   navigation at all. */
+export function DesktopTopNav({ signedIn = true }: { signedIn?: boolean }) {
   const pathname = usePathname();
+  const tabs = signedIn ? TABS : TABS.filter((t) => t.href === '/home' || t.href === '/explore');
   return (
     <nav className="gb-topnav">
       <Link href="/home" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -73,12 +78,13 @@ export function DesktopTopNav() {
         <span className="gb-serif" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabbit</span>
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-        {TABS.map((t) => {
+        {tabs.map((t) => {
           const active = pathname === t.href || pathname.startsWith(t.href + '/');
           return (
             <Link
               key={t.href}
               href={t.href}
+              className="gb-hover-link"
               style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontWeight: 700, color: active ? 'var(--gb-primary)' : 'var(--gb-muted)' }}
             >
               <MS name={t.icon} size={19} fill={active} />
@@ -86,6 +92,15 @@ export function DesktopTopNav() {
             </Link>
           );
         })}
+        {!signedIn && (
+          <Link
+            href="/login"
+            className="gb-press gb-hover-btn"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14, fontWeight: 800, padding: '9px 18px', borderRadius: 999 }}
+          >
+            Log in<MS name="arrow_forward" size={17} />
+          </Link>
+        )}
       </div>
     </nav>
   );

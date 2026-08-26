@@ -111,7 +111,7 @@ export default function RechargePage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
+    <div className="gb-cust-page gb-wide-sm" style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--surface)', position: 'relative' }}>
       <TopBar title="Recharge Wallet" onBack={() => router.push(`/${slug}/wallet`)} />
 
       <div style={{ padding: '14px 20px 110px' }}>

@@ -63,7 +63,7 @@ export default function OffersPage() {
   const total = groups.reduce((n, g) => n + g.offers.length, 0);
 
   return (
-    <div className="gb-shell">
+    <div className="gb-shell gb-shell-wide">
       <TopBar title="Offers" />
 
       {loading ? (
@@ -81,7 +81,9 @@ export default function OffersPage() {
             <MS name="auto_awesome" size={17} fill color="var(--gb-primary)" />
             <span style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600 }}>The best offer you qualify for is applied at checkout, no code needed.</span>
           </div>
-          {groups.map((g) => g.offers.map((o) => <OfferCard key={o.id} offer={o} cafe={g.cafe} />))}
+          <div className="gb-card-grid" style={{ marginTop: 12 }}>
+            {groups.map((g) => g.offers.map((o) => <OfferCard key={o.id} offer={o} cafe={g.cafe} />))}
+          </div>
         </div>
       )}
 

@@ -79,7 +79,7 @@ function CompleteProfileForm() {
 export default function CompleteProfilePage() {
   return (
     <div className="gb-app">
-      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--gb-surface)' }}>
+      <div className="gb-cust-page gb-wide-sm" style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--gb-surface)' }}>
         <Suspense fallback={null}>
           <CompleteProfileForm />
         </Suspense>
