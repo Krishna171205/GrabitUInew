@@ -28,138 +28,134 @@ const AUTOPLAY_INTERVAL = 3800; // 3.8 seconds per tab
 // --- MOCK UI COMPONENTS FOR THE DASHBOARD ---
 
 const LiveQueueView = () => (
-  <div className="flex flex-col h-full bg-[#FAFAFA] p-8">
-    <div className="flex items-center justify-between mb-8">
-      <h3 className="text-[24px] font-bold text-[#111317]">Live Queue</h3>
-      <div className="bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] rounded-lg px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors">
-        <MS name="filter_list" size={16} className="text-gray-500" /> Filter
+  <div className="flex flex-col h-full bg-[#FAFAFA] p-4 sm:p-8">
+    <div className="flex items-center justify-between mb-4 sm:mb-8">
+      <h3 className="text-[16px] sm:text-[24px] font-bold text-[#111317]">Live Queue</h3>
+      <div className="bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] rounded-lg px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-[13px] font-bold flex items-center gap-1 sm:gap-2 cursor-pointer hover:bg-gray-50 transition-colors">
+        <MS name="filter_list" size={14} className="text-gray-500 sm:!text-[16px]" /> Filter
       </div>
     </div>
     
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1 overflow-hidden">
-      <div className="overflow-x-auto flex-1">
-        <div className="min-w-[600px]">
-          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
-            <div className="col-span-2">Order</div>
-            <div className="col-span-5">Items</div>
-            <div className="col-span-3">Status</div>
-            <div className="col-span-2 text-right">Amount</div>
+    <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1">
+      <div className="grid grid-cols-12 gap-1 sm:gap-4 px-3 sm:px-6 py-2 sm:py-4 border-b border-gray-100 text-[7px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
+        <div className="col-span-2">Order</div>
+        <div className="col-span-5">Items</div>
+        <div className="col-span-3">Status</div>
+        <div className="col-span-2 text-right">Amount</div>
+      </div>
+      <div className="flex flex-col">
+        {[
+          { id: '#4092', items: '2x Iced Latte (Oat), 1x Almond Croissant', status: 'PREPARING', statusColor: 'bg-blue-100 text-blue-700', amount: '₹680', active: true },
+          { id: '#4091', items: '1x Americano, 1x Espresso', status: 'READY', statusColor: 'bg-green-100 text-green-700', amount: '₹280' },
+          { id: '#4090', items: '3x Flat White', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹840' },
+          { id: '#4089', items: '1x Matcha Latte, 1x Choc Chip Cookie', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹420' },
+          { id: '#4088', items: '2x Cappuccino', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹440' },
+        ].map((row, i) => (
+          <div key={i} className={`grid grid-cols-12 gap-1 sm:gap-4 px-3 sm:px-6 py-3 sm:py-5 border-b border-gray-50 last:border-0 items-center text-[9px] sm:text-[14px] transition-colors ${row.active ? 'bg-blue-50/40 relative' : 'hover:bg-gray-50'}`}>
+            {row.active && <div className="absolute left-0 top-0 bottom-0 w-[2px] sm:w-1 bg-[#0055D4]" />}
+            <div className="col-span-2 font-bold text-gray-500 truncate">{row.id}</div>
+            <div className="col-span-5 font-medium text-[#111317] truncate pr-1 sm:pr-4">{row.items}</div>
+            <div className="col-span-3">
+              <span className={`px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-[4px] sm:rounded-[6px] text-[7px] sm:text-[10.5px] font-bold tracking-wide whitespace-nowrap ${row.statusColor}`}>
+                {row.status}
+              </span>
+            </div>
+            <div className="col-span-2 text-right font-bold text-[#111317]">{row.amount}</div>
           </div>
-          <div className="flex flex-col">
-            {[
-              { id: '#4092', items: '2x Iced Latte (Oat), 1x Almond Croissant', status: 'PREPARING', statusColor: 'bg-blue-100 text-blue-700', amount: '₹680', active: true },
-              { id: '#4091', items: '1x Americano, 1x Espresso', status: 'READY', statusColor: 'bg-green-100 text-green-700', amount: '₹280' },
-              { id: '#4090', items: '3x Flat White', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹840' },
-              { id: '#4089', items: '1x Matcha Latte, 1x Choc Chip Cookie', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹420' },
-              { id: '#4088', items: '2x Cappuccino', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹440' },
-            ].map((row, i) => (
-              <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${row.active ? 'bg-blue-50/40 relative' : 'hover:bg-gray-50'}`}>
-                {row.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0055D4]" />}
-                <div className="col-span-2 font-bold text-gray-500">{row.id}</div>
-                <div className="col-span-5 font-medium text-[#111317] truncate pr-4">{row.items}</div>
-                <div className="col-span-3">
-                  <span className={`px-2.5 py-1.5 rounded-[6px] text-[10.5px] font-bold tracking-wide ${row.statusColor}`}>
-                    {row.status}
-                  </span>
-                </div>
-                <div className="col-span-2 text-right font-bold text-[#111317]">{row.amount}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </div>
 );
 
 const MenuSyncView = () => (
-  <div className="flex flex-col h-full bg-[#FAFAFA] p-8">
-    <div className="flex items-center justify-between mb-8">
-      <h3 className="text-[24px] font-bold text-[#111317]">Menu Management</h3>
-      <div className="bg-[#0055D4] text-white shadow-[0_4px_12px_rgba(0,85,212,0.2)] rounded-lg px-4 py-2 text-[13px] font-bold flex items-center gap-1.5 cursor-pointer hover:bg-[#0044AA] transition-colors">
-        <MS name="add" size={16} /> Add Item
+  <div className="flex flex-col h-full bg-[#FAFAFA] p-4 sm:p-8">
+    <div className="flex items-center justify-between mb-4 sm:mb-8">
+      <h3 className="text-[16px] sm:text-[24px] font-bold text-[#111317]">Menu Management</h3>
+      <div className="bg-[#0055D4] text-white shadow-[0_4px_12px_rgba(0,85,212,0.2)] rounded-lg px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-[13px] font-bold flex items-center gap-1 sm:gap-1.5 cursor-pointer hover:bg-[#0044AA] transition-colors">
+        <MS name="add" size={14} className="sm:!text-[16px]" /> Add Item
       </div>
     </div>
     
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1 overflow-hidden">
-      <div className="overflow-x-auto flex-1">
-        <div className="min-w-[600px]">
-          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
-            <div className="col-span-5">Item Name</div>
-            <div className="col-span-3 text-center">Availability</div>
-            <div className="col-span-4 text-right">Price</div>
-          </div>
-          <div className="flex flex-col">
-            {[
-              { name: 'Iced Latte (Oat)', category: 'Cold Coffee', inStock: true, price: '₹260' },
-              { name: 'Flat White', category: 'Hot Coffee', inStock: true, price: '₹220' },
-              { name: 'Almond Croissant', category: 'Pastries', inStock: false, price: '₹220' },
-              { name: 'Matcha Latte', category: 'Tea', inStock: true, price: '₹320' },
-              { name: 'Pour Over (Ethiopia)', category: 'Manual Brew', inStock: true, price: '₹350' },
-            ].map((item, i) => (
-              <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${!item.inStock ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`}>
-                <div className="col-span-5 flex flex-col gap-0.5">
-                  <span className={`font-bold ${item.inStock ? 'text-[#111317]' : 'text-gray-400'}`}>{item.name}</span>
-                  <span className="text-[12px] text-gray-400 font-medium">{item.category}</span>
-                </div>
-                <div className="col-span-3 flex justify-center">
-                  {/* Refined Toggle Switch */}
-                  <div className={`w-10 h-5.5 rounded-full flex items-center p-[2px] transition-colors ${item.inStock ? 'bg-[#10B981]' : 'bg-gray-300'}`}>
-                    <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-transform ${item.inStock ? 'translate-x-[18px]' : 'translate-x-0'}`} />
-                  </div>
-                </div>
-                <div className="col-span-4 flex justify-end items-center gap-4">
-                  <span className="font-bold text-[#111317]">{item.price}</span>
-                  <div className="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer">
-                    <MS name="more_horiz" size={18} />
-                  </div>
-                </div>
+    <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1">
+      <div className="grid grid-cols-12 gap-1 sm:gap-4 px-3 sm:px-6 py-2 sm:py-4 border-b border-gray-100 text-[7px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
+        <div className="col-span-5">Item Name</div>
+        <div className="col-span-3 text-center">Availability</div>
+        <div className="col-span-4 text-right">Price</div>
+      </div>
+      <div className="flex flex-col">
+        {[
+          { name: 'Iced Latte (Oat)', category: 'Cold Coffee', inStock: true, price: '₹260' },
+          { name: 'Flat White', category: 'Hot Coffee', inStock: true, price: '₹220' },
+          { name: 'Almond Croissant', category: 'Pastries', inStock: false, price: '₹220' },
+          { name: 'Matcha Latte', category: 'Tea', inStock: true, price: '₹320' },
+          { name: 'Pour Over (Ethiopia)', category: 'Manual Brew', inStock: true, price: '₹350' },
+        ].map((item, i) => (
+          <div key={i} className={`grid grid-cols-12 gap-1 sm:gap-4 px-3 sm:px-6 py-3 sm:py-5 border-b border-gray-50 last:border-0 items-center text-[9px] sm:text-[14px] transition-colors ${!item.inStock ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`}>
+            <div className="col-span-5 flex flex-col gap-0 sm:gap-0.5 truncate">
+              <span className={`font-bold truncate ${item.inStock ? 'text-[#111317]' : 'text-gray-400'}`}>{item.name}</span>
+              <span className="text-[7.5px] sm:text-[12px] text-gray-400 font-medium truncate">{item.category}</span>
+            </div>
+            <div className="col-span-3 flex justify-center">
+              {/* Refined Toggle Switch */}
+              <div className={`w-6 sm:w-10 h-3.5 sm:h-5.5 rounded-full flex items-center p-[2px] transition-colors ${item.inStock ? 'bg-[#10B981]' : 'bg-gray-300'}`}>
+                <div className={`w-2.5 sm:w-4.5 h-2.5 sm:h-4.5 rounded-full bg-white shadow-sm transition-transform ${item.inStock ? 'translate-x-[10px] sm:translate-x-[18px]' : 'translate-x-0'}`} />
               </div>
-            ))}
+            </div>
+            <div className="col-span-4 flex justify-end items-center gap-1 sm:gap-4">
+              <span className="font-bold text-[#111317]">{item.price}</span>
+              <div className="w-5 sm:w-8 h-5 sm:h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer">
+                <MS name="more_horiz" size={14} className="sm:!text-[18px]" />
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   </div>
 );
 
 const AnalyticsView = () => (
-  <div className="flex flex-col h-full bg-[#FAFAFA] p-8">
-    <div className="flex items-center justify-between mb-8">
-      <h3 className="text-[24px] font-bold text-[#111317]">Today's Performance</h3>
-      <div className="bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] rounded-lg px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer hover:bg-gray-50">
-        Today <MS name="expand_more" size={16} className="text-gray-500" />
+  <div className="flex flex-col h-full bg-[#FAFAFA] p-4 sm:p-8">
+    <div className="flex items-center justify-between mb-4 sm:mb-8">
+      <h3 className="text-[16px] sm:text-[24px] font-bold text-[#111317]">Today's Performance</h3>
+      <div className="bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] rounded-lg px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-[13px] font-bold flex items-center gap-1 sm:gap-2 cursor-pointer hover:bg-gray-50">
+        Today <MS name="expand_more" size={14} className="text-gray-500 sm:!text-[16px]" />
       </div>
     </div>
     
-    <div className="grid grid-cols-2 gap-4 mb-6">
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
-        <div className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Total Revenue</div>
-        <div className="text-[32px] font-black text-[#111317] leading-none">₹14,250</div>
-        <div className="text-[12px] font-bold text-green-600 flex items-center gap-1.5 mt-3 bg-green-50 w-fit px-2 py-1 rounded-md">
-          <MS name="trending_up" size={14} /> +12.4% vs yesterday
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
+      <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
+        <div className="text-[8px] sm:text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-1 sm:mb-2">Total Revenue</div>
+        <div className="text-[20px] sm:text-[32px] font-black text-[#111317] leading-none">₹14,250</div>
+        <div className="text-[7px] sm:text-[12px] font-bold text-green-600 flex items-center gap-1 mt-2 sm:mt-3 bg-green-50 w-fit px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">
+          <MS name="trending_up" size={12} className="sm:!text-[14px]" /> +12.4% vs yesterday
         </div>
-        <MS name="account_balance_wallet" size={80} className="absolute -right-4 -bottom-4 text-gray-50 opacity-50" />
+        <div className="absolute -right-2 -bottom-2 sm:-right-4 sm:-bottom-4 text-gray-50 opacity-50 pointer-events-none">
+          <MS name="account_balance_wallet" size={40} className="sm:!text-[80px]" />
+        </div>
       </div>
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
-        <div className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Orders Completed</div>
-        <div className="text-[32px] font-black text-[#111317] leading-none">64</div>
-        <div className="text-[12px] font-bold text-green-600 flex items-center gap-1.5 mt-3 bg-green-50 w-fit px-2 py-1 rounded-md">
-          <MS name="trending_up" size={14} /> +8.2% vs yesterday
+      <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
+        <div className="text-[8px] sm:text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-1 sm:mb-2">Orders Completed</div>
+        <div className="text-[20px] sm:text-[32px] font-black text-[#111317] leading-none">64</div>
+        <div className="text-[7px] sm:text-[12px] font-bold text-green-600 flex items-center gap-1 mt-2 sm:mt-3 bg-green-50 w-fit px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">
+          <MS name="trending_up" size={12} className="sm:!text-[14px]" /> +8.2% vs yesterday
         </div>
-        <MS name="receipt_long" size={80} className="absolute -right-4 -bottom-4 text-gray-50 opacity-50" />
+        <div className="absolute -right-2 -bottom-2 sm:-right-4 sm:-bottom-4 text-gray-50 opacity-50 pointer-events-none">
+          <MS name="receipt_long" size={40} className="sm:!text-[80px]" />
+        </div>
       </div>
     </div>
 
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex-1 flex flex-col justify-end relative overflow-hidden">
-      <div className="absolute top-6 left-6 text-[12px] font-bold text-gray-400 uppercase tracking-wider">Hourly Volume</div>
+    <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex-1 flex flex-col justify-end relative overflow-hidden">
+      <div className="absolute top-3 sm:top-6 left-3 sm:left-6 text-[8px] sm:text-[12px] font-bold text-gray-400 uppercase tracking-wider">Hourly Volume</div>
       
       {/* Refined Bar Chart */}
-      <div className="flex items-end gap-3 h-32 w-full mt-8">
+      <div className="flex items-end gap-1.5 sm:gap-3 h-20 sm:h-32 w-full mt-6 sm:mt-8">
         {[20, 35, 25, 40, 60, 85, 100, 75, 45, 30, 15].map((h, i) => (
-          <div key={i} className="flex-1 h-full bg-blue-50 rounded-t-md relative group overflow-hidden">
+          <div key={i} className="flex-1 h-full bg-blue-50 rounded-t-sm sm:rounded-t-md relative group overflow-hidden">
             <div 
-              className="absolute bottom-0 w-full bg-[#0055D4] rounded-t-md transition-all duration-700 ease-out" 
+              className="absolute bottom-0 w-full bg-[#0055D4] rounded-t-sm sm:rounded-t-md transition-all duration-700 ease-out" 
               style={{ height: `${h}%` }} 
             />
             {/* Hover tooltip effect */}
@@ -167,7 +163,7 @@ const AnalyticsView = () => (
           </div>
         ))}
       </div>
-      <div className="flex justify-between w-full mt-3 text-[10px] font-bold text-gray-300 uppercase">
+      <div className="flex justify-between w-full mt-2 sm:mt-3 text-[7px] sm:text-[10px] font-bold text-gray-300 uppercase">
         <span>8 AM</span>
         <span>12 PM</span>
         <span>4 PM</span>
