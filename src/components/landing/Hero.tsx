@@ -51,8 +51,10 @@ export default function Hero() {
       >
         <div className="absolute inset-0 bg-[#F8FAFC] -z-10" />
         <div className="w-full lg:w-[65%] h-full relative">
-          {/* Fading gradient strictly on the left edge of the video container to eliminate the seam */}
-          <div className="absolute inset-y-0 left-0 w-[40%] lg:w-[50%] bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent z-10 pointer-events-none" />
+          {/* Horizontal gradient to blend left edge */}
+          <div className="absolute inset-y-0 left-0 w-[70%] sm:w-[50%] lg:w-[40%] bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/95 to-transparent z-10 pointer-events-none" />
+          {/* Vertical gradient on mobile for text readability over video */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F8FAFC]/80 via-transparent to-[#F8FAFC] sm:hidden z-10 pointer-events-none" />
           
           <video
             src="/grabv1.mp4"
@@ -179,7 +181,7 @@ export default function Hero() {
                   </motion.div>
                   
                   <motion.span 
-                    className="text-[10px] sm:text-[13px] font-bold text-center leading-tight transition-all whitespace-nowrap"
+                    className="text-[10px] sm:text-[13px] font-bold text-center leading-tight transition-all max-w-[80px] sm:max-w-none"
                     animate={{
                       y: isActive ? -2 : 0,
                       opacity: isActive ? 1 : 0.6,

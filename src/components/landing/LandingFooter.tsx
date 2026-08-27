@@ -7,7 +7,7 @@ import GrabbitCup3D from '@/components/cup3d/GrabbitCup3D';
 export default function LandingFooter() {
   return (
     <footer className="bg-[#F4F4F4] pt-12 md:pt-20 pb-8 md:pb-12 overflow-hidden">
-      <div className="bg-white rounded-[40px] px-8 sm:px-12 md:px-14 pt-12 pb-8 max-w-[1360px] mx-auto relative overflow-hidden shadow-sm mx-4 sm:mx-8">
+      <div className="bg-white rounded-[28px] sm:rounded-[40px] px-6 sm:px-12 md:px-14 pt-10 sm:pt-12 pb-6 sm:pb-8 max-w-[1360px] mx-auto relative overflow-hidden shadow-sm mx-3 sm:mx-8">
         
         {/* GRABBIT LOGO */}
         <div className="mb-10 lg:mb-12">

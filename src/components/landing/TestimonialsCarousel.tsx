@@ -78,7 +78,7 @@ export default function TestimonialsCarousel() {
           {marqueeItems.map((t, idx) => (
             <div
               key={idx}
-              className="w-[340px] sm:w-[380px] md:w-[420px] bg-white border-2 border-[#0F172A] rounded-[24px] p-6 sm:p-7 shadow-[6px_6px_0px_#0F172A] hover:shadow-[10px_10px_0px_#0055D4] flex flex-col justify-between shrink-0 hover:-translate-y-1.5 transition-all duration-300 group"
+              className="w-[85vw] max-w-[340px] sm:w-[380px] sm:max-w-none md:w-[420px] bg-white border-2 border-[#0F172A] rounded-[24px] p-6 sm:p-7 shadow-[6px_6px_0px_#0F172A] hover:shadow-[10px_10px_0px_#0055D4] flex flex-col justify-between shrink-0 hover:-translate-y-1.5 transition-all duration-300 group"
             >
               {/* Top Header: Order Tag & Time Saved */}
               <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">

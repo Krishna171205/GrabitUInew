@@ -166,8 +166,8 @@ export default function CafeDiscovery() {
           })}
         </div>
 
-        {/* Cafes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Cafes Grid / Mobile Carousel */}
+        <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8 pb-8 -mx-6 px-6 md:mx-0 md:px-0 md:pb-0 scrollbar-hide">
           {filteredCafes.map((cafe, index) => (
             <motion.div
               key={cafe.id}
@@ -175,7 +175,7 @@ export default function CafeDiscovery() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08, duration: 0.4 }}
-              className="group bg-white rounded-[26px] border-2 border-[#0F172A] shadow-[6px_6px_0px_#0F172A] hover:shadow-[10px_10px_0px_#0055D4] overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300"
+              className="group flex-none w-[85vw] max-w-[320px] md:w-auto md:max-w-none snap-center md:snap-align-none bg-white rounded-[26px] border-2 border-[#0F172A] shadow-[6px_6px_0px_#0F172A] hover:shadow-[10px_10px_0px_#0055D4] overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300"
             >
               {/* Cover Image Banner */}
               <div className="relative h-[210px] w-full overflow-hidden">

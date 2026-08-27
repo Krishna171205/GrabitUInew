@@ -36,33 +36,37 @@ const LiveQueueView = () => (
       </div>
     </div>
     
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1">
-      <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
-        <div className="col-span-2">Order</div>
-        <div className="col-span-5">Items</div>
-        <div className="col-span-3">Status</div>
-        <div className="col-span-2 text-right">Amount</div>
-      </div>
-      <div className="flex flex-col">
-        {[
-          { id: '#4092', items: '2x Iced Latte (Oat), 1x Almond Croissant', status: 'PREPARING', statusColor: 'bg-blue-100 text-blue-700', amount: '₹680', active: true },
-          { id: '#4091', items: '1x Americano, 1x Espresso', status: 'READY', statusColor: 'bg-green-100 text-green-700', amount: '₹280' },
-          { id: '#4090', items: '3x Flat White', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹840' },
-          { id: '#4089', items: '1x Matcha Latte, 1x Choc Chip Cookie', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹420' },
-          { id: '#4088', items: '2x Cappuccino', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹440' },
-        ].map((row, i) => (
-          <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${row.active ? 'bg-blue-50/40 relative' : 'hover:bg-gray-50'}`}>
-            {row.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0055D4]" />}
-            <div className="col-span-2 font-bold text-gray-500">{row.id}</div>
-            <div className="col-span-5 font-medium text-[#111317] truncate pr-4">{row.items}</div>
-            <div className="col-span-3">
-              <span className={`px-2.5 py-1.5 rounded-[6px] text-[10.5px] font-bold tracking-wide ${row.statusColor}`}>
-                {row.status}
-              </span>
-            </div>
-            <div className="col-span-2 text-right font-bold text-[#111317]">{row.amount}</div>
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1 overflow-hidden">
+      <div className="overflow-x-auto flex-1">
+        <div className="min-w-[600px]">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
+            <div className="col-span-2">Order</div>
+            <div className="col-span-5">Items</div>
+            <div className="col-span-3">Status</div>
+            <div className="col-span-2 text-right">Amount</div>
           </div>
-        ))}
+          <div className="flex flex-col">
+            {[
+              { id: '#4092', items: '2x Iced Latte (Oat), 1x Almond Croissant', status: 'PREPARING', statusColor: 'bg-blue-100 text-blue-700', amount: '₹680', active: true },
+              { id: '#4091', items: '1x Americano, 1x Espresso', status: 'READY', statusColor: 'bg-green-100 text-green-700', amount: '₹280' },
+              { id: '#4090', items: '3x Flat White', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹840' },
+              { id: '#4089', items: '1x Matcha Latte, 1x Choc Chip Cookie', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹420' },
+              { id: '#4088', items: '2x Cappuccino', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹440' },
+            ].map((row, i) => (
+              <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${row.active ? 'bg-blue-50/40 relative' : 'hover:bg-gray-50'}`}>
+                {row.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0055D4]" />}
+                <div className="col-span-2 font-bold text-gray-500">{row.id}</div>
+                <div className="col-span-5 font-medium text-[#111317] truncate pr-4">{row.items}</div>
+                <div className="col-span-3">
+                  <span className={`px-2.5 py-1.5 rounded-[6px] text-[10.5px] font-bold tracking-wide ${row.statusColor}`}>
+                    {row.status}
+                  </span>
+                </div>
+                <div className="col-span-2 text-right font-bold text-[#111317]">{row.amount}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -77,39 +81,43 @@ const MenuSyncView = () => (
       </div>
     </div>
     
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1">
-      <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
-        <div className="col-span-5">Item Name</div>
-        <div className="col-span-3 text-center">Availability</div>
-        <div className="col-span-4 text-right">Price</div>
-      </div>
-      <div className="flex flex-col">
-        {[
-          { name: 'Iced Latte (Oat)', category: 'Cold Coffee', inStock: true, price: '₹260' },
-          { name: 'Flat White', category: 'Hot Coffee', inStock: true, price: '₹220' },
-          { name: 'Almond Croissant', category: 'Pastries', inStock: false, price: '₹220' },
-          { name: 'Matcha Latte', category: 'Tea', inStock: true, price: '₹320' },
-          { name: 'Pour Over (Ethiopia)', category: 'Manual Brew', inStock: true, price: '₹350' },
-        ].map((item, i) => (
-          <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${!item.inStock ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`}>
-            <div className="col-span-5 flex flex-col gap-0.5">
-              <span className={`font-bold ${item.inStock ? 'text-[#111317]' : 'text-gray-400'}`}>{item.name}</span>
-              <span className="text-[12px] text-gray-400 font-medium">{item.category}</span>
-            </div>
-            <div className="col-span-3 flex justify-center">
-              {/* Refined Toggle Switch */}
-              <div className={`w-10 h-5.5 rounded-full flex items-center p-[2px] transition-colors ${item.inStock ? 'bg-[#10B981]' : 'bg-gray-300'}`}>
-                <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-transform ${item.inStock ? 'translate-x-[18px]' : 'translate-x-0'}`} />
-              </div>
-            </div>
-            <div className="col-span-4 flex justify-end items-center gap-4">
-              <span className="font-bold text-[#111317]">{item.price}</span>
-              <div className="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer">
-                <MS name="more_horiz" size={18} />
-              </div>
-            </div>
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1 overflow-hidden">
+      <div className="overflow-x-auto flex-1">
+        <div className="min-w-[600px]">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
+            <div className="col-span-5">Item Name</div>
+            <div className="col-span-3 text-center">Availability</div>
+            <div className="col-span-4 text-right">Price</div>
           </div>
-        ))}
+          <div className="flex flex-col">
+            {[
+              { name: 'Iced Latte (Oat)', category: 'Cold Coffee', inStock: true, price: '₹260' },
+              { name: 'Flat White', category: 'Hot Coffee', inStock: true, price: '₹220' },
+              { name: 'Almond Croissant', category: 'Pastries', inStock: false, price: '₹220' },
+              { name: 'Matcha Latte', category: 'Tea', inStock: true, price: '₹320' },
+              { name: 'Pour Over (Ethiopia)', category: 'Manual Brew', inStock: true, price: '₹350' },
+            ].map((item, i) => (
+              <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${!item.inStock ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`}>
+                <div className="col-span-5 flex flex-col gap-0.5">
+                  <span className={`font-bold ${item.inStock ? 'text-[#111317]' : 'text-gray-400'}`}>{item.name}</span>
+                  <span className="text-[12px] text-gray-400 font-medium">{item.category}</span>
+                </div>
+                <div className="col-span-3 flex justify-center">
+                  {/* Refined Toggle Switch */}
+                  <div className={`w-10 h-5.5 rounded-full flex items-center p-[2px] transition-colors ${item.inStock ? 'bg-[#10B981]' : 'bg-gray-300'}`}>
+                    <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-transform ${item.inStock ? 'translate-x-[18px]' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+                <div className="col-span-4 flex justify-end items-center gap-4">
+                  <span className="font-bold text-[#111317]">{item.price}</span>
+                  <div className="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer">
+                    <MS name="more_horiz" size={18} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -217,7 +225,7 @@ export default function PartnerPitch() {
         Container is intentionally open on the right on large screens 
         to allow the dashboard to overflow and crop naturally.
       */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:pl-12 lg:pr-0 relative z-10 flex flex-col lg:flex-row items-center lg:items-center min-h-[720px] lg:min-h-[850px]">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:pl-12 lg:pr-0 relative z-10 flex flex-col lg:flex-row items-center lg:items-center min-h-[720px] lg:min-h-[850px]">
         
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             LEFT COLUMN: EDITORIAL FEATURE SELECTOR
@@ -225,7 +233,7 @@ export default function PartnerPitch() {
         <div className="w-full lg:w-[42%] flex flex-col z-20 py-12 lg:py-0 pr-0 lg:pr-12">
           
           <h2 
-            className="text-[64px] sm:text-[76px] lg:text-[88px] xl:text-[96px] leading-[1.05] tracking-[0.02em] font-normal uppercase text-[#111317] mb-16 lg:mb-20"
+            className="text-[14vw] min-[380px]:text-[64px] sm:text-[76px] lg:text-[88px] xl:text-[96px] leading-[1.05] tracking-[0.02em] font-normal uppercase text-[#111317] mb-12 lg:mb-20"
             style={{ fontFamily: 'var(--font-anton)' }}
           >
             CAFÉ <br/>

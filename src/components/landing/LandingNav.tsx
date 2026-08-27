@@ -198,107 +198,110 @@ export default function LandingNav() {
         </button>
       </nav>
 
-      {/* Mobile Drawer Dropdown */}
+      {/* Full-Screen Mobile Menu Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -15, scaleY: 0.95 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -15, scaleY: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
             style={{
-              position: 'absolute',
-              top: 76,
+              position: 'fixed',
+              top: 0,
               left: 0,
               right: 0,
+              bottom: 0,
               background: '#0055D4',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-              padding: '16px 24px 28px',
+              zIndex: 40, // Below header which is 50
               display: 'flex',
               flexDirection: 'column',
-              gap: 8,
-              boxShadow: '0 12px 30px -5px rgba(0, 85, 212, 0.4)',
-              transformOrigin: 'top center',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '80px 24px 40px', // padding top to clear header
             }}
-            className="md:hidden"
+            className="md:hidden overflow-y-auto"
           >
-            {navLinks.map((link, i) => {
-              const isHash = link.href.startsWith('#');
-              const isActive = link.href === '/' ? pathname === '/' : isHash ? false : pathname === link.href;
+            <div className="flex flex-col items-center gap-6 w-full max-w-sm">
+              {navLinks.map((link, i) => {
+                const isHash = link.href.startsWith('#');
+                const isActive = link.href === '/' ? pathname === '/' : isHash ? false : pathname === link.href;
 
-              const handleMobileClick = (e: React.MouseEvent) => {
-                setMobileMenuOpen(false);
-                if (pathname === '/') {
-                  if (link.href === '/') {
-                    e.preventDefault();
-                    scrollTo(0, { duration: 1.2 });
-                  } else if (isHash) {
-                    e.preventDefault();
-                    scrollTo(link.href, { offset: -76, duration: 1.2 });
+                const handleMobileClick = (e: React.MouseEvent) => {
+                  setMobileMenuOpen(false);
+                  if (pathname === '/') {
+                    if (link.href === '/') {
+                      e.preventDefault();
+                      scrollTo(0, { duration: 1.2 });
+                    } else if (isHash) {
+                      e.preventDefault();
+                      scrollTo(link.href, { offset: -76, duration: 1.2 });
+                    }
                   }
-                }
-              };
+                };
 
-              return (
-                <motion.div
-                  key={link.label}
-                  initial={{ opacity: 0, x: -15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ delay: i * 0.04 + 0.05, duration: 0.2 }}
-                >
-                  <Link
-                    href={link.href}
-                    onClick={handleMobileClick}
-                    style={{
-                      display: 'block',
-                      color: isActive ? '#0055D4' : '#FFFFFF',
-                      background: isActive ? '#FFFFFF' : 'transparent',
-                      fontWeight: 900,
-                      fontSize: 15,
-                      letterSpacing: '0.1em',
-                      padding: '12px 20px',
-                      borderRadius: 12,
-                      textDecoration: 'none',
-                      transition: 'background 0.2s',
-                    }}
-                    className={isActive ? '' : 'hover:bg-white/10'}
+                return (
+                  <motion.div
+                    key={link.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: i * 0.08, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                    className="w-full text-center"
                   >
-                    {link.label}
-                  </Link>
-                </motion.div>
-              );
-            })}
-            
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ delay: navLinks.length * 0.04 + 0.1, duration: 0.2 }}
-            >
-              <Link
-                href="/home"
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  display: 'block',
-                  background: '#FFFFFF',
-                  color: '#0055D4',
-                  fontWeight: 900,
-                  fontSize: 15,
-                  letterSpacing: '0.12em',
-                  padding: '14px 24px',
-                  borderRadius: 12,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  marginTop: 12,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                }}
-                className="active:scale-[0.98]"
+                    <Link
+                      href={link.href}
+                      onClick={handleMobileClick}
+                      style={{
+                        display: 'block',
+                        color: isActive ? '#0055D4' : '#FFFFFF',
+                        background: isActive ? '#FFFFFF' : 'transparent',
+                        fontWeight: 900,
+                        fontSize: 24, // Larger for full-screen
+                        letterSpacing: '0.1em',
+                        padding: '16px 20px',
+                        borderRadius: 16,
+                        textDecoration: 'none',
+                        transition: 'background 0.2s, color 0.2s',
+                      }}
+                      className={isActive ? '' : 'hover:bg-white/10 active:bg-white/20'}
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: navLinks.length * 0.08 + 0.1, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                className="w-full mt-4"
               >
-                ORDER NOW
-              </Link>
-            </motion.div>
+                <Link
+                  href="/home"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    display: 'block',
+                    background: '#FFFFFF',
+                    color: '#0055D4',
+                    fontWeight: 900,
+                    fontSize: 20,
+                    letterSpacing: '0.12em',
+                    padding: '18px 24px',
+                    borderRadius: 16,
+                    textDecoration: 'none',
+                    textAlign: 'center',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                  }}
+                  className="active:scale-[0.96]"
+                >
+                  ORDER NOW
+                </Link>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

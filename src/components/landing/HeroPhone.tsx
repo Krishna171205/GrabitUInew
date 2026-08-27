@@ -156,7 +156,7 @@ export function HeroPhone({ activeState = 'CAFE', activeEnergyCard = 'cafes', on
   const cities = ['Delhi NCR', 'Mumbai', 'Bengaluru', 'Gurgaon', 'South Delhi'];
 
   return (
-    <div className="relative mx-auto w-[310px] h-[640px] shrink-0 z-20 pointer-events-auto">
+    <div className="relative mx-auto w-[280px] sm:w-[310px] h-[580px] sm:h-[640px] shrink-0 z-20 pointer-events-auto transition-all duration-300">
       
       {/* ------------------------------------- */}
       {/* PHYSICAL HARDWARE (DEEP ESPRESSO) */}

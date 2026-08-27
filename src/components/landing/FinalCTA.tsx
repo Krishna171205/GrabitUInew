@@ -122,7 +122,7 @@ export default function FinalCTA() {
 
           {/* Headline: 3 Lines, highly editorial scale */}
           <h2 
-            className="text-[52px] sm:text-[72px] md:text-[84px] lg:text-[105px] leading-[1.05] tracking-[0.03em] font-black uppercase flex flex-col mb-6 md:mb-8 text-[#1A1C23]" 
+            className="text-[12vw] min-[380px]:text-[48px] sm:text-[72px] md:text-[84px] lg:text-[105px] leading-[1.05] tracking-[0.03em] font-black uppercase flex flex-col mb-6 md:mb-8 text-[#1A1C23]" 
             style={{ fontFamily: 'var(--font-anton)' }}
           >
             <motion.span 
@@ -191,7 +191,7 @@ export default function FinalCTA() {
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             RIGHT COLUMN: REALISTIC SMARTPHONE MOCKUP
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <div className="w-full md:w-[40%] lg:w-[37%] relative flex justify-center md:justify-end items-end md:items-end pt-8 pb-0 md:py-0 px-6 sm:px-12 md:px-0 md:pr-12 lg:pr-20 z-20 pointer-events-none">
+        <div className="w-full md:w-[40%] lg:w-[37%] relative flex justify-center md:justify-end items-end md:items-end pt-8 pb-0 md:py-0 px-4 sm:px-12 md:px-0 md:pr-12 lg:pr-20 z-20 pointer-events-none">
             
             <motion.div 
               style={{ 
