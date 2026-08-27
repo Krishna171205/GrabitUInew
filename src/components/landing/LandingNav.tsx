@@ -6,15 +6,17 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
+import { useSmoothScroll } from '@/components/SmoothScroll';
 
 export default function LandingNav() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { scrollTo } = useSmoothScroll();
 
   const navLinks = [
-    { href: '/', label: 'HOME' },
-    { href: '/home', label: 'MENU' },
-    { href: '#how-it-works', label: 'ABOUT' },
+    { href: '/', targetId: '#hero', label: 'HOME' },
+    { href: '#preview', targetId: '#preview', label: 'MENU' },
+    { href: '#how-it-works', targetId: '#how-it-works', label: 'ABOUT' },
     { href: '/partner', label: 'FOR CAFÉS' },
     { href: '/faq', label: 'CONTACT' },
   ];
@@ -71,18 +73,32 @@ export default function LandingNav() {
           className="hidden md:flex"
         >
           {navLinks.map((link) => {
+            const isHash = link.href.startsWith('#');
             const isActive =
               link.href === '/'
                 ? pathname === '/'
-                : link.href.startsWith('#')
+                : isHash
                 ? false
                 : pathname === link.href;
+
+            const handleClick = (e: React.MouseEvent) => {
+              if (pathname === '/') {
+                if (link.href === '/') {
+                  e.preventDefault();
+                  scrollTo(0, { duration: 1.3 });
+                } else if (isHash) {
+                  e.preventDefault();
+                  scrollTo(link.href, { offset: -76, duration: 1.3 });
+                }
+              }
+            };
 
             if (isActive) {
               return (
                 <Link
                   key={link.label}
                   href={link.href}
+                  onClick={handleClick}
                   style={{
                     background: '#FFFFFF',
                     color: '#0055D4',
@@ -105,6 +121,7 @@ export default function LandingNav() {
               <a
                 key={link.label}
                 href={link.href}
+                onClick={handleClick}
                 style={{
                   color: '#FFFFFF',
                   fontWeight: 800,
@@ -116,7 +133,7 @@ export default function LandingNav() {
                   opacity: 0.95,
                   transition: 'all 0.2s ease',
                 }}
-                className="hover:opacity-100 hover:bg-white/15"
+                className="hover:opacity-100 hover:bg-white/15 cursor-pointer"
               >
                 {link.label}
               </a>
@@ -206,7 +223,22 @@ export default function LandingNav() {
             className="md:hidden"
           >
             {navLinks.map((link, i) => {
-              const isActive = link.href === '/' ? pathname === '/' : pathname === link.href;
+              const isHash = link.href.startsWith('#');
+              const isActive = link.href === '/' ? pathname === '/' : isHash ? false : pathname === link.href;
+
+              const handleMobileClick = (e: React.MouseEvent) => {
+                setMobileMenuOpen(false);
+                if (pathname === '/') {
+                  if (link.href === '/') {
+                    e.preventDefault();
+                    scrollTo(0, { duration: 1.2 });
+                  } else if (isHash) {
+                    e.preventDefault();
+                    scrollTo(link.href, { offset: -76, duration: 1.2 });
+                  }
+                }
+              };
+
               return (
                 <motion.div
                   key={link.label}
@@ -217,7 +249,7 @@ export default function LandingNav() {
                 >
                   <Link
                     href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={handleMobileClick}
                     style={{
                       display: 'block',
                       color: isActive ? '#0055D4' : '#FFFFFF',

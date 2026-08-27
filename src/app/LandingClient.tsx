@@ -8,14 +8,27 @@ import AppShowcase from '@/components/landing/AppShowcase';
 import ProductPreview from '@/components/landing/ProductPreview';
 import PartnerPitch from '@/components/landing/PartnerPitch';
 import FinalCTA from '@/components/landing/FinalCTA';
-import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
 import LandingFooter from '@/components/landing/LandingFooter';
+import ScrollProgress from '@/components/landing/ScrollProgress';
+import ScrollQuickNav from '@/components/landing/ScrollQuickNav';
+import ScrollParallaxBackground from '@/components/landing/ScrollParallaxBackground';
 
 export default function LandingClient() {
   return (
-    <div className="gb-app" style={{ background: 'var(--gb-surface)', color: 'var(--gb-text-strong)' }}>
+    <div className="gb-app relative min-h-screen selection:bg-blue-500 selection:text-white" style={{ background: 'var(--gb-surface)', color: 'var(--gb-text-strong)' }}>
+      {/* Radiant Glowing Top Scroll Progress Bar */}
+      <ScrollProgress />
+
+      {/* Floating Modern Quick-Nav and Scroll-to-Top Capsule */}
+      <ScrollQuickNav />
+
+      {/* Navigation Header */}
       <LandingNav />
-      <main data-landing-root>
+
+      {/* Main Landing Flow with 3D Parallax Background */}
+      <main data-landing-root className="relative overflow-hidden">
+        <ScrollParallaxBackground />
+        
         <Hero />
         <TrustBand />
         <HowItWorks />
@@ -24,6 +37,7 @@ export default function LandingClient() {
         <PartnerPitch />
         <FinalCTA />
       </main>
+
       <LandingFooter />
     </div>
   );

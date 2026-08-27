@@ -3,6 +3,16 @@ import Image from 'next/image';
 import { useState, useRef, useEffect, MouseEvent } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionTemplate, useReducedMotion, type MotionValue } from 'framer-motion';
 import { Star, MapPin, Check, ArrowRight, Clock, RotateCcw } from 'lucide-react';
+import OrbitImages from '../react-bits/OrbitImages';
+
+const ORBIT_IMAGES = [
+  "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=200&h=200&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&h=200&fit=crop&q=80",
+];
 
 interface MenuItem {
   id: string;
@@ -135,13 +145,7 @@ export default function ProductPreview() {
     : ITEMS.filter(it => it.category === selectedCategory);
 
   return (
-    <section ref={sectionRef} className="relative bg-[#F8FAFC] pt-[140px] pb-[160px] min-h-[110vh] overflow-hidden flex flex-col items-center justify-center border-b-[3px] border-[#0F172A]">
-      
-      {/* Neo-Brutalist Grid Background */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-[0.05] mix-blend-multiply" 
-        style={{ backgroundImage: 'radial-gradient(#0F172A 2px, transparent 2px)', backgroundSize: '40px 40px' }} 
-      />
+    <section id="preview" ref={sectionRef} className="relative bg-[#F9F8F5] pt-[140px] pb-[160px] min-h-[110vh] overflow-hidden flex flex-col items-center justify-center">
 
       {/* Main Content Container */}
       <div className="relative z-20 w-full max-w-[1180px] mx-auto px-4 text-center">
@@ -187,76 +191,28 @@ export default function ProductPreview() {
         </div>
 
         {/* Central Showcase Container with Floating Badges */}
-        <div className="relative w-full max-w-[390px] mx-auto">
+        <div className="relative w-full max-w-[390px] mx-auto mt-16 lg:mt-24">
           
-          {/* FLOATING FEATURE BADGES (Clean, Minimal, Non-Chaotic) */}
-          {/* 1. Top Left Badge */}
-          <motion.div 
-            initial={{ opacity: 0, x: -40, y: 20 }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
-            className="hidden lg:flex absolute -left-52 top-12 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
+          {/* Orbiting Images Background */}
+          <div 
+            className="absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] w-[1400px] h-[1400px] pointer-events-none z-0 opacity-80"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
-              ⚡
-            </div>
-            <div className="text-left">
-              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">5 Min Prep</div>
-              <div className="text-[10px] font-bold text-slate-500">Fresh on counter</div>
-            </div>
-          </motion.div>
+            <OrbitImages
+              images={ORBIT_IMAGES}
+              shape="ellipse"
+              radiusX={580}
+              radiusY={280}
+              rotation={-8}
+              duration={40}
+              itemSize={64}
+              responsive={true}
+              showPath={true}
+              pathColor="rgba(15, 23, 42, 0.12)"
+              pathWidth={2}
+            />
+          </div>
 
-          {/* 2. Top Right Badge */}
-          <motion.div 
-            initial={{ opacity: 0, x: 40, y: 20 }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.4, delay: 0.1 }}
-            className="hidden lg:flex absolute -right-52 top-24 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
-              <MapPin size={18} />
-            </div>
-            <div className="text-left">
-              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">150m Away</div>
-              <div className="text-[10px] font-bold text-slate-500">DTU Main Block</div>
-            </div>
-          </motion.div>
-
-          {/* 3. Bottom Left Badge */}
-          <motion.div 
-            initial={{ opacity: 0, x: -40, y: -20 }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.4, delay: 0.2 }}
-            className="hidden lg:flex absolute -left-48 bottom-28 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#F59E0B] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Star size={18} className="fill-white" />
-            </div>
-            <div className="text-left">
-              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">4.9 / 5.0</div>
-              <div className="text-[10px] font-bold text-slate-500">1.4k+ Reviews</div>
-            </div>
-          </motion.div>
-
-          {/* 4. Bottom Right Badge */}
-          <motion.div 
-            initial={{ opacity: 0, x: 40, y: -20 }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.4, delay: 0.3 }}
-            className="hidden lg:flex absolute -right-44 bottom-12 z-20 items-center gap-3 bg-white pl-2 pr-4 py-2 rounded-2xl border-2 border-[#0F172A] shadow-[4px_4px_0px_#0F172A] hover:shadow-[6px_6px_0px_#0055D4] hover:-translate-y-1 transition-all cursor-default group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#10B981] text-white flex items-center justify-center font-black text-lg group-hover:scale-110 transition-transform">
-              #
-            </div>
-            <div className="text-left">
-              <div className="text-[12px] font-black text-[#0F172A] leading-tight uppercase">Zero Queue</div>
-              <div className="text-[10px] font-bold text-slate-500">Direct Token Grab</div>
-            </div>
-          </motion.div>
+          {/* FLOATING FEATURE BADGES (Removed for cleaner look with orbiting images) */}
 
           {/* Ambient Glow behind the phone */}
           <motion.div

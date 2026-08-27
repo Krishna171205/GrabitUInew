@@ -1,244 +1,431 @@
 'use client';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
 
+// --- DATA & CONFIG ---
+
+const FEATURES = [
+  {
+    id: 'queue',
+    title: 'LIVE QUEUE & TICKETS',
+    desc: "Watch orders flow straight from a customer's phone to your kitchen screen. Track prep times and notify customers instantly when their coffee is ready.",
+  },
+  {
+    id: 'menu',
+    title: 'SEAMLESS MENU SYNC',
+    desc: 'Update your offerings in real-time. Mark items as sold out, adjust prices, or launch daily specials without calling support or printing new menus.',
+  },
+  {
+    id: 'analytics',
+    title: 'ANALYTICS & PAYMENTS',
+    desc: 'Track your busiest hours, most popular items, and total revenue. All payments are securely processed and deposited directly to your bank account.',
+  }
+];
+
+const AUTOPLAY_INTERVAL = 5500; // 5.5 seconds per tab
+
+// --- MOCK UI COMPONENTS FOR THE DASHBOARD ---
+
+const LiveQueueView = () => (
+  <div className="flex flex-col h-full bg-[#FAFAFA] p-8">
+    <div className="flex items-center justify-between mb-8">
+      <h3 className="text-[24px] font-bold text-[#111317]">Live Queue</h3>
+      <div className="bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] rounded-lg px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors">
+        <MS name="filter_list" size={16} className="text-gray-500" /> Filter
+      </div>
+    </div>
+    
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1">
+      <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
+        <div className="col-span-2">Order</div>
+        <div className="col-span-5">Items</div>
+        <div className="col-span-3">Status</div>
+        <div className="col-span-2 text-right">Amount</div>
+      </div>
+      <div className="flex flex-col">
+        {[
+          { id: '#4092', items: '2x Iced Latte (Oat), 1x Almond Croissant', status: 'PREPARING', statusColor: 'bg-blue-100 text-blue-700', amount: '₹680', active: true },
+          { id: '#4091', items: '1x Americano, 1x Espresso', status: 'READY', statusColor: 'bg-green-100 text-green-700', amount: '₹280' },
+          { id: '#4090', items: '3x Flat White', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹840' },
+          { id: '#4089', items: '1x Matcha Latte, 1x Choc Chip Cookie', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹420' },
+          { id: '#4088', items: '2x Cappuccino', status: 'PICKED UP', statusColor: 'bg-gray-100 text-gray-500', amount: '₹440' },
+        ].map((row, i) => (
+          <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${row.active ? 'bg-blue-50/40 relative' : 'hover:bg-gray-50'}`}>
+            {row.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0055D4]" />}
+            <div className="col-span-2 font-bold text-gray-500">{row.id}</div>
+            <div className="col-span-5 font-medium text-[#111317] truncate pr-4">{row.items}</div>
+            <div className="col-span-3">
+              <span className={`px-2.5 py-1.5 rounded-[6px] text-[10.5px] font-bold tracking-wide ${row.statusColor}`}>
+                {row.status}
+              </span>
+            </div>
+            <div className="col-span-2 text-right font-bold text-[#111317]">{row.amount}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const MenuSyncView = () => (
+  <div className="flex flex-col h-full bg-[#FAFAFA] p-8">
+    <div className="flex items-center justify-between mb-8">
+      <h3 className="text-[24px] font-bold text-[#111317]">Menu Management</h3>
+      <div className="bg-[#0055D4] text-white shadow-[0_4px_12px_rgba(0,85,212,0.2)] rounded-lg px-4 py-2 text-[13px] font-bold flex items-center gap-1.5 cursor-pointer hover:bg-[#0044AA] transition-colors">
+        <MS name="add" size={16} /> Add Item
+      </div>
+    </div>
+    
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex flex-col flex-1">
+      <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/80">
+        <div className="col-span-5">Item Name</div>
+        <div className="col-span-3 text-center">Availability</div>
+        <div className="col-span-4 text-right">Price</div>
+      </div>
+      <div className="flex flex-col">
+        {[
+          { name: 'Iced Latte (Oat)', category: 'Cold Coffee', inStock: true, price: '₹260' },
+          { name: 'Flat White', category: 'Hot Coffee', inStock: true, price: '₹220' },
+          { name: 'Almond Croissant', category: 'Pastries', inStock: false, price: '₹220' },
+          { name: 'Matcha Latte', category: 'Tea', inStock: true, price: '₹320' },
+          { name: 'Pour Over (Ethiopia)', category: 'Manual Brew', inStock: true, price: '₹350' },
+        ].map((item, i) => (
+          <div key={i} className={`grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-50 last:border-0 items-center text-[14px] transition-colors ${!item.inStock ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`}>
+            <div className="col-span-5 flex flex-col gap-0.5">
+              <span className={`font-bold ${item.inStock ? 'text-[#111317]' : 'text-gray-400'}`}>{item.name}</span>
+              <span className="text-[12px] text-gray-400 font-medium">{item.category}</span>
+            </div>
+            <div className="col-span-3 flex justify-center">
+              {/* Refined Toggle Switch */}
+              <div className={`w-10 h-5.5 rounded-full flex items-center p-[2px] transition-colors ${item.inStock ? 'bg-[#10B981]' : 'bg-gray-300'}`}>
+                <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-transform ${item.inStock ? 'translate-x-[18px]' : 'translate-x-0'}`} />
+              </div>
+            </div>
+            <div className="col-span-4 flex justify-end items-center gap-4">
+              <span className="font-bold text-[#111317]">{item.price}</span>
+              <div className="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer">
+                <MS name="more_horiz" size={18} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const AnalyticsView = () => (
+  <div className="flex flex-col h-full bg-[#FAFAFA] p-8">
+    <div className="flex items-center justify-between mb-8">
+      <h3 className="text-[24px] font-bold text-[#111317]">Today's Performance</h3>
+      <div className="bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] rounded-lg px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer hover:bg-gray-50">
+        Today <MS name="expand_more" size={16} className="text-gray-500" />
+      </div>
+    </div>
+    
+    <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
+        <div className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Total Revenue</div>
+        <div className="text-[32px] font-black text-[#111317] leading-none">₹14,250</div>
+        <div className="text-[12px] font-bold text-green-600 flex items-center gap-1.5 mt-3 bg-green-50 w-fit px-2 py-1 rounded-md">
+          <MS name="trending_up" size={14} /> +12.4% vs yesterday
+        </div>
+        <MS name="account_balance_wallet" size={80} className="absolute -right-4 -bottom-4 text-gray-50 opacity-50" />
+      </div>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden">
+        <div className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Orders Completed</div>
+        <div className="text-[32px] font-black text-[#111317] leading-none">64</div>
+        <div className="text-[12px] font-bold text-green-600 flex items-center gap-1.5 mt-3 bg-green-50 w-fit px-2 py-1 rounded-md">
+          <MS name="trending_up" size={14} /> +8.2% vs yesterday
+        </div>
+        <MS name="receipt_long" size={80} className="absolute -right-4 -bottom-4 text-gray-50 opacity-50" />
+      </div>
+    </div>
+
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] flex-1 flex flex-col justify-end relative overflow-hidden">
+      <div className="absolute top-6 left-6 text-[12px] font-bold text-gray-400 uppercase tracking-wider">Hourly Volume</div>
+      
+      {/* Refined Bar Chart */}
+      <div className="flex items-end gap-3 h-32 w-full mt-8">
+        {[20, 35, 25, 40, 60, 85, 100, 75, 45, 30, 15].map((h, i) => (
+          <div key={i} className="flex-1 h-full bg-blue-50 rounded-t-md relative group overflow-hidden">
+            <div 
+              className="absolute bottom-0 w-full bg-[#0055D4] rounded-t-md transition-all duration-700 ease-out" 
+              style={{ height: `${h}%` }} 
+            />
+            {/* Hover tooltip effect */}
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" />
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between w-full mt-3 text-[10px] font-bold text-gray-300 uppercase">
+        <span>8 AM</span>
+        <span>12 PM</span>
+        <span>4 PM</span>
+        <span>8 PM</span>
+      </div>
+    </div>
+  </div>
+);
+
+
 export default function PartnerPitch() {
-  // 3D rotation logic
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseXSpring = useSpring(x, { stiffness: 100, damping: 30 });
-  const mouseYSpring = useSpring(y, { stiffness: 100, damping: 30 });
+  const [activeTab, setActiveTab] = useState(0);
   
-  // Apple-like subtle isometric tilt
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+  const prefersReducedMotion = useReducedMotion();
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    x.set(mouseX / width - 0.5);
-    y.set(mouseY / height - 0.5);
+  // Autoplay Logic - runs continuously, resets timer when user clicks
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab((prev) => (prev + 1) % FEATURES.length);
+    }, AUTOPLAY_INTERVAL);
+    
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
+  const handleTabClick = (index: number) => {
+    setActiveTab(index);
   };
-  const handleMouseLeave = () => { x.set(0); y.set(0); };
 
-  // Common transition for infinite 10s loop (11 keyframes = 10 equal 1s intervals)
-  const loopTransition = { repeat: Infinity, duration: 10, ease: "easeInOut" };
+  // Parallax Logic - extremely subtle to feel grounded
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springConfig = { damping: 50, stiffness: 100 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+  
+  const frameX = useTransform(smoothX, [-1, 1], [-4, 4]);
+  const frameY = useTransform(smoothY, [-1, 1], [-4, 4]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (prefersReducedMotion) return;
+    const { clientX, clientY } = e;
+    const { innerWidth, innerHeight } = window;
+    mouseX.set((clientX / innerWidth) * 2 - 1);
+    mouseY.set((clientY / innerHeight) * 2 - 1);
+  };
 
   return (
-    <section className="py-32 bg-[#FDFBF7] text-[#1A1311] relative overflow-hidden">
-      {/* Ambient glowing mesh (Stripe-style) */}
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-[#F09819]/15 via-transparent to-blue-500/10 blur-[80px] rounded-full pointer-events-none z-0" />
-
-      <div className="max-w-[1280px] mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+    <section 
+      id="partners" 
+      className="py-24 md:py-32 bg-[#F9F8F5] relative overflow-hidden text-[#111317]"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
+    >
+      {/* 
+        Container is intentionally open on the right on large screens 
+        to allow the dashboard to overflow and crop naturally.
+      */}
+      <div className="max-w-[1440px] mx-auto px-6 lg:pl-12 lg:pr-0 relative z-10 flex flex-col lg:flex-row items-center lg:items-center min-h-[720px] lg:min-h-[850px]">
         
-        {/* LEFT: Copy */}
-        <div className="w-full lg:w-5/12 order-2 lg:order-1 relative z-20">
-          <span className="inline-flex items-center gap-2 bg-[#EBE4D8]/50 text-[#8A7A6B] text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
-            For Café Partners
-          </span>
-          <h2 className="text-[42px] md:text-[56px] font-black tracking-tighter leading-[1.05] mb-6">
-            Connecting customers <br />
-            <span className="text-[#8A7A6B] font-serif italic font-medium">directly to your kitchen.</span>
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            LEFT COLUMN: EDITORIAL FEATURE SELECTOR
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className="w-full lg:w-[42%] flex flex-col z-20 py-12 lg:py-0 pr-0 lg:pr-12">
+          
+          <h2 
+            className="text-[64px] sm:text-[76px] lg:text-[88px] xl:text-[96px] leading-[1.05] tracking-[0.02em] font-normal uppercase text-[#111317] mb-16 lg:mb-20"
+            style={{ fontFamily: 'var(--font-anton)' }}
+          >
+            CAFÉ <br/>
+            <span className="text-[#0055D4]">OPERATIONS</span>
           </h2>
-          <p className="text-[18px] text-[#8A7A6B] font-semibold leading-relaxed mb-10 max-w-md">
-            Watch how a pre-order flows from a customer's phone instantly to your Café Dashboard. No manual entry, no missed tickets, no angry queues.
-          </p>
-          <ul className="space-y-4 mb-10">
-            {['Zero hardware integration costs.', 'Real-time sync with customers.', 'Automated prep-time calculations.'].map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#1A1311] flex items-center justify-center shrink-0 mt-0.5">
-                  <MS name="check" size={14} color="#FDFBF7" />
-                </div>
-                <span className="text-[16px] font-bold text-[#1A1311]">{item}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="group inline-flex items-center justify-center gap-2 bg-[#1A1311] hover:bg-[#F09819] text-white hover:text-[#1A1311] px-8 py-4 rounded-[16px] font-bold text-[16px] cursor-pointer transition-all duration-300 shadow-md">
-            Partner with us
-            <MS name="arrow_forward" size={18} className="transition-transform group-hover:translate-x-1" />
+
+          <div className="flex flex-col gap-6 lg:gap-8">
+            {FEATURES.map((feature, index) => {
+              const isActive = activeTab === index;
+              return (
+                <button
+                  key={feature.id}
+                  onClick={() => handleTabClick(index)}
+                  className="group flex flex-col text-left focus:outline-none relative py-2"
+                >
+                  <div className="flex items-center gap-5 mb-2">
+                    {/* The number (01, 02) */}
+                    <span className={`text-[18px] font-normal transition-colors duration-300 ${isActive ? 'text-[#111317]' : 'text-gray-300 group-hover:text-gray-400'}`} style={{ fontFamily: 'var(--font-anton)' }}>
+                      0{index + 1}
+                    </span>
+
+                    {/* Progress Indicator */}
+                    <div className={`relative w-12 h-[2px] overflow-hidden shrink-0 transition-colors duration-300 ${isActive ? 'bg-blue-100' : 'bg-transparent'}`}>
+                      {isActive && (
+                        <motion.div 
+                          className="absolute top-0 left-0 h-full bg-[#0055D4]"
+                          initial={{ width: "0%" }}
+                          animate={{ width: "100%" }}
+                          transition={{ 
+                            duration: AUTOPLAY_INTERVAL / 1000, 
+                            ease: "linear" 
+                          }}
+                        />
+                      )}
+                    </div>
+                    
+                    <h3 
+                      className={`text-[20px] sm:text-[22px] lg:text-[24px] font-normal uppercase tracking-wide transition-all duration-300 ${
+                        isActive ? 'text-[#111317] translate-x-1' : 'text-gray-400 group-hover:text-gray-600'
+                      }`}
+                      style={{ fontFamily: 'var(--font-anton)' }}
+                    >
+                      {feature.title}
+                    </h3>
+                  </div>
+
+                  {/* Expandable Description */}
+                  <motion.div
+                    initial={false}
+                    animate={{ 
+                      height: isActive ? 'auto' : 0, 
+                      opacity: isActive ? 1 : 0,
+                      marginTop: isActive ? 8 : 0
+                    }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden pl-[84px]"
+                  >
+                    <p className="text-[16px] lg:text-[17px] text-[#4A4E58] font-medium leading-[1.6] max-w-[420px]">
+                      {feature.desc}
+                    </p>
+                  </motion.div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* RIGHT: Dashboard + Widget Mockup (Stripe-style) */}
-        <div 
-          className="w-full lg:w-7/12 order-1 lg:order-2 flex justify-center items-center relative mt-12 lg:mt-0"
-          style={{ perspective: 1400 }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-        >
+
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            RIGHT COLUMN: OVERSIZED REALISTIC PRODUCT STAGE
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        
+        {/* Mobile: inline relative container. Desktop: absolute, bleeding off the right edge */}
+        <div className="w-full lg:absolute lg:left-[45%] lg:top-1/2 lg:-translate-y-1/2 z-20 flex justify-center lg:justify-start pointer-events-none mt-8 lg:mt-0">
+          
+          {/* The Dashboard itself is explicitly oversized on desktop (w-[1100px]) */}
           <motion.div 
-            style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            style={{ x: frameX, y: frameY }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[720px] aspect-[4/3] sm:aspect-[16/10] md:h-[480px]"
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-[800px] lg:max-w-none lg:w-[1100px] aspect-[4/3] lg:aspect-auto lg:h-[720px] xl:h-[760px] bg-white rounded-[20px] lg:rounded-[24px] border border-black/[0.04] flex flex-col overflow-hidden"
+            style={{
+              boxShadow: '0 40px 100px -20px rgba(0,0,0,0.12), 0 10px 30px -10px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,1) inset'
+            }}
           >
-            {/* Smooth floating wrapper */}
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="w-full h-full relative"
-              style={{ transformStyle: 'preserve-3d' }}
-            >
+            {/* Subtle ambient grounding shadow */}
+            <div className="absolute -inset-10 bg-black/[0.03] rounded-[40px] blur-3xl -z-10 translate-y-12" />
+
+            {/* --- BROWSER / APP CHROME --- */}
+            <div className="h-14 lg:h-16 border-b border-gray-100 flex items-center px-5 lg:px-6 bg-white gap-4 shrink-0">
+              {/* Window Controls */}
+              <div className="flex gap-2.5">
+                <div className="w-3.5 h-3.5 rounded-full bg-[#FF5F56] border border-[#E0443E]" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#FFBD2E] border border-[#DEA123]" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#27C93F] border border-[#1AAB29]" />
+              </div>
               
-              {/* --- BACKGROUND: Dashboard Window --- */}
-              <div 
-                className="absolute right-0 lg:right-[-40px] top-4 w-[100%] sm:w-[95%] h-[90%] bg-white rounded-[16px] shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-gray-200 overflow-hidden flex flex-col z-10"
-                style={{ transform: 'translateZ(-30px)' }}
-              >
-                {/* Browser-like Header */}
-                <div className="h-12 border-b border-gray-100 flex items-center px-4 bg-gray-50/80 backdrop-blur-sm gap-4">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <div className="bg-white border border-gray-200 rounded-md px-3 py-1 text-[11px] font-medium text-gray-500 flex items-center gap-2 shadow-sm w-48 sm:w-64 justify-center">
-                      <MS name="lock" size={12} className="text-gray-400" />
-                      dashboard.letsgrabbit.com
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Dashboard Content */}
-                <div className="flex-1 flex bg-[#FAFAFA]">
-                  {/* Sidebar (Subtle) */}
-                  <div className="w-48 bg-white border-r border-gray-100 flex-col hidden sm:flex">
-                    <div className="p-4 flex items-center gap-2 border-b border-gray-100 mb-2">
-                      <div className="w-6 h-6 bg-[#1A1311] rounded text-white flex items-center justify-center font-bold text-[12px] shrink-0">G</div>
-                      <span className="font-bold text-[#1A1311] text-[13px] truncate">Grabbit Partner</span>
-                    </div>
-                    <div className="p-3 space-y-1">
-                      {['Overview', 'Live Queue', 'Menu', 'Settings'].map((item, i) => (
-                        <div key={item} className={`px-3 py-2 rounded-lg text-[13px] font-medium ${i === 1 ? 'bg-gray-100 text-[#1A1311]' : 'text-gray-500'}`}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Main Content Area */}
-                  <div className="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden">
-                    <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1A1311] mb-4 sm:mb-6">Live Queue</h3>
-                    
-                    {/* Table */}
-                    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden flex-1 shadow-sm flex flex-col">
-                      <div className="grid grid-cols-12 gap-2 sm:gap-4 px-4 sm:px-5 py-3 border-b border-gray-100 text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                        <div className="col-span-3 sm:col-span-2">Order</div>
-                        <div className="col-span-5 sm:col-span-5">Items</div>
-                        <div className="hidden sm:block sm:col-span-3">Status</div>
-                        <div className="col-span-4 sm:col-span-2 text-right">Amount</div>
-                      </div>
-                      <div className="flex flex-col">
-                        {[
-                          { id: '#4092', items: '2x Iced Latte, 1x Croissant', status: 'PREPARING', amount: '₹680' },
-                          { id: '#4091', items: '1x Americano', status: 'READY', amount: '₹150' },
-                          { id: '#4090', items: '3x Flat White', status: 'PICKED UP', amount: '₹840' },
-                          { id: '#4089', items: '1x Matcha Latte', status: 'PICKED UP', amount: '₹320' },
-                        ].map((row, i) => (
-                          <div key={i} className="grid grid-cols-12 gap-2 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-50 last:border-0 items-center text-[12px] sm:text-[13px]">
-                            <div className="col-span-3 sm:col-span-2 font-bold text-gray-500">{row.id}</div>
-                            <div className="col-span-5 sm:col-span-5 font-medium text-[#1A1311] truncate pr-2">{row.items}</div>
-                            <div className="hidden sm:block sm:col-span-3">
-                              <span className={`px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-bold ${
-                                row.status === 'READY' ? 'bg-green-100 text-green-700' : 
-                                row.status === 'PREPARING' ? 'bg-blue-100 text-blue-700' :
-                                'bg-gray-100 text-gray-600'
-                              }`}>
-                                {row.status}
-                              </span>
-                            </div>
-                            <div className="col-span-4 sm:col-span-2 text-right font-bold text-[#1A1311]">{row.amount}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+              {/* Cafe Identity */}
+              <div className="flex-1 flex justify-center lg:justify-start lg:pl-6">
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 shadow-sm">
+                  <span className="text-[13px] font-bold text-[#111317]">Blue Tokai</span>
+                  <span className="text-[12px] font-medium text-gray-400">Connaught Place</span>
                 </div>
               </div>
 
-              {/* --- FOREGROUND: Customer Widget (Stripe-style card) --- */}
-              <div 
-                className="absolute left-0 sm:left-[-30px] top-1/2 -translate-y-1/2 w-[280px] sm:w-[320px] bg-white rounded-[24px] shadow-[0_40px_80px_rgba(26,19,17,0.12)] border border-gray-100 overflow-hidden flex flex-col z-30"
-                style={{ transform: 'translateZ(50px)' }}
-              >
-                {/* Header (Cafe Info) */}
-                <div className="p-5 sm:p-6 border-b border-gray-50 bg-white">
-                  <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-50 flex items-center justify-center text-[20px] sm:text-[24px] shadow-inner border border-orange-100">
-                      ☕
-                    </div>
-                    <div>
-                      <div className="font-bold text-[#1A1311] text-[15px] sm:text-[16px]">Blue Tokai</div>
-                      <div className="text-[12px] sm:text-[13px] text-gray-500 font-medium">Connaught Place</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="text-[12px] sm:text-[13px] font-bold text-[#1A1311]">Order Summary</div>
-                    <div className="flex justify-between items-center">
-                      <div className="text-[13px] sm:text-[14px] font-medium text-gray-600">Iced Latte (Oat)</div>
-                      <div className="text-[13px] sm:text-[14px] font-medium text-[#1A1311]">₹260</div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="text-[13px] sm:text-[14px] font-medium text-gray-600">Almond Croissant</div>
-                      <div className="text-[13px] sm:text-[14px] font-medium text-[#1A1311]">₹220</div>
-                    </div>
-                  </div>
+              {/* Top Bar Actions */}
+              <div className="hidden sm:flex items-center gap-4 text-gray-400">
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-md">
+                  <MS name="search" size={16} />
+                  <span className="text-[12px] font-medium mr-4">Search...</span>
+                </div>
+                <MS name="notifications" size={20} className="hover:text-gray-600 transition-colors" />
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[12px] font-bold ml-2 border border-blue-200">BT</div>
+              </div>
+            </div>
+
+            {/* --- APPLICATION BODY --- */}
+            <div className="flex-1 flex bg-[#FAFAFA] relative overflow-hidden">
+              
+              {/* Sidebar */}
+              <div className="w-[80px] bg-white border-r border-gray-100 flex-col items-center py-6 hidden sm:flex shrink-0">
+                <div className="w-10 h-10 bg-[#111317] rounded-xl text-white flex items-center justify-center font-bold text-[16px] mb-8 shadow-md">
+                  G
                 </div>
                 
-                {/* Footer (Payment) */}
-                <div className="p-5 sm:p-6 bg-gray-50/50 flex flex-col gap-4 sm:gap-5">
-                  <div className="flex justify-between items-center">
-                    <div className="text-[13px] sm:text-[14px] font-bold text-[#1A1311]">Total</div>
-                    <div className="text-[18px] sm:text-[20px] font-black text-[#1A1311]">₹480</div>
-                  </div>
-                  
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-widest">Payment Method</div>
-                    <div className="flex items-center justify-between p-3 sm:p-3.5 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-blue-400 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="w-9 h-6 sm:w-10 bg-[#1434CB] rounded flex items-center justify-center overflow-hidden">
-                          <span className="text-[9px] sm:text-[10px] font-black italic text-white">VISA</span>
-                        </div>
-                        <span className="text-[13px] sm:text-[14px] font-semibold text-[#1A1311]">•••• 4242</span>
-                      </div>
-                      <MS name="chevron_right" size={18} className="text-gray-400" />
+                <div className="flex flex-col gap-6 items-center w-full">
+                  {[
+                    { id: 'home', icon: 'home' },
+                    { id: 'queue', icon: 'receipt_long' },
+                    { id: 'menu', icon: 'restaurant_menu' },
+                    { id: 'analytics', icon: 'bar_chart' },
+                    { id: 'settings', icon: 'settings' }
+                  ].map((item) => (
+                    <div 
+                      key={item.id} 
+                      className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                        (item.id === FEATURES[activeTab].id) 
+                          ? 'bg-blue-50 text-[#0055D4]' 
+                          : 'text-gray-400 hover:bg-gray-50'
+                      }`}
+                    >
+                      <MS name={item.icon} size={24} />
+                      {item.id === FEATURES[activeTab].id && (
+                        <div className="absolute left-[-16px] w-[5px] h-8 bg-[#0055D4] rounded-r-md shadow-[2px_0_8px_rgba(0,85,212,0.4)]" />
+                      )}
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
 
+              {/* Main Content Area (Crossfading Tabs) */}
+              <div className="flex-1 relative overflow-hidden">
+                <AnimatePresence mode="wait">
                   <motion.div
-                    animate={{
-                      scale: [1, 0.98, 1, 1, 1, 1, 1],
-                      backgroundColor: ['#10B981', '#10B981', '#059669', '#10B981', '#10B981', '#10B981', '#10B981']
-                    }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                    className="w-full h-[48px] sm:h-[52px] rounded-xl text-white flex items-center justify-center font-bold text-[15px] sm:text-[16px] shadow-lg shadow-green-500/20 relative overflow-hidden mt-1 sm:mt-2 cursor-pointer"
+                    key={activeTab}
+                    initial={{ opacity: 0, x: 18 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -18 }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute inset-0"
                   >
-                    <motion.div 
-                      animate={{ opacity: [1, 1, 0, 0, 0, 1, 1] }} 
-                      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                      className="absolute"
-                    >
-                      Pay ₹480
-                    </motion.div>
-                    <motion.div 
-                      animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }} 
-                      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                      className="absolute flex items-center gap-2"
-                    >
-                      <MS name="check_circle" size={18} /> Sent to kitchen
-                    </motion.div>
+                    {activeTab === 0 && <LiveQueueView />}
+                    {activeTab === 1 && <MenuSyncView />}
+                    {activeTab === 2 && <AnalyticsView />}
                   </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Map/Secondary Panel (Far Right Edge - This gets cropped) */}
+              <div className="w-[280px] bg-white border-l border-gray-100 hidden xl:flex flex-col shrink-0">
+                <div className="p-6 border-b border-gray-100">
+                  <h4 className="text-[14px] font-bold text-[#111317]">Order Map</h4>
+                  <p className="text-[12px] text-gray-400 mt-1">Live delivery tracking</p>
+                </div>
+                <div className="flex-1 bg-[#F5F7FA] relative">
+                  {/* Subtle map texture placeholder */}
+                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+                  
+                  {/* Fake map markers */}
+                  <div className="absolute top-[20%] left-[30%] w-3 h-3 bg-[#0055D4] rounded-full shadow-[0_0_0_4px_rgba(0,85,212,0.2)]" />
+                  <div className="absolute top-[50%] left-[60%] w-3 h-3 bg-[#10B981] rounded-full shadow-[0_0_0_4px_rgba(16,185,129,0.2)]" />
+                  <div className="absolute top-[70%] left-[20%] w-3 h-3 bg-gray-400 rounded-full" />
+                  
+                  {/* Active delivery card */}
+                  <div className="absolute bottom-6 left-6 right-6 bg-white p-4 rounded-xl shadow-lg border border-gray-100">
+                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Out for delivery</div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-700 font-bold text-[12px]">JD</div>
+                      <div>
+                        <div className="text-[13px] font-bold text-[#111317]">Order #4087</div>
+                        <div className="text-[11px] text-gray-500">Arriving in 4 mins</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-            </motion.div>
+            </div>
           </motion.div>
         </div>
 

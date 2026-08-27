@@ -199,7 +199,7 @@ export default function AppShowcase() {
   };
 
   return (
-    <section className="relative w-full min-h-[95vh] bg-[#F8FAFC] font-sans pt-[80px] sm:pt-[92px] pb-12 flex flex-col items-center justify-start overflow-hidden">
+    <section id="showcase" className="relative w-full min-h-[95vh] bg-[#F8FAFC] font-sans pt-[80px] sm:pt-[92px] pb-12 flex flex-col items-center justify-start overflow-hidden">
 
       {/* ========================================= */}
       {/* 1. CINEMATIC BACKGROUND SYSTEM */}

@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
 import { SITE_URL, SITE_NAME, DESCRIPTION } from '@/lib/seo';
+import SmoothScrollProvider from '@/components/SmoothScroll';
 
 // Grabbit brand type, Marigold system.
 // Display / wordmark: Baloo 2 (rounded, playful, native Devanagari).
@@ -149,8 +150,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SeoScripts names={['organization', 'website', 'breadcrumb']} />
       </head>
       <body className="relative">
-        <div className="fixed inset-0 bg-noise z-[9999] pointer-events-none mix-blend-overlay opacity-50"></div>
-        {children}
+        <SmoothScrollProvider>
+          <div className="fixed inset-0 bg-noise z-[9999] pointer-events-none mix-blend-overlay opacity-50"></div>
+          {children}
+        </SmoothScrollProvider>
       </body>
     </html>
   );

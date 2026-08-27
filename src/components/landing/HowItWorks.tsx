@@ -273,17 +273,44 @@ function Step3Row() {
 }
 
 export default function HowItWorks() {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start 70%', 'end 85%']
+  });
+
+  const smoothBeamProgress = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 24,
+    mass: 0.15
+  });
+
+  const beamHeight = useTransform(smoothBeamProgress, [0, 1], ['0%', '100%']);
+  const beamOpacity = useTransform(smoothBeamProgress, [0, 0.05, 0.95, 1], [0, 1, 1, 0.8]);
 
   return (
-    <section ref={containerRef} className="relative py-24 md:py-32 bg-[#F8FAFC] text-[#0F172A] overflow-hidden border-b-2 border-[#0F172A]/10">
+    <section id="how-it-works" ref={containerRef} className="relative py-24 md:py-32 bg-[#F8FAFC] text-[#0F172A] overflow-hidden border-b-2 border-[#0F172A]/10">
       <div className="max-w-[1240px] mx-auto px-6">
         <HowItWorksHeader />
 
         {/* 3-Step Alternating Grid */}
         <div className="relative space-y-24 md:space-y-32">
           {/* Vertical Center Connector Line on Desktop */}
-          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-0.5 border-l-2 border-dashed border-[#0055D4]/30 -translate-x-1/2" />
+          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-0.5 border-l-2 border-dashed border-[#0055D4]/25 -translate-x-1/2 overflow-hidden">
+            {/* Active glowing electric laser beam */}
+            <motion.div
+              style={{ height: beamHeight, opacity: beamOpacity }}
+              className="w-full bg-gradient-to-b from-[#0055D4] via-[#38BDF8] to-[#0055D4] shadow-[0_0_12px_#38BDF8]"
+            />
+          </div>
+
+          {/* Tracer Sparkle that rides the beam */}
+          <motion.div
+            style={{ top: beamHeight, opacity: beamOpacity }}
+            className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#0055D4] border-2 border-white shadow-[0_0_16px_4px_rgba(0,85,212,0.8)] items-center justify-center pointer-events-none z-20"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+          </motion.div>
 
           <Step1Row />
           <Step2Row />
