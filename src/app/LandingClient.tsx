@@ -2,8 +2,6 @@
 'use client';
 import LandingNav from '@/components/landing/LandingNav';
 import Hero from '@/components/landing/Hero';
-import TrustBand from '@/components/landing/TrustBand';
-import HowItWorks from '@/components/landing/HowItWorks';
 import AppShowcase from '@/components/landing/AppShowcase';
 import ProductPreview from '@/components/landing/ProductPreview';
 import PartnerPitch from '@/components/landing/PartnerPitch';
@@ -30,8 +28,6 @@ export default function LandingClient() {
         <ScrollParallaxBackground />
         
         <Hero />
-        <TrustBand />
-        <HowItWorks />
         <AppShowcase />
         <ProductPreview />
         <PartnerPitch />
