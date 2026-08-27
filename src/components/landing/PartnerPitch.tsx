@@ -303,15 +303,16 @@ export default function PartnerPitch() {
           
           {/* The Dashboard itself is explicitly oversized on desktop (w-[1100px]) */}
           <motion.div 
-            style={{ x: frameX, y: frameY }}
+            style={{ 
+              x: frameX, 
+              y: frameY,
+              boxShadow: '0 40px 100px -20px rgba(0,0,0,0.12), 0 10px 30px -10px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,1) inset'
+            }}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-[800px] lg:max-w-none lg:w-[1100px] aspect-[4/3] lg:aspect-auto lg:h-[720px] xl:h-[760px] bg-white rounded-[20px] lg:rounded-[24px] border border-black/[0.04] flex flex-col overflow-hidden"
-            style={{
-              boxShadow: '0 40px 100px -20px rgba(0,0,0,0.12), 0 10px 30px -10px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,1) inset'
-            }}
           >
             {/* Subtle ambient grounding shadow */}
             <div className="absolute -inset-10 bg-black/[0.03] rounded-[40px] blur-3xl -z-10 translate-y-12" />

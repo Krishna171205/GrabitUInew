@@ -150,23 +150,6 @@ export default function ProductPreview() {
       {/* Main Content Container */}
       <div className="relative z-20 w-full max-w-[1180px] mx-auto px-4 text-center">
         
-        {/* Top Feature Pill */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true }}
-          whileHover={{ y: -2 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border-2 border-[#0F172A] shadow-[4px_4px_0px_#0055D4] hover:shadow-[6px_6px_0px_#0F172A] mb-8 text-[11px] font-black text-[#0F172A] uppercase tracking-wider transition-all cursor-default"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
-          </span>
-          <span>Interactive Live Demo</span>
-          <span className="text-[#0055D4] font-black">·</span>
-          <span className="text-[#0055D4]">Tap to Order</span>
-        </motion.div>
 
         {/* Editorial Heading Block */}
         <div className="mb-14 flex flex-col items-center justify-center relative">
