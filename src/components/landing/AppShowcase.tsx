@@ -7,7 +7,6 @@ import { HeroPhone, AppState } from './HeroPhone';
 import { HeroProductStage } from './HeroProductStage';
 import { FloatingStatusCard } from './FloatingStatusCard';
 import { Annotation } from './Annotation';
-import { Sticker } from './Sticker';
 
 // Subtle, organic curved SVG connector lines linking floating cards directly to the central phone
 const ConnectorLines = ({
@@ -129,54 +128,34 @@ export default function AppShowcase() {
   // We use a separate state to briefly set isReceivingEnergy to true.
   const [receivingCard, setReceivingCard] = useState<string | null>(null);
 
-  // The automatic storytelling loop (Fast & Energetic)
+  // Synchronize the surrounding floating insight cards with the active phone ordering flow
   useEffect(() => {
-    // If a card is being hovered, PAUSE the loop entirely.
-    if (hoveredCard) {
-      return;
+    if (hoveredCard) return;
+
+    let targetCard = 'cafes';
+    if (phoneState === 'CAFE' || phoneState === 'HOME' || phoneState === 'PRODUCT') {
+      targetCard = 'cafes';
+    } else if (phoneState === 'CART') {
+      targetCard = 'time';
+    } else if (phoneState === 'CONFIRMATION') {
+      targetCard = 'ready';
+    } else if (phoneState === 'READY') {
+      targetCard = 'rated';
     }
 
-    const cycle = ['cafes', 'ready', 'time', 'rated'];
-    let currentIndex = 0;
-
-    const runCycle = () => {
-      const cardId = cycle[currentIndex];
-
-      // 1. Start the energy flow (triggers fast SVG animation phone -> card)
-      setActiveEnergyCard(cardId);
-
-      // 2. Exactly when particle hits (550ms), trigger the card reaction
-      const hitTimer = setTimeout(() => {
-        setReceivingCard(cardId);
-      }, 550);
-
-      // 3. Clear the card reaction
-      const clearReactionTimer = setTimeout(() => {
-        setReceivingCard(null);
-      }, 950);
-
-      currentIndex = (currentIndex + 1) % cycle.length;
-
-      return () => {
-        clearTimeout(hitTimer);
-        clearTimeout(clearReactionTimer);
-      };
-    };
-
-    // Initial run immediately
-    let cleanups = runCycle();
-
-    // Fast 1.4 second cycle interval
-    const interval = setInterval(() => {
-      if (cleanups) cleanups();
-      cleanups = runCycle();
-    }, 1400);
+    setActiveEnergyCard(targetCard);
+    const hitTimer = setTimeout(() => {
+      setReceivingCard(targetCard);
+    }, 450);
+    const clearTimer = setTimeout(() => {
+      setReceivingCard(null);
+    }, 1200);
 
     return () => {
-      clearInterval(interval);
-      if (cleanups) cleanups();
+      clearTimeout(hitTimer);
+      clearTimeout(clearTimer);
     };
-  }, [hoveredCard]);
+  }, [phoneState, hoveredCard]);
 
   // Handle manual interaction (hover override)
   useEffect(() => {
@@ -255,9 +234,7 @@ export default function AppShowcase() {
       {/* ========================================= */}
       <div className="w-full relative flex-1 flex items-start justify-center min-h-[580px] lg:min-h-[620px] pb-10 overflow-visible mt-12 pointer-events-none">
         
-        {/* Stickers adding editorial context */}
-
-        <Sticker text="REAL RESULTS" rotation={-10} color="cream" className="hidden lg:flex bottom-20 right-[15%]" delay={1.4} />
+        {/* Stickers adding editorial context (removed REAL RESULTS) */}
 
         {/* We enable pointer events on the stage wrapper so the phone/cards are clickable */}
         <HeroProductStage>

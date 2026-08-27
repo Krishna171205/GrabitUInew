@@ -2,11 +2,16 @@ import { cookies } from 'next/headers';
 import MenuClient from './MenuClient';
 
 async function getCafeMenu(slug: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/menu/${slug}`, {
-    next: { revalidate: 300 }
-  });
-  if (!res.ok) return { cafe: null, items: [], addons: [] };
-  return res.json();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.letsgrabit.com';
+  try {
+    const res = await fetch(`${apiUrl}/api/grabit/menu/${slug}`, {
+      next: { revalidate: 300 }
+    });
+    if (!res.ok) return { cafe: null, items: [], addons: [] };
+    return res.json();
+  } catch {
+    return { cafe: null, items: [], addons: [] };
+  }
 }
 
 // Fetched fresh (not cached with the menu) so the page renders open/closed correct on

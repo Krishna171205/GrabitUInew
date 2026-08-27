@@ -295,22 +295,27 @@ export default function HowItWorks() {
 
         {/* 3-Step Alternating Grid */}
         <div className="relative space-y-24 md:space-y-32">
-          {/* Vertical Center Connector Line on Desktop */}
-          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-0.5 border-l-2 border-dashed border-[#0055D4]/25 -translate-x-1/2 overflow-hidden">
-            {/* Active glowing electric laser beam */}
-            <motion.div
-              style={{ height: beamHeight, opacity: beamOpacity }}
-              className="w-full bg-gradient-to-b from-[#0055D4] via-[#38BDF8] to-[#0055D4] shadow-[0_0_12px_#38BDF8]"
-            />
-          </div>
+          {/* Vertical Center Connector Track on Desktop */}
+          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-6 -translate-x-1/2 pointer-events-none z-10">
+            {/* Background Dashed Line (Perfect 2px centered stroke) */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 border-l-2 border-dashed border-[#0055D4]/25" />
 
-          {/* Tracer Sparkle that rides the beam */}
-          <motion.div
-            style={{ top: beamHeight, opacity: beamOpacity }}
-            className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#0055D4] border-2 border-white shadow-[0_0_16px_4px_rgba(0,85,212,0.8)] items-center justify-center pointer-events-none z-20"
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-          </motion.div>
+            {/* Active Solid Laser Beam (Exact same 2px centered axis) */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 overflow-hidden">
+              <motion.div
+                style={{ height: beamHeight, opacity: beamOpacity }}
+                className="w-full bg-gradient-to-b from-[#0055D4] via-[#38BDF8] to-[#0055D4] shadow-[0_0_12px_#38BDF8]"
+              />
+            </div>
+
+            {/* Tracer Sparkle Dot that rides the exact center track (static solid glow, no blinking) */}
+            <motion.div
+              style={{ top: beamHeight, opacity: beamOpacity }}
+              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#0055D4] border-2 border-white shadow-[0_0_12px_rgba(0,85,212,0.6)] flex items-center justify-center z-20"
+            >
+              <div className="w-1 h-1 rounded-full bg-white" />
+            </motion.div>
+          </div>
 
           <Step1Row />
           <Step2Row />

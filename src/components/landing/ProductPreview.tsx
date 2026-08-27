@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, MouseEvent } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionTemplate, useReducedMotion, type MotionValue } from 'framer-motion';
 import { Star, MapPin, Check, ArrowRight, Clock, RotateCcw } from 'lucide-react';
 import OrbitImages from '../react-bits/OrbitImages';
+import { MagicCard } from '@/components/ui/magic-card';
 
 const ORBIT_IMAGES = [
   "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=200&h=200&fit=crop&q=80",
@@ -216,7 +217,7 @@ export default function ProductPreview() {
               transformPerspective: 1200, 
               transformStyle: 'preserve-3d', 
             }}
-            className="relative z-10 w-full bg-[#FFFFFF] rounded-[38px] overflow-hidden shadow-[16px_16px_0px_#0F172A] border-[4px] border-[#0F172A] text-left select-none"
+            className="relative z-10 w-full bg-[#FFFFFF] rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(15,23,42,0.2),0_4px_12px_rgba(15,23,42,0.06)] border-[2.5px] border-[#0F172A] text-left select-none"
           >
             {/* Realistic Smartphone Status Bar */}
             <div className="bg-[#0F172A] text-white px-6 pt-3 pb-2 flex items-center justify-between text-[11px] font-semibold tracking-tight">
@@ -300,66 +301,73 @@ export default function ProductPreview() {
                     ))}
                   </div>
 
-                  {/* Menu Items List */}
+                  {/* Menu Items List with MagicCard */}
                   <div className="p-4 flex flex-col gap-2.5 relative z-10">
                     {filteredItems.map((it) => {
                       const qty = cart[it.id] || 0;
                       return (
-                        <motion.div 
+                        <MagicCard
                           key={it.id}
-                          whileHover={{ scale: 1.015, y: -1 }}
-                          className="group/item flex items-center gap-3 p-2.5 rounded-[22px] bg-white border border-[#0F172A]/[0.06] shadow-sm transition-all hover:shadow-md hover:border-[#0055D4]/30"
+                          mode="orb"
+                          glowFrom="#0055D4"
+                          glowTo="#93C5FD"
+                          glowSize={220}
+                          glowBlur={35}
+                          glowOpacity={0.28}
+                          className="rounded-[20px] border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all duration-300"
                         >
-                          <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-none border border-slate-100">
-                            <Image 
-                              src={it.img} 
-                              alt={it.name} 
-                              fill 
-                              className="object-cover transition-transform duration-500 group-hover/item:scale-110" 
-                            />
-                            {it.tag && (
-                              <span className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs text-white text-[8px] font-bold text-center py-0.5 tracking-tight uppercase">
-                                {it.tag}
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[14px] font-bold text-[#0F172A] truncate">{it.name}</div>
-                            <div className="text-[11px] text-slate-500 line-clamp-1">{it.desc}</div>
-                            <div className="text-[13px] font-black text-[#0055D4] mt-0.5">₹{it.price}</div>
-                          </div>
+                          <div className="group/item flex items-center gap-3 p-2.5">
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-none border border-slate-100">
+                              <Image 
+                                src={it.img} 
+                                alt={it.name} 
+                                fill 
+                                className="object-cover transition-transform duration-500 group-hover/item:scale-110" 
+                              />
+                              {it.tag && (
+                                <span className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs text-white text-[8px] font-bold text-center py-0.5 tracking-tight uppercase">
+                                  {it.tag}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[14px] font-bold text-[#0F172A] truncate">{it.name}</div>
+                              <div className="text-[11px] text-slate-500 line-clamp-1">{it.desc}</div>
+                              <div className="text-[13px] font-black text-[#0055D4] mt-0.5">₹{it.price}</div>
+                            </div>
 
-                          {/* Interactive Add Button */}
-                          <div className="flex items-center gap-1.5 pr-1">
-                            {qty > 0 ? (
-                              <div className="flex items-center bg-[#F1F5F9] rounded-full p-0.5 border border-slate-200">
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleRemove(it.id); }}
-                                  className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-[#0F172A] shadow-xs hover:bg-slate-50"
-                                >
-                                  -
-                                </button>
-                                <span className="px-2 text-xs font-black text-[#0F172A]">{qty}</span>
-                                <button 
+                            {/* Interactive Add Button */}
+                            <div className="flex items-center gap-1.5 pr-1">
+                              {qty > 0 ? (
+                                <div className="flex items-center bg-[#F1F5F9] rounded-full p-0.5 border border-slate-200">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleRemove(it.id); }}
+                                    className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-[#0F172A] shadow-xs hover:bg-slate-50"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="px-2 text-xs font-black text-[#0F172A]">{qty}</span>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleAdd(it.id); }}
+                                    className="w-6 h-6 rounded-full bg-[#0055D4] flex items-center justify-center text-xs font-bold text-white shadow-xs hover:bg-[#0040A1]"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              ) : (
+                                <motion.button 
+                                  whileTap={{ scale: 0.9 }}
                                   onClick={(e) => { e.stopPropagation(); handleAdd(it.id); }}
-                                  className="w-6 h-6 rounded-full bg-[#0055D4] flex items-center justify-center text-xs font-bold text-white shadow-xs hover:bg-[#0040A1]"
+                                  className="h-8 px-3 rounded-full bg-[#0055D4] text-white flex items-center gap-1 text-[11px] font-bold shadow-sm hover:bg-[#0040A1] transition-all"
                                 >
-                                  +
-                                </button>
-                              </div>
-                            ) : (
-                              <motion.button 
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => handleAdd(it.id)}
-                                className="h-8 px-3 rounded-full bg-[#0F172A] text-white flex items-center gap-1 text-[11px] font-bold border-2 border-[#0F172A] shadow-[2px_2px_0px_#0055D4] hover:bg-[#0055D4] hover:shadow-[2px_2px_0px_#0F172A] transition-all"
-                              >
-                                <span>Add</span>
-                                <span>+</span>
-                              </motion.button>
-                            )}
+                                  <span>Add</span>
+                                  <span>+</span>
+                                </motion.button>
+                              )}
+                            </div>
                           </div>
-                        </motion.div>
+                        </MagicCard>
                       );
                     })}
                   </div>
@@ -370,12 +378,12 @@ export default function ProductPreview() {
                       <motion.div 
                         initial={{ y: 80, opacity: 0 }} 
                         animate={{ y: 0, opacity: 1 }} 
-                        exit={{ y: 80, opacity: 0 }}
+                        exit={{ y: 80, opacity: 0 }} 
                         className="absolute bottom-3 left-4 right-4 z-20"
                       >
                         <button 
                           onClick={() => setOrderState('CART')}
-                          className="w-full bg-[#0055D4] text-white px-4 py-3 rounded-xl font-bold border-[3px] border-[#0F172A] shadow-[6px_6px_0px_#0F172A] flex items-center justify-between hover:translate-y-[2px] hover:shadow-[4px_4px_0px_#0F172A] active:translate-y-[6px] active:shadow-none transition-all"
+                          className="w-full bg-[#0055D4] text-white px-4 py-3 rounded-xl font-bold border border-white/20 shadow-[0_8px_20px_rgba(0,85,212,0.35)] flex items-center justify-between hover:bg-[#0040A1] active:scale-[0.99] transition-all"
                         >
                           <div className="flex items-center gap-2">
                             <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-black">

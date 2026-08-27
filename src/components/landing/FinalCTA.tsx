@@ -70,7 +70,7 @@ export default function FinalCTA() {
       <div className="w-full max-w-[1500px] mx-auto bg-[#E6E2D9] rounded-[24px] sm:rounded-[32px] md:rounded-[40px] border-[3px] border-[#0A0A0D]/10 relative overflow-hidden flex flex-col md:flex-row shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] min-h-[460px] md:min-h-[500px] lg:min-h-[540px]">
         
         {/* Subtle natural paper fiber texture over the cream base */}
-        <div className="absolute inset-0 opacity-[0.06] bg-[url('/noise.png')] mix-blend-multiply pointer-events-none z-0" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             BLACK TORN-PAPER OVERLAYS (Collage depth revealing background)
@@ -249,7 +249,7 @@ export default function FinalCTA() {
                       <div className="w-full h-full pt-16 sm:pt-20 pb-8 px-5 sm:px-7 flex flex-col bg-[#FAFAFA] text-center relative overflow-hidden">
                          
                          {/* Subtle screen UI background texture */}
-                         <div className="absolute inset-0 opacity-[0.03] bg-[url('/noise.png')] mix-blend-multiply pointer-events-none" />
+                         <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
 
                          {/* Logo */}
                          <div className="flex items-center justify-center mb-6">

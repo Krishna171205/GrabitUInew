@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export type AppState = 'HOME' | 'EXPLORE' | 'CAFE' | 'PRODUCT' | 'CART' | 'CONFIRMATION' | 'READY' | 'PROFILE';
 
@@ -47,8 +47,8 @@ const promoThemes: Record<string, { tag: string; title: string; code: string; co
   }
 };
 
-export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', onStateChange }: HeroPhoneProps) {
-  const [internalState, setInternalState] = useState<AppState>(activeState);
+export function HeroPhone({ activeState = 'CAFE', activeEnergyCard = 'cafes', onStateChange }: HeroPhoneProps) {
+  const [internalState, setInternalState] = useState<AppState>('CAFE');
   const [favorite, setFavorite] = useState(false);
   
   // Active promo theme based on current energy transition
@@ -62,8 +62,12 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [couponApplied, setCouponApplied] = useState(true); // GRAB20 enabled by default
-  const [cartCount, setCartCount] = useState(2);
+  const [cartCount, setCartCount] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  // Automated Simulation Tap indicator ('item1' | 'item2' | 'viewCart' | 'pay' | null)
+  const [simulatedTap, setSimulatedTap] = useState<'item1' | 'item2' | 'viewCart' | 'pay' | null>(null);
+  const [isManual, setIsManual] = useState(false);
 
   const state = onStateChange ? activeState : internalState;
   const setState = (newState: AppState) => {
@@ -73,7 +77,80 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2000);
+    setTimeout(() => setToastMessage(null), 2200);
+  };
+
+  // Automated Continuous Ordering Cycle (Add 2 items -> Cart -> Pay -> Confirmation -> Ready -> Loop)
+  useEffect(() => {
+    if (isManual) {
+      const resumeTimer = setTimeout(() => setIsManual(false), 7000);
+      return () => clearTimeout(resumeTimer);
+    }
+
+    const timers: NodeJS.Timeout[] = [];
+
+    const runStoryCycle = () => {
+      // 0.0s: Start on Cafe Menu with empty cart
+      setState('CAFE');
+      setCartCount(0);
+      setSimulatedTap(null);
+
+      // 1.0s: Tap & Add 1st item (Vietnamese Iced Coffee)
+      timers.push(setTimeout(() => {
+        setSimulatedTap('item1');
+        setCartCount(1);
+        showToast('Added Vietnamese Iced Coffee!');
+        setTimeout(() => setSimulatedTap(null), 450);
+      }, 1000));
+
+      // 2.6s: Tap & Add 2nd item (Almond Croissant)
+      timers.push(setTimeout(() => {
+        setSimulatedTap('item2');
+        setCartCount(2);
+        showToast('Added Almond Croissant!');
+        setTimeout(() => setSimulatedTap(null), 450);
+      }, 2600));
+
+      // 4.2s: Tap View Cart button
+      timers.push(setTimeout(() => {
+        setSimulatedTap('viewCart');
+        setTimeout(() => setSimulatedTap(null), 450);
+      }, 4200));
+
+      // 4.8s: Transition to Cart Screen
+      timers.push(setTimeout(() => {
+        setState('CART');
+      }, 4800));
+
+      // 7.0s: Tap Pay & Order button
+      timers.push(setTimeout(() => {
+        setSimulatedTap('pay');
+        showToast('Processing UPI payment...');
+        setTimeout(() => setSimulatedTap(null), 450);
+      }, 7000));
+
+      // 7.8s: Transition to Brewing / Preparing Screen
+      timers.push(setTimeout(() => {
+        setState('CONFIRMATION');
+      }, 7800));
+
+      // 10.8s: Transition to Order Ready for Pickup Screen
+      timers.push(setTimeout(() => {
+        setState('READY');
+      }, 10800));
+    };
+
+    runStoryCycle();
+    const interval = setInterval(runStoryCycle, 14800);
+
+    return () => {
+      clearInterval(interval);
+      timers.forEach(t => clearTimeout(t));
+    };
+  }, [isManual]);
+
+  const handleUserInteraction = () => {
+    setIsManual(true);
   };
 
   const cities = ['Delhi NCR', 'Mumbai', 'Bengaluru', 'Gurgaon', 'South Delhi'];
@@ -536,7 +613,10 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
 
                       {/* Item 1 */}
                       <div 
-                        onClick={() => setState('PRODUCT')}
+                        onClick={() => {
+                          handleUserInteraction();
+                          setState('PRODUCT');
+                        }}
                         className="p-3 bg-white border border-[#E2E8F0] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
                       >
                         <div className="flex gap-3 items-center">
@@ -550,18 +630,29 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleUserInteraction();
                             setCartCount(cartCount + 1);
                             showToast('Added Vietnamese Iced Coffee!');
                           }}
-                          className="px-3 py-1.5 bg-[#0055D4]/10 text-[#0055D4] border border-[#0055D4]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
+                          className={`relative px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all duration-300 ${
+                            simulatedTap === 'item1' || cartCount >= 1
+                              ? 'bg-[#0055D4] text-white shadow-[0_0_12px_rgba(0,85,212,0.4)]'
+                              : 'bg-[#0055D4]/10 text-[#0055D4] border border-[#0055D4]/30'
+                          }`}
                         >
-                          ADD +
+                          {cartCount >= 1 ? 'ADDED ✓' : 'ADD +'}
+                          {simulatedTap === 'item1' && (
+                            <span className="absolute -inset-1 rounded-xl border-2 border-[#0055D4] animate-ping pointer-events-none" />
+                          )}
                         </button>
                       </div>
 
                       {/* Item 2 */}
                       <div 
-                        onClick={() => setState('PRODUCT')}
+                        onClick={() => {
+                          handleUserInteraction();
+                          setState('PRODUCT');
+                        }}
                         className="p-3 bg-white border border-[#E2E8F0] rounded-[20px] flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-transform"
                       >
                         <div className="flex gap-3 items-center">
@@ -575,12 +666,20 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleUserInteraction();
                             setCartCount(cartCount + 1);
                             showToast('Added Almond Croissant!');
                           }}
-                          className="px-3 py-1.5 bg-[#0055D4]/10 text-[#0055D4] border border-[#0055D4]/30 rounded-xl font-bold text-[11px] active:scale-90 transition-transform"
+                          className={`relative px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all duration-300 ${
+                            simulatedTap === 'item2' || cartCount >= 2
+                              ? 'bg-[#0055D4] text-white shadow-[0_0_12px_rgba(0,85,212,0.4)]'
+                              : 'bg-[#0055D4]/10 text-[#0055D4] border border-[#0055D4]/30'
+                          }`}
                         >
-                          ADD +
+                          {cartCount >= 2 ? 'ADDED ✓' : 'ADD +'}
+                          {simulatedTap === 'item2' && (
+                            <span className="absolute -inset-1 rounded-xl border-2 border-[#0055D4] animate-ping pointer-events-none" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -588,19 +687,27 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     {/* Floating Bottom Cart Bar */}
                     {cartCount > 0 && (
                       <div className="px-5 pb-3">
-                        <div 
-                          onClick={() => setState('CART')}
-                          className="w-full bg-[#0F172A] text-white p-3 rounded-full flex justify-between items-center cursor-pointer active:scale-95 transition-transform shadow-lg"
+                        <motion.div 
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1, scale: simulatedTap === 'viewCart' ? 0.95 : 1 }}
+                          onClick={() => {
+                            handleUserInteraction();
+                            setState('CART');
+                          }}
+                          className="relative w-full bg-[#0F172A] text-white p-3 rounded-full flex justify-between items-center cursor-pointer active:scale-95 transition-all shadow-lg"
                         >
                           <div className="flex items-center gap-2 pl-2">
                             <span className="w-6 h-6 bg-[#0055D4] rounded-full text-white text-[11px] font-bold flex items-center justify-center">{cartCount}</span>
-                            <span className="text-[12px] font-bold">Items added</span>
+                            <span className="text-[12px] font-bold">{cartCount} item{cartCount > 1 ? 's' : ''} added</span>
                           </div>
-                          <div className="flex items-center gap-1 pr-2 text-[12px] font-bold text-[#0055D4]">
+                          <div className="flex items-center gap-1 pr-2 text-[12px] font-bold text-[#60A5FA]">
                             <span>View Cart</span>
                             <MS name="arrow_forward" size={16} />
                           </div>
-                        </div>
+                          {simulatedTap === 'viewCart' && (
+                            <span className="absolute inset-0 rounded-full border-2 border-[#60A5FA] animate-ping pointer-events-none" />
+                          )}
+                        </motion.div>
                       </div>
                     )}
                   </motion.div>
@@ -639,6 +746,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
 
                     <button 
                       onClick={() => {
+                        handleUserInteraction();
                         setCartCount(cartCount + 1);
                         setState('CART');
                       }}
@@ -679,6 +787,7 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                       {/* Coupon Pill */}
                       <div 
                         onClick={() => {
+                          handleUserInteraction();
                           setCouponApplied(!couponApplied);
                           showToast(couponApplied ? 'Coupon Removed' : 'GRAB20 Applied!');
                         }}
@@ -715,11 +824,17 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                     </div>
 
                     <button 
-                      onClick={() => setState('CONFIRMATION')}
-                      className="w-full py-3.5 bg-[#0055D4] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-lg flex items-center justify-center gap-2"
+                      onClick={() => {
+                        handleUserInteraction();
+                        setState('CONFIRMATION');
+                      }}
+                      className="relative w-full py-3.5 bg-[#0055D4] text-white rounded-full font-bold text-[13px] active:scale-95 transition-transform mt-auto shadow-lg flex items-center justify-center gap-2 overflow-hidden"
                     >
                       <span>Pay ₹{couponApplied ? 336 : 420} & Order</span>
                       <MS name="arrow_forward" size={16} />
+                      {simulatedTap === 'pay' && (
+                        <span className="absolute inset-0 bg-white/40 animate-ping rounded-full pointer-events-none" />
+                      )}
                     </button>
                   </motion.div>
                 )}
@@ -744,18 +859,21 @@ export function HeroPhone({ activeState = 'HOME', activeEnergyCard = 'cafes', on
                         <span>ESTIMATED PICKUP</span>
                         <span className="text-[#0055D4] font-black">04:30 mins</span>
                       </div>
-                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-slate-100">
                         <motion.div 
-                          initial={{ width: '0%' }}
-                          animate={{ width: '75%' }}
-                          transition={{ duration: 3 }}
-                          className="h-full bg-[#0055D4] rounded-full"
+                          initial={{ width: '15%' }}
+                          animate={{ width: '100%' }}
+                          transition={{ duration: 2.8, ease: "easeInOut" }}
+                          className="h-full bg-gradient-to-r from-[#0055D4] to-[#60A5FA] rounded-full"
                         />
                       </div>
                     </div>
 
                     <button 
-                      onClick={() => setState('READY')}
+                      onClick={() => {
+                        handleUserInteraction();
+                        setState('READY');
+                      }}
                       className="w-full py-3.5 bg-[#0F172A] text-white rounded-full font-bold text-[12px] active:scale-95 transition-transform"
                     >
                       Simulate Order Ready

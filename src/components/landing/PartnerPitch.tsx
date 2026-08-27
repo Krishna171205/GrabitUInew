@@ -23,7 +23,7 @@ const FEATURES = [
   }
 ];
 
-const AUTOPLAY_INTERVAL = 5500; // 5.5 seconds per tab
+const AUTOPLAY_INTERVAL = 3800; // 3.8 seconds per tab
 
 // --- MOCK UI COMPONENTS FOR THE DASHBOARD ---
 
@@ -280,7 +280,7 @@ export default function PartnerPitch() {
                       opacity: isActive ? 1 : 0,
                       marginTop: isActive ? 8 : 0
                     }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                     className="overflow-hidden pl-[84px]"
                   >
                     <p className="text-[16px] lg:text-[17px] text-[#4A4E58] font-medium leading-[1.6] max-w-[420px]">
@@ -384,10 +384,10 @@ export default function PartnerPitch() {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
-                    initial={{ opacity: 0, x: 18 }}
+                    initial={{ opacity: 0, x: 14 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -18 }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    exit={{ opacity: 0, x: -14 }}
+                    transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                     className="absolute inset-0"
                   >
                     {activeTab === 0 && <LiveQueueView />}
