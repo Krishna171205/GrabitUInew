@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
 import { useState, useEffect } from 'react';
+import { Annotation } from './Annotation';
 
 export type AppState = 'CAFE_WEBSITE' | 'CAFE' | 'CART' | 'CONFIRMATION' | 'READY';
 
@@ -235,11 +236,32 @@ export function HeroPhone({ activeState = 'CAFE', activeEnergyCard = 'cafes', on
                     <div className="flex flex-col items-center flex-1 w-full pt-6 px-4">
                       {/* Headline */}
                       <h1 
-                        className="text-[32px] font-black leading-[0.9] text-center uppercase tracking-tight text-[#0F172A] w-full"
+                        className="text-[36px] font-black leading-[0.9] text-center uppercase tracking-normal text-[#0F172A] flex flex-col items-center drop-shadow-sm w-fit mt-6"
                         style={{ fontFamily: 'var(--font-anton)' }}
                       >
-                        ORDER AHEAD<br/>
-                        <span className="text-[#0055D4]">WITH GRABBIT.</span>
+                        <div className="flex flex-row gap-1.5 text-[#0F172A] justify-center relative">
+                          <div className="absolute -top-[45px] -left-2 z-50 -rotate-[8deg] scale-50 pointer-events-none whitespace-nowrap normal-case tracking-normal">
+                            <Annotation 
+                              text="skip the queue" 
+                              arrowDirection="down-right" 
+                              delay={0}
+                              color="#0055D4"
+                            />
+                          </div>
+                          <span className="block pointer-events-auto cursor-default">ORDER</span>
+                          <span className="block pointer-events-auto cursor-default">AHEAD</span>
+                        </div>
+                        
+                        <span 
+                          className="block text-[#1A1C23] font-normal lowercase tracking-normal self-center my-0"
+                          style={{ fontFamily: 'var(--font-caveat)', fontSize: '0.65em', lineHeight: '1' }}
+                        >
+                          with
+                        </span>
+
+                        <span className="text-[#0055D4] block drop-shadow-sm pointer-events-auto cursor-default relative origin-center self-center">
+                          GRABBIT.
+                        </span>
                       </h1>
 
                       {/* Description */}
