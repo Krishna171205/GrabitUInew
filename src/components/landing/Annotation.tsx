@@ -51,7 +51,7 @@ export function Annotation({ text, className = '', arrowDirection = 'none', dela
       transition={{ duration: 0.6, delay, ease: "easeOut" }}
       className={`relative inline-block ${className}`}
     >
-      <span className="text-[28px] sm:text-[34px] leading-none" style={{ fontFamily: 'var(--font-caveat)', color }}>
+      <span className="text-[28px] sm:text-[34px] leading-none font-normal" style={{ fontFamily: 'var(--font-caveat)', color }}>
         {text}
       </span>
       {arrows[arrowDirection]}

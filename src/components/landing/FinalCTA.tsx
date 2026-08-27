@@ -122,17 +122,17 @@ export default function FinalCTA() {
 
           {/* Headline: 3 Lines, highly editorial scale */}
           <h2 
-            className="text-[12vw] min-[380px]:text-[48px] sm:text-[72px] md:text-[84px] lg:text-[105px] leading-[1.05] tracking-[0.03em] font-black uppercase flex flex-col mb-6 md:mb-8 text-[#1A1C23]" 
-            style={{ fontFamily: 'var(--font-anton)' }}
+            className="text-[12vw] min-[380px]:text-[48px] sm:text-[72px] md:text-[84px] lg:text-[105px] leading-[1.05] tracking-[0.03em] flex flex-col mb-6 md:mb-8 text-[#1A1C23]" 
           >
             <motion.span 
               initial={{ opacity: 0, y: 30, rotate: 2 }}
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="block"
+              className="block font-normal lowercase tracking-normal"
+              style={{ fontFamily: 'var(--font-caveat)', fontSize: '0.65em', lineHeight: '0.9' }}
             >
-              ALL YOUR DAY
+              all your day
             </motion.span>
             
             <motion.span 
@@ -140,9 +140,10 @@ export default function FinalCTA() {
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="block mt-2 sm:mt-3"
+              className="block mt-1 sm:mt-2 font-normal lowercase tracking-normal"
+              style={{ fontFamily: 'var(--font-caveat)', fontSize: '0.65em', lineHeight: '0.9' }}
             >
-              WITH FRESH COFFEE,
+              with fresh coffee,
             </motion.span>
             
             <motion.span 
@@ -150,7 +151,8 @@ export default function FinalCTA() {
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[#0055D4] block mt-2 sm:mt-3"
+              className="text-[#0055D4] block mt-4 sm:mt-6 font-black uppercase"
+              style={{ fontFamily: 'var(--font-anton)' }}
             >
               NOT LONG LINES.
             </motion.span>
@@ -183,7 +185,7 @@ export default function FinalCTA() {
               <div className="absolute inset-0 rounded-[inherit] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
               <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_-3px_0_rgba(0,0,0,0.2)]" />
               <div className="absolute inset-0 rounded-[inherit] shadow-[0_12px_24px_-6px_rgba(0,85,212,0.4)] group-hover:shadow-[0_16px_32px_-6px_rgba(0,85,212,0.5)] transition-shadow duration-300" />
-              <span className="relative z-10 translate-y-[-1px] text-white">DOWNLOAD THE APP</span>
+              <span className="relative z-10 translate-y-[-1px] text-white">SIGN UP</span>
             </Link>
           </motion.div>
         </div>
@@ -221,28 +223,28 @@ export default function FinalCTA() {
                 <div className="absolute bottom-[-20px] left-[20px] right-[-10px] h-[40px] bg-black/50 rounded-full blur-xl mix-blend-multiply rotate-[-5deg]" />
 
                 {/* 2. Hardware Bezel (Dark Titanium) */}
-                <div className="absolute inset-0 bg-[#161719] rounded-[48px] sm:rounded-[54px] shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),_inset_0_-2px_4px_rgba(0,0,0,0.5),_0_0_0_2px_#313338] border border-[#484B52]/50 p-[12px] transform-style-3d overflow-visible">
+                <div className="absolute inset-0 bg-[#161719] rounded-[42px] sm:rounded-[48px] shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),_inset_0_-2px_4px_rgba(0,0,0,0.5),_0_0_0_1px_#313338] border border-[#484B52]/50 p-[6px] sm:p-[8px] transform-style-3d overflow-visible">
                    
                    {/* Reflection Glare on Bezel Edge */}
-                   <div className="absolute top-0 right-0 w-[50%] h-[20%] bg-gradient-to-br from-white/10 to-transparent rounded-tr-[42px] pointer-events-none" />
+                   <div className="absolute top-0 right-0 w-[50%] h-[20%] bg-gradient-to-br from-white/10 to-transparent rounded-tr-[42px] sm:rounded-tr-[48px] pointer-events-none" />
 
                    {/* Left Side Buttons */}
-                   <div className="absolute -left-[3px] top-[100px] w-[3px] h-[22px] bg-[#2A2B30] rounded-l-[2px] shadow-[-1px_0_2px_rgba(0,0,0,0.5)]" />
-                   <div className="absolute -left-[3px] top-[145px] w-[3px] h-[46px] bg-[#2A2B30] rounded-l-[2px] shadow-[-1px_0_2px_rgba(0,0,0,0.5)]" />
-                   <div className="absolute -left-[3px] top-[205px] w-[3px] h-[46px] bg-[#2A2B30] rounded-l-[2px] shadow-[-1px_0_2px_rgba(0,0,0,0.5)]" />
+                   <div className="absolute -left-[3px] top-[90px] w-[3px] h-[22px] bg-[#2A2B30] rounded-l-[2px] shadow-[-1px_0_2px_rgba(0,0,0,0.5)]" />
+                   <div className="absolute -left-[3px] top-[135px] w-[3px] h-[46px] bg-[#2A2B30] rounded-l-[2px] shadow-[-1px_0_2px_rgba(0,0,0,0.5)]" />
+                   <div className="absolute -left-[3px] top-[195px] w-[3px] h-[46px] bg-[#2A2B30] rounded-l-[2px] shadow-[-1px_0_2px_rgba(0,0,0,0.5)]" />
 
                    {/* Right Side Power Button */}
-                   <div className="absolute -right-[3px] top-[160px] w-[3px] h-[72px] bg-[#2A2B30] rounded-r-[2px] shadow-[1px_0_2px_rgba(0,0,0,0.5)]" />
+                   <div className="absolute -right-[3px] top-[150px] w-[3px] h-[72px] bg-[#2A2B30] rounded-r-[2px] shadow-[1px_0_2px_rgba(0,0,0,0.5)]" />
 
                    {/* 3. Screen Glass & Display */}
-                   <div className="relative w-full h-full bg-[#EAE6DF] rounded-[36px] sm:rounded-[42px] overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)] flex flex-col items-center">
+                   <div className="relative w-full h-full bg-[#EAE6DF] rounded-[36px] sm:rounded-[40px] overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)] flex flex-col items-center">
                       
                       {/* Dynamic Island / Notch */}
-                      <div className="absolute top-[8px] sm:top-[12px] z-30 w-[95px] sm:w-[110px] h-[26px] sm:h-[30px] bg-black rounded-full flex items-center px-3 justify-between shadow-lg">
-                        <div className="w-[12px] sm:w-[14px] h-[12px] sm:h-[14px] rounded-full bg-[#080808] border-[1.5px] border-[#1A1A1A] flex items-center justify-center">
+                      <div className="absolute top-[8px] sm:top-[10px] z-30 w-[90px] sm:w-[100px] h-[26px] sm:h-[28px] bg-black rounded-full flex items-center px-3 justify-between shadow-lg">
+                        <div className="w-[12px] sm:w-[12px] h-[12px] sm:h-[12px] rounded-full bg-[#080808] border-[1.5px] border-[#1A1A1A] flex items-center justify-center">
                           <div className="w-[4px] h-[4px] bg-[#0055D4]/40 rounded-full" />
                         </div>
-                        <div className="w-[6px] sm:w-[8px] h-[6px] sm:h-[8px] rounded-full bg-[#092B0E]" />
+                        <div className="w-[6px] sm:w-[6px] h-[6px] sm:h-[6px] rounded-full bg-[#092B0E]" />
                       </div>
 
                       {/* Screen Content - Replicating Grabbit UI exactly */}
@@ -258,7 +260,7 @@ export default function FinalCTA() {
                               alt="Grabbit Logo" 
                               width={110} 
                               height={34} 
-                              className="object-contain w-[100px] sm:w-[120px]"
+                              className="object-contain w-[100px] sm:w-[110px]"
                               style={{ mixBlendMode: 'multiply' }}
                             />
                          </div>
@@ -268,12 +270,12 @@ export default function FinalCTA() {
                            className="text-[20px] sm:text-[24px] font-black text-center leading-[1.05] text-[#111317] tracking-tight mb-2 uppercase" 
                            style={{ fontFamily: 'var(--font-anton)' }}
                          >
-                            The new way to win<br />
-                            <span className="text-[#0055D4]">jobs</span>
+                            Skip the line,<br />
+                            <span className="text-[#0055D4]">every time.</span>
                          </h3>
                          
                          <p className="text-[11px] sm:text-[12px] text-center text-[#555760] font-medium mb-6 px-1 leading-snug">
-                            Put Grabbit to work for you.<br/>No credit card required.
+                            Get your coffee in 10 minutes.<br/>Zero waiting.
                          </p>
                          
                          {/* Form Inputs (Visual Mockups) */}

@@ -15,10 +15,10 @@ export default function LandingFooter() {
         </div>
 
         {/* Main Footer Layout (12-column grid) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 mb-8 relative z-10 items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-12 gap-y-10 gap-x-4 sm:gap-8 mb-8 relative z-10 items-start lg:items-center">
           
           {/* Column 1: Connect with us */}
-          <div className="lg:col-span-3 flex flex-col gap-3">
+          <div className="col-span-1 lg:col-span-3 flex flex-col gap-3">
             <h4 className="font-bold text-[#1A1311] text-[14px] mb-2">Connect with us</h4>
             {['Call', 'Text (WhatsApp)', 'Instagram', 'YouTube', 'LinkedIn'].map((item) => (
               <Link key={item} href="#" className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
@@ -28,7 +28,7 @@ export default function LandingFooter() {
           </div>
 
           {/* Column 2: Order Support */}
-          <div className="lg:col-span-3 flex flex-col gap-3">
+          <div className="col-span-1 lg:col-span-3 flex flex-col gap-3">
             <h4 className="font-bold text-[#1A1311] text-[14px] mb-2">Order Support</h4>
             {['Make a return/Exchange', 'Refund/Exchange policy', 'Track your order', 'Shipping policy', "FAQ's", 'Terms'].map((item) => (
               <Link key={item} href="#" className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
@@ -38,7 +38,7 @@ export default function LandingFooter() {
           </div>
 
           {/* Column 3: We are GRABBIT */}
-          <div className="lg:col-span-3 flex flex-col gap-3">
+          <div className="col-span-1 lg:col-span-3 flex flex-col gap-3">
             <h4 className="font-bold text-[#1A1311] text-[14px] mb-2">We are GRABBIT</h4>
             {['Our story', 'Walk-in Stores', 'Collaborations', 'Careers', 'Media', 'Blogs'].map((item) => (
               <Link key={item} href="#" className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
@@ -48,8 +48,8 @@ export default function LandingFooter() {
           </div>
 
           {/* Column 4: Far Right 3D GRABBIT Coffee Cup */}
-          <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex items-center justify-center lg:justify-end relative pr-0 lg:pr-4">
-            <div className="w-full max-w-[190px] sm:max-w-[215px] lg:max-w-[250px] h-[220px] sm:h-[250px] lg:h-[290px] relative pointer-events-auto">
+          <div className="col-span-1 sm:col-span-3 lg:col-span-3 flex items-center justify-center lg:justify-end relative pr-0 lg:pr-4 mt-auto">
+            <div className="w-full max-w-[150px] sm:max-w-[215px] lg:max-w-[250px] h-[160px] sm:h-[250px] lg:h-[290px] relative pointer-events-auto">
               <GrabbitCup3D variant="showcase" />
             </div>
           </div>

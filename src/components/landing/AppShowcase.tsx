@@ -118,7 +118,7 @@ const ConnectorLines = ({
 };
 
 export default function AppShowcase() {
-  const [phoneState, setPhoneState] = useState<AppState>('HOME');
+  const [phoneState, setPhoneState] = useState<AppState>('CAFE_WEBSITE');
 
   // Animation Orchestration State
   const [activeEnergyCard, setActiveEnergyCard] = useState<string | null>(null);
@@ -133,7 +133,7 @@ export default function AppShowcase() {
     if (hoveredCard) return;
 
     let targetCard = 'cafes';
-    if (phoneState === 'CAFE' || phoneState === 'HOME' || phoneState === 'PRODUCT') {
+    if (phoneState === 'CAFE' || phoneState === 'CAFE_WEBSITE') {
       targetCard = 'cafes';
     } else if (phoneState === 'CART') {
       targetCard = 'time';
@@ -211,9 +211,9 @@ export default function AppShowcase() {
           className="text-[32px] sm:text-[54px] lg:text-[78px] font-black tracking-normal leading-[1.08] sm:leading-[1.0] text-white uppercase max-w-4xl" 
           style={{ fontFamily: 'var(--font-anton)' }}
         >
-          INTELLIGENCE BECOMES <br className="hidden sm:block" />
+          ORDER IN SECONDS. <br className="hidden sm:block" />
           <span className="bg-gradient-to-r from-[#3B82F6] via-[#60A5FA] to-[#93C5FD] bg-clip-text text-transparent block sm:inline mt-1 sm:mt-0">
-            A SIMPLE EXPERIENCE.
+            PICK UP IN MINUTES.
           </span>
         </h2>
 
@@ -266,7 +266,7 @@ export default function AppShowcase() {
               value="4 nearby"
               active={hoveredCard === 'cafes'}
               isReceivingEnergy={receivingCard === 'cafes'}
-              onClick={() => handleCardClick('cafes', 'HOME')}
+              onClick={() => handleCardClick('cafes', 'CAFE_WEBSITE')}
               onHoverStart={() => setHoveredCard('cafes')}
               onHoverEnd={() => setHoveredCard(null)}
               icon={<MS name="location_on" size={24} />}

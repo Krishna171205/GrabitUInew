@@ -3,12 +3,11 @@ import Link from 'next/link';
 import { MS } from '@/components/gb/kit';
 import { ph } from '@/components/gb/data';
 import { SITE_URL } from '@/lib/seo';
+import PartnerPitch from '@/components/landing/PartnerPitch';
+import LandingNav from '@/components/landing/LandingNav';
+import LandingFooter from '@/components/landing/LandingFooter';
 
-const PERKS = [
-  { icon: 'bolt', title: 'Live in a day', body: 'Business details, KYC and menu, done in one sitting, no paperwork back-and-forth.' },
-  { icon: 'payments', title: 'Get paid directly', body: 'Payouts go straight to your bank account, split automatically per order.' },
-  { icon: 'storefront', title: 'Skip the queue, not the sale', body: 'Customers order ahead and pick up at the counter, no delivery fleet to manage.' },
-];
+
 
 export const metadata: Metadata = {
   title: 'Partner with Grabbit | LetsGrabbit — Cafe Pre-order Platform',
@@ -47,35 +46,28 @@ export const metadata: Metadata = {
 export default function PartnerLandingPage() {
   return (
     <div className="gb-app">
-      <div style={{ maxWidth: 560, margin: '0 auto', minHeight: '100dvh', background: 'var(--gb-surface)' }}>
-        <div style={{ position: 'relative', height: 280 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={ph('photo-1521017432531-fbd92d768814', 900, 700)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.35) 0%,rgba(20,12,6,.15) 40%,var(--gb-surface) 100%)' }} />
-          <div style={{ position: 'absolute', bottom: 24, left: 26, right: 26, color: '#fff' }}>
-            <div className="gb-serif" style={{ fontSize: 34, fontWeight: 600, lineHeight: 1.1 }}>Partner with Grabbit</div>
-            <div style={{ fontSize: 15, fontWeight: 500, marginTop: 6, color: 'rgba(255,255,255,.9)' }}>Bring your café online for order-ahead pickup.</div>
-          </div>
-        </div>
+      <LandingNav />
+      {/* CAFÉ OPERATIONS SECTION */}
+      <PartnerPitch />
 
-        <div style={{ padding: '8px 26px 0' }}>
-          {PERKS.map((p) => (
-            <div key={p.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 0', borderBottom: '1px solid var(--gb-line)' }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-                <MS name={p.icon} size={22} color="var(--gb-primary)" />
-              </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{p.title}</div>
-                <div style={{ fontSize: 13, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 2, lineHeight: 1.4 }}>{p.body}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* ONBOARDING GET STARTED CARD */}
+      <div style={{ maxWidth: 560, margin: '0 auto', background: 'var(--gb-surface)' }}>
+        <div style={{ padding: '60px 26px 80px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          
+          <h2 
+            className="text-[36px] sm:text-[48px] font-normal uppercase tracking-wide leading-[1.05] text-[#111317] mb-3"
+            style={{ fontFamily: 'var(--font-anton)' }}
+          >
+            PARTNER WITH <span className="text-[#0055D4]">GRABBIT</span>
+          </h2>
+          
+          <p className="text-[#111317]/60 font-medium text-[15px] sm:text-[17px] mb-8 max-w-[320px]">
+            Bring your café online for order-ahead pickup.
+          </p>
 
-        <div style={{ padding: '24px 26px 40px' }}>
           <Link
             href="/partner/signup"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--gb-primary)', color: '#fff', height: 56, borderRadius: 14, fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--gb-primary)', color: '#fff', height: 56, borderRadius: 14, fontSize: 16, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)' }}
           >
             Get started<MS name="arrow_forward" size={20} />
           </Link>
@@ -84,6 +76,7 @@ export default function PartnerLandingPage() {
           </div>
         </div>
       </div>
+      <LandingFooter />
     </div>
   );
 }

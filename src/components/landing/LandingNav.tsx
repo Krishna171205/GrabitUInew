@@ -18,7 +18,7 @@ export default function LandingNav() {
     { href: '#preview', targetId: '#preview', label: 'MENU' },
     { href: '#how-it-works', targetId: '#how-it-works', label: 'ABOUT' },
     { href: '/partner', label: 'FOR CAFÉS' },
-    { href: '/faq', label: 'CONTACT' },
+    { href: '/faq', label: 'FAQ' },
   ];
 
   return (

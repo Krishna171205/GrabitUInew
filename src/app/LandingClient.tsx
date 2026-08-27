@@ -3,8 +3,6 @@
 import LandingNav from '@/components/landing/LandingNav';
 import Hero from '@/components/landing/Hero';
 import AppShowcase from '@/components/landing/AppShowcase';
-import ProductPreview from '@/components/landing/ProductPreview';
-import PartnerPitch from '@/components/landing/PartnerPitch';
 import FinalCTA from '@/components/landing/FinalCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
 import ScrollProgress from '@/components/landing/ScrollProgress';
@@ -29,8 +27,6 @@ export default function LandingClient() {
         
         <Hero />
         <AppShowcase />
-        <ProductPreview />
-        <PartnerPitch />
         <FinalCTA />
       </main>
 
