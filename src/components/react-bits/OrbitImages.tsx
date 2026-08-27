@@ -211,14 +211,17 @@ export default function OrbitImages({
 
   useEffect(() => {
     if (paused) return;
-    const controls = animate(progress, direction === 'reverse' ? -100 : 100, {
+    const startValue: number = 0;
+    const endValue: number = direction === 'reverse' ? -100 : 100;
+    const controls = animate(startValue, endValue, {
       duration,
-      ease: easing,
+      ease: easing as any,
       repeat: Infinity,
       repeatType: 'loop',
+      onUpdate: (val) => progress.set(val)
     });
     return () => controls.stop();
-  }, [progress, duration, easing, direction, paused]);
+  }, [paused, direction, duration, easing, progress]);
 
   const containerWidth = responsive ? '100%' : width;
   const containerHeight = responsive ? 'auto' : height;
