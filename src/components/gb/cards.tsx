@@ -23,6 +23,8 @@ export interface RealCafe {
   hours?: DayHours[] | null;
   /** Server-fetched Omega store-status, so the card renders correct on first paint (no flash). */
   acceptingOrders?: boolean;
+  /** Only set by the nearby-cafes search; absent everywhere else. */
+  distanceKm?: number | null;
 }
 
 /* ---------- Real café card (live data, honest signals only) ---------- */
@@ -47,7 +49,7 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
     ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}`
     : cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
   const initial = cafe.name.trim().charAt(0).toUpperCase();
-  const area = cafe.city || cafe.address || null;
+  const area = cafe.distanceKm != null ? `${cafe.distanceKm.toFixed(1)} km away` : cafe.city || cafe.address || null;
   return (
     <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-elev-2)' }}>
       {/* The cafe's own storefront photo when it has supplied one. Otherwise the branded
