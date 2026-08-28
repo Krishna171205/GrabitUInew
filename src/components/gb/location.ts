@@ -30,7 +30,7 @@ export function setSavedLocation(label: string, city?: string) {
 
 /** Reverse-geocodes coords to an "area, city" label + bare city via OSM Nominatim (free, no key). */
 export async function reverseGeocode(latitude: number, longitude: number): Promise<{ label: string; city: string }> {
-  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&accept-language=en&lat=${latitude}&lon=${longitude}`);
   const data = await res.json();
   const city = data?.address?.city || data?.address?.town || data?.address?.village || DEFAULT_CITY;
   const area = data?.address?.suburb || data?.address?.neighbourhood;
@@ -42,7 +42,7 @@ export interface LocationResult { label: string; city: string; }
 /** Forward-geocodes free-text (area/street/city) to matching places via OSM Nominatim. */
 export async function searchLocations(query: string): Promise<LocationResult[]> {
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=in&q=${encodeURIComponent(query)}`
+    `https://nominatim.openstreetmap.org/search?format=json&accept-language=en&addressdetails=1&limit=6&countrycodes=in&q=${encodeURIComponent(query)}`
   );
   const results: Array<{ address?: Record<string, string>; display_name: string }> = await res.json();
   const seen = new Set<string>();
