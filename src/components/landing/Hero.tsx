@@ -31,15 +31,16 @@ export default function Hero() {
     >
       {/* DESKTOP BACKGROUND VIDEO */}
       <motion.div 
-        className="absolute inset-0 z-0 overflow-hidden hidden lg:flex justify-end"
+        className="absolute inset-0 z-0 overflow-hidden hidden lg:flex justify-center"
         initial={!prefersReducedMotion ? { scale: 0.98 } : false}
         animate={{ scale: 1 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
         style={{ y: videoScrollY }}
       >
         <div className="absolute inset-0 bg-[#EAE9E4] -z-10" />
-        <div className="w-full lg:w-[65%] h-full relative">
+        <div className="w-full lg:w-[85%] h-full relative">
           <div className="absolute inset-y-0 left-0 w-[40%] bg-gradient-to-r from-[#EAE9E4] via-[#EAE9E4]/95 to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-[40%] bg-gradient-to-l from-[#EAE9E4] via-[#EAE9E4]/95 to-transparent z-10 pointer-events-none" />
           <video
             src="/grabv1.mp4"
             autoPlay
