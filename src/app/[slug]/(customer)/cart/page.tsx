@@ -16,10 +16,11 @@ import type { GrabbitAvailableSlot, GrabbitMenuCategory, GrabbitMenuItem } from 
 import { MS } from '@/components/gb/kit';
 import { LineNote } from '@/components/gb/LineNote';
 import { inr } from '@/components/gb/format';
-import { ph } from '@/components/gb/data';
+
 import { offerHeadline, offerTerms, type GrabbitOffer } from '@/components/gb/offers';
 import { useOfferRotation, OFFER_SLIDE_MS } from '@/components/gb/useOfferRotation';
 import { useBackTo } from '@/lib/useBackTo';
+import { menuImageSrc } from '@/lib/menu-image';
 
 interface SlotsData { slots: GrabbitAvailableSlot[]; label: string | null; }
 
@@ -1230,7 +1231,7 @@ export default function CartPage() {
             {shownRecs.map(r => (
               <div key={r.id} style={{ flex: 'none', width: 116, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 15, overflow: 'hidden', boxShadow: 'var(--gb-shadow-soft)' }}>
                 <div style={{ position: 'relative', height: 84 }}>
-                  <Image src={r.image_url || ph('photo-1541167760496-1628856ab772')} alt={r.name} fill sizes="116px" style={{ objectFit: 'cover' }} />
+                  <Image src={menuImageSrc(r.image_url)} alt={r.name} fill sizes="116px" style={{ objectFit: 'cover' }} />
                   {r.is_bestseller && (
                     <div style={{ position: 'absolute', top: 6, left: 6, display: 'flex', alignItems: 'center', gap: 2, background: 'rgba(30,22,14,.72)', backdropFilter: 'blur(3px)', color: '#FFD27A', fontSize: 8.5, fontWeight: 800, padding: '3px 6px 3px 5px', borderRadius: 999, letterSpacing: 0.3 }}>
                       <MS name="local_fire_department" size={10} fill color="#FFD27A" />

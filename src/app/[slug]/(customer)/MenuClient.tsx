@@ -15,6 +15,7 @@ import { PairingSheet } from '@/components/gb/PairingSheet';
 import { pairingsFor } from '@/components/gb/pairings';
 import { CustomizeSheet, type CustomizeSelection } from '@/components/gb/CustomizeSheet';
 import { useBackTo } from '@/lib/useBackTo';
+import { menuImageSrc } from '@/lib/menu-image';
 
 const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
 const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
@@ -30,24 +31,7 @@ const SORT_MODES = [
   { id: 'name_az', label: 'Name: A to Z', icon: 'sort_by_alpha' },
 ] as const;
 type SortModeId = typeof SORT_MODES[number]['id'];
-// No per-item photos in the backend yet: one honest placeholder per category
-// (not a random cycle) so a coffee never shows a croissant. ponytail: swap
-// for real item.image_url once cafés upload photos.
-const CATEGORY_PLACEHOLDER: Record<GrabbitMenuCategory, string> = {
-  drinks: 'photo-1461023058943-07fcbe16d735',
-  food: 'photo-1525351484163-7529414344d8',
-  specials: 'photo-1495474472287-4d71bcdd2085',
-  desserts: 'photo-1488477181946-6428a0291777',
-  addons: 'photo-1525351484163-7529414344d8',
-};
-const HOT_DRINK_PLACEHOLDER = 'photo-1541167760496-1628856ab772';
 
-function placeholderFor(item: GrabbitMenuItem) {
-  if (item.category === 'drinks' && /\bhot\b/i.test(item.name) && !/iced|cold/i.test(item.name)) {
-    return HOT_DRINK_PLACEHOLDER;
-  }
-  return CATEGORY_PLACEHOLDER[item.category];
-}
 
 interface TopItem {
   menu_item_id: number;
@@ -444,7 +428,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
             {liveTopItems.map(item => (
               <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
-                  <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
+                  <Image src={menuImageSrc(item.image_url)} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   {qtyOf(item.menu_item_id) > 0 ? (
                     <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
                       <button onClick={() => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
@@ -477,7 +461,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
               <div key={item.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
                 <div style={{ position: 'relative', height: 96 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <Image src={item.image_url || ph('photo-1541167760496-1628856ab772')} alt={item.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
+                  <Image src={menuImageSrc(item.image_url)} alt={item.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
                   <button onClick={() => toggleFavorite(item.id)} aria-label="Remove favourite" style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
                     <MS name="favorite" size={15} fill color="#C0392B" />
                   </button>
@@ -592,7 +576,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
                 {catItems.map(item => (
                   <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)' }}>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
-                      <Image src={item.image_url || ph(placeholderFor(item))} alt={item.name} fill sizes="(max-width: 480px) 50vw, 220px" style={{ objectFit: 'cover' }} />
+                      <Image src={menuImageSrc(item.image_url)} alt={item.name} fill sizes="(max-width: 480px) 50vw, 220px" style={{ objectFit: 'cover' }} />
                       {/* ponytail: grabit_menu_items has no is_veg column at all (items sync
                           from Omega POS, whose own veg flag isn't mapped over) - item.is_veg
                           is always null. Every current item genuinely is veg, so hardcoding
@@ -731,8 +715,6 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           qtyOf={qtyOf}
           onAdd={(item) => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug))}
           onQty={(id, qty) => guardedAdd(id, () => updateQty(plainLineKey(id), qty))}
-          placeholderFor={placeholderFor}
-          photoUrl={ph}
         />
       )}
 

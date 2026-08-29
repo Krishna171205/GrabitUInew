@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { MS, TopBar, Eyebrow, NavSpacer } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
+import { menuImageSrc } from '@/lib/menu-image';
 
 interface FavItem {
   menu_item_id: number;
@@ -20,10 +21,8 @@ function ItemRow({ item }: { item: FavItem }) {
   return (
     <Link href={`/${item.cafe_slug}`} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '12px 18px', borderBottom: '1px solid var(--gb-line)' }}>
       <div style={{ width: 54, height: 54, borderRadius: 14, overflow: 'hidden', flex: 'none', background: 'var(--gb-surface)', display: 'grid', placeItems: 'center' }}>
-        {item.image_url
-          // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={item.image_url} alt={item.menu_item_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          : <MS name="local_cafe" size={22} color="var(--gb-muted-2)" />}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={menuImageSrc(item.image_url)} alt={item.menu_item_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.menu_item_name}</div>

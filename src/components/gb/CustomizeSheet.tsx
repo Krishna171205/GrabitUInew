@@ -4,8 +4,9 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { MS, Veg } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
-import { ph } from '@/components/gb/data';
+
 import type { GrabbitMenuAddon, GrabbitMenuItem, GrabbitMenuOptionGroup, GrabbitMenuVariation } from '@gradient365/gradient-commons';
+import { menuImageSrc } from '@/lib/menu-image';
 
 export interface CustomizeSelection {
   variation?: { id: number; name: string; price: number };
@@ -86,7 +87,7 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
           <div style={S.headerRow}>
             <div style={S.thumb}>
               <Image
-                src={item.image_url || ph('photo-1568901346375-23c9450c58cd')}
+                src={menuImageSrc(item.image_url)}
                 alt=""
                 fill
                 sizes="56px"

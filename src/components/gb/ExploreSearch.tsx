@@ -6,6 +6,7 @@ import { MS } from '@/components/gb/kit';
 import { VoiceSearch } from '@/components/gb/VoiceSearch';
 import { inr } from '@/components/gb/format';
 import { RealCafeCard, type RealCafe } from '@/components/gb/cards';
+import { menuImageSrc } from '@/lib/menu-image';
 
 interface DishResult {
   id: number; name: string; price: number; category: string; image_url: string | null;
@@ -15,8 +16,9 @@ interface DishResult {
 function DishResultCard({ dish }: { dish: DishResult }) {
   return (
     <Link href={`/${dish.cafe_slug}`} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', padding: 12, marginTop: 10 }}>
-      <div style={{ width: 52, height: 52, borderRadius: 'var(--gb-r-sm)', flex: 'none', background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center' }}>
-        <span className="gb-serif" style={{ fontSize: 22, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>{dish.name.trim().charAt(0).toUpperCase()}</span>
+      <div style={{ width: 52, height: 52, borderRadius: 'var(--gb-r-sm)', flex: 'none', overflow: 'hidden', background: 'var(--gb-surface)' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={menuImageSrc(dish.image_url)} alt={dish.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{dish.name}</div>

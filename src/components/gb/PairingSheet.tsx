@@ -10,6 +10,7 @@ import type { GrabbitMenuItem } from '@gradient365/gradient-commons';
 import { MS, Veg } from './kit';
 import { inr } from './format';
 import type { Pairing } from './pairings';
+import { menuImageSrc } from '@/lib/menu-image';
 
 interface Props {
   pairings: Pairing[];
@@ -18,8 +19,6 @@ interface Props {
   onAdd: (item: GrabbitMenuItem) => void;
   onQty: (id: number, qty: number) => void;
   /** Fallback photo id for items with no image, owned by the menu page. */
-  placeholderFor: (item: GrabbitMenuItem) => string;
-  photoUrl: (id: string, w?: number, h?: number) => string;
 }
 
 function Card({ item, qty, onAdd, onQty, src }: {
@@ -56,7 +55,7 @@ function Card({ item, qty, onAdd, onQty, src }: {
   );
 }
 
-export function PairingSheet({ pairings, qtyOf, onAdd, onQty, placeholderFor, photoUrl }: Props) {
+export function PairingSheet({ pairings, qtyOf, onAdd, onQty }: Props) {
   // Snapshot taken when the sheet opens. Adding a drink satisfies the "something to
   // drink?" rule, so a live list would delete that whole section, and the item just
   // tapped, out from under the customer. The cards' steppers still read live cart
@@ -67,7 +66,7 @@ export function PairingSheet({ pairings, qtyOf, onAdd, onQty, placeholderFor, ph
   if (pairings.length === 0 && !open) return null;
   const count = pairings.reduce((n, p) => n + p.items.length, 0);
   const stripPrompt = pairings[0]?.prompt;
-  const srcFor = (item: GrabbitMenuItem) => item.image_url || photoUrl(placeholderFor(item));
+  const srcFor = (item: GrabbitMenuItem) => menuImageSrc(item.image_url);
 
   return (
     <>
