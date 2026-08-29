@@ -11,10 +11,16 @@
  *
  * The filename is versioned on purpose: the object is served with a one-year
  * immutable cache-control, so replacing the artwork means a new key. Changing the
- * art again means -v3, not a re-upload over the top of this one.
+ * art again means -v4, not a re-upload over the top of this one.
+ *
+ * v3 trims the white margin v2 carried around its panel. Every card draws this at
+ * object-fit: cover in a square box, and v2's artwork only occupied the middle
+ * ~71% of its frame, so it rendered as a small tile floating in white while a
+ * real photo beside it bled to the card's edges. Same drawing, cropped to the
+ * panel so it fills the same box a photo would.
  */
 export const MENU_IMAGE_FALLBACK =
-  'https://d1k5bio7n5wlqi.cloudfront.net/shared/menu-fallback-v2.png';
+  'https://d1k5bio7n5wlqi.cloudfront.net/shared/menu-fallback-v3.png';
 
 /** An item's own photo, or the fallback. Blank strings count as absent. */
 export function menuImageSrc(imageUrl: string | null | undefined): string {
