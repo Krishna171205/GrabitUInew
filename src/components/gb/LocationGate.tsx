@@ -7,7 +7,7 @@
  */
 import { useEffect, useState } from 'react';
 import { MS } from './kit';
-import { reverseGeocode, searchLocations, setSavedLocation, SUGGESTED_LOCATIONS, type LocationResult } from './location';
+import { reverseGeocode, searchLocations, setSavedLocation, setSavedCoords, clearSavedCoords, SUGGESTED_LOCATIONS, type LocationResult } from './location';
 
 export function LocationGate() {
   // 'checking' = first paint, reading localStorage (avoid gate-flash for returning users)
@@ -50,6 +50,8 @@ export function LocationGate() {
         try {
           const { label, city } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
           setSavedLocation(label, city);
+          // Kept so a cafe's distance can be measured rather than guessed.
+          setSavedCoords(pos.coords.latitude, pos.coords.longitude);
           setPhase('done');
         } catch {
           setDenied(true);
@@ -64,6 +66,9 @@ export function LocationGate() {
 
   function pick(r: LocationResult) {
     setSavedLocation(r.label, r.city);
+    // An area chosen by name is not a point: drop any older fix rather than
+    // measuring distances from a place the customer no longer says they are.
+    clearSavedCoords();
     setPhase('done');
   }
 

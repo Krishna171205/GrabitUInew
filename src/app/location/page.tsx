@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MS } from '@/components/gb/kit';
-import { reverseGeocode, searchLocations, setSavedLocation, SUGGESTED_LOCATIONS, type LocationResult } from '@/components/gb/location';
+import { reverseGeocode, searchLocations, setSavedLocation, setSavedCoords, clearSavedCoords, SUGGESTED_LOCATIONS, type LocationResult } from '@/components/gb/location';
 
 export default function LocationPickerPage() {
   const router = useRouter();
@@ -30,6 +30,8 @@ export default function LocationPickerPage() {
 
   function choose(label: string, city?: string) {
     setSavedLocation(label, city);
+    // Chosen by name, so there is no point behind it to measure from.
+    clearSavedCoords();
     router.back();
   }
 
@@ -44,6 +46,8 @@ export default function LocationPickerPage() {
       async (pos) => {
         try {
           const { label, city } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+          // Before choose(), which clears the fix that a named pick would invalidate.
+          setSavedCoords(pos.coords.latitude, pos.coords.longitude);
           choose(label, city);
         } catch {
           setError('Could not determine your address');

@@ -28,6 +28,34 @@ export function setSavedLocation(label: string, city?: string) {
   window.localStorage.setItem(CITY_KEY, city || label.split(',').pop()?.trim() || label);
 }
 
+const COORDS_KEY = 'grabbit_location_coords';
+
+/**
+ * The coordinates behind the label, kept only when the customer actually granted
+ * GPS. Picking an area by name gives us a label and no point, so there is nothing
+ * to save and nothing to measure from - which is why distances disappear rather
+ * than being estimated from a suburb name.
+ */
+export function setSavedCoords(latitude: number, longitude: number) {
+  window.localStorage.setItem(COORDS_KEY, JSON.stringify({ lat: latitude, lng: longitude }));
+}
+
+export function clearSavedCoords() {
+  window.localStorage.removeItem(COORDS_KEY);
+}
+
+export function getSavedCoords(): { lat: number; lng: number } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(COORDS_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as { lat: number; lng: number };
+    return Number.isFinite(v?.lat) && Number.isFinite(v?.lng) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Reverse-geocodes coords to an "area, city" label + bare city via OSM Nominatim (free, no key). */
 export async function reverseGeocode(latitude: number, longitude: number): Promise<{ label: string; city: string }> {
   const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&accept-language=en&lat=${latitude}&lon=${longitude}`);

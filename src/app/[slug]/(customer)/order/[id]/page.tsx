@@ -7,6 +7,8 @@ import { MS } from '@/components/gb/kit';
 import { inr } from '@/components/gb/format';
 import { downloadReceipt } from '@/components/gb/receipt';
 import { useBackTo } from '@/lib/useBackTo';
+import { directionsUrl, distanceLabel } from '@/components/gb/maps';
+import { getSavedCoords } from '@/components/gb/location';
 
 function stepIndex(s: GrabbitOrderStatus): number {
   const map: Record<GrabbitOrderStatus, number> = {
@@ -49,6 +51,23 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  // The order carries the cafe's name but not where it is, and there is no
+  // single-cafe endpoint. The list is two rows today and the browser already has
+  // it from the screens before this one.
+  const [cafeGeo, setCafeGeo] = useState<{ name: string; address?: string | null; city?: string | null; latitude?: number | string | null; longitude?: number | string | null } | null>(null);
+  const [myCoords, setMyCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    setMyCoords(getSavedCoords());
+    if (!slug) return;
+    let cancelled = false;
+    fetch('/api/proxy/grabit/cafes')
+      .then(r => (r.ok ? r.json() : []))
+      .then((list: { slug: string; name: string; address?: string | null; city?: string | null; latitude?: number | string | null; longitude?: number | string | null }[]) => {
+        if (!cancelled) setCafeGeo(list.find(c => c.slug === slug) ?? null);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug]);
 
   // Cashfree's returnUrl points here for EVERY checkout outcome - paid, failed, or
   // the customer cancelling/backing out - so arrival alone isn't proof of payment.
@@ -143,6 +162,8 @@ export default function OrderPage() {
   // slug stays the fallback for an order placed before the name was synced.
   const cafeName = order.cafe_name
     || (slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'the café');
+  const mapCafe = cafeGeo ?? { name: cafeName };
+  const cafeDistance = distanceLabel(mapCafe, myCoords);
   const pickupTime = new Date(order.pickup_slot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
   const idx = stepIndex(order.status);
   const nodeState = (threshold: number): NodeState => idx > threshold ? 'done' : idx === threshold ? 'current' : 'upcoming';
@@ -262,13 +283,22 @@ export default function OrderPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=900&h=560&fit=crop&auto=format&q=72" alt={cafeName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>{cafeName}</div>
-          <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600 }}>0.4 km · 5 min walk</div>
+          <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600 }}>
+            {cafeDistance ?? 'Tap for directions'}
+          </div>
         </div>
-        <div style={{ background: '#F4EBDF', color: 'var(--gb-primary)', width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <a
+          href={directionsUrl(mapCafe)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Directions to ${cafeName}`}
+          className="gb-press"
+          style={{ background: '#F4EBDF', color: 'var(--gb-primary)', width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}
+        >
           <MS name="directions" size={22} />
-        </div>
+        </a>
       </div>
 
       {/* order summary */}

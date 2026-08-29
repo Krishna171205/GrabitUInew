@@ -15,6 +15,8 @@ import { PairingSheet } from '@/components/gb/PairingSheet';
 import { pairingsFor } from '@/components/gb/pairings';
 import { CustomizeSheet, type CustomizeSelection } from '@/components/gb/CustomizeSheet';
 import { useBackTo } from '@/lib/useBackTo';
+import { directionsUrl, distanceLabel } from '@/components/gb/maps';
+import { getSavedCoords } from '@/components/gb/location';
 import { menuImageSrc } from '@/lib/menu-image';
 
 const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desserts', 'addons'];
@@ -230,6 +232,16 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   // Open or closed is the cafe's toggle in Omega and nothing else: staff close early or
   // stay open late, and the schedule below is what the customer plans around, not a
   // second opinion on whether orders are being taken right now.
+  const mapCafe = {
+    name: cafe.name,
+    address: cafe.address,
+    city: cafe.city,
+    ...(cafe as { latitude?: number | string | null; longitude?: number | string | null }),
+  };
+  const [myCoords, setMyCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => { setMyCoords(getSavedCoords()); }, []);
+  const myDistance = distanceLabel(mapCafe, myCoords);
+
   const open = acceptingOrders;
   const weekly = (cafe as { hours?: DayHours[] | null }).hours ?? null;
   const today = todayHours(weekly);
@@ -381,12 +393,23 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-ink)' }}>Order ahead</div>
           <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>skip the queue</div>
         </div>
-        {cafe.city && (
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-ink)' }}>{cafe.city}</div>
-            <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>pickup</div>
+        {/* The third cell used to be the city as a dead label. A customer looking at a
+            cafe they have never been to is asking where it is, so it hands off to
+            Google Maps, which already knows where they are standing. */}
+        <a
+          href={directionsUrl(mapCafe)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="gb-press"
+          style={{ flex: 1, textAlign: 'center', display: 'block' }}
+        >
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 14.5, fontWeight: 800, color: 'var(--gb-primary)' }}>
+            <MS name="directions" size={17} color="var(--gb-primary)" />Directions
           </div>
-        )}
+          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>
+            {myDistance ?? cafe.city ?? 'open in maps'}
+          </div>
+        </a>
       </div>
       {/* offers, right under the info strip like the rest of the cafe's headline facts */}
       <OfferStrip offers={offers} />

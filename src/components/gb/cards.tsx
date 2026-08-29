@@ -8,6 +8,8 @@ import { inr } from './format';
 import { ph, type GbItem, type GbCategory } from './data';
 import { fmtTime12, todayHours, type DayHours } from './format';
 import { useFavoriteCafe } from './favorites';
+import { directionsUrl, distanceLabel } from './maps';
+import { getSavedCoords } from './location';
 import { useCart } from '@/store/cart';
 
 /** A real café from GET /api/grabit/cafes (honest fields only — no rating/distance/ETA). */
@@ -25,6 +27,9 @@ export interface RealCafe {
   acceptingOrders?: boolean;
   /** Only set by the nearby-cafes search; absent everywhere else. */
   distanceKm?: number | null;
+  /** The owner's pin from Omega. Null until they drop one. */
+  latitude?: number | string | null;
+  longitude?: number | string | null;
 }
 
 /* ---------- Real café card (live data, honest signals only) ---------- */
@@ -49,7 +54,12 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
     ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}`
     : cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
   const initial = cafe.name.trim().charAt(0).toUpperCase();
-  const area = cafe.distanceKm != null ? `${cafe.distanceKm.toFixed(1)} km away` : cafe.city || cafe.address || null;
+  // localStorage is read after mount so the server and first client render agree.
+  const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => { setMe(getSavedCoords()); }, []);
+  const area = cafe.distanceKm != null
+    ? `${cafe.distanceKm.toFixed(1)} km away`
+    : distanceLabel(cafe, me) ?? cafe.city ?? cafe.address ?? null;
   return (
     <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-elev-2)' }}>
       {/* The cafe's own storefront photo when it has supplied one. Otherwise the branded
@@ -71,6 +81,15 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
         </div>
         <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }} aria-label={favorite ? 'Remove bookmark' : 'Bookmark'} style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, border: 'none', borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <MS name="bookmark" size={17} fill={favorite} color={favorite ? 'var(--gb-primary)' : 'var(--gb-ink)'} />
+        </button>
+        {/* Where it is, before deciding to open it. Escapes the card's own link the
+            same way the bookmark does. */}
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(directionsUrl(cafe), '_blank', 'noopener,noreferrer'); }}
+          aria-label={`Directions to ${cafe.name}`}
+          style={{ position: 'absolute', top: 12, right: 50, width: 30, height: 30, border: 'none', borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+        >
+          <MS name="directions" size={17} color="var(--gb-ink)" />
         </button>
       </div>
       <div style={{ padding: '13px 16px' }}>
