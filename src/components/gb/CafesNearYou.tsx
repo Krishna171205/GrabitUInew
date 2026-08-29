@@ -10,13 +10,13 @@ import { useSavedLocation } from '@/components/gb/location';
 const FREE_CAFE_LIMIT = 1;
 
 // Cafés that have confirmed they are joining but have not sent a menu yet, so they
-// exist nowhere in the API. Listed as placeholders under the live ones; delete the
-// entry once the cafe is live and the API returns it for real.
-const COMING_SOON = [{
-  name: 'The Hims Cafe',
-  area: 'DTU, Delhi',
-  coverUrl: 'https://d1k5bio7n5wlqi.cloudfront.net/hims/cover.jpg',
-}];
+// exist nowhere in the API. Listed as placeholders under the live ones.
+//
+// An entry here MUST be removed in the same breath as the cafe going live, because
+// nothing dedupes the two lists: the API starts returning the cafe and the placeholder
+// keeps rendering, so the storefront shows it twice, once orderable and once as
+// "Coming soon". The Hims Cafe sat here until it went live on Grabit.
+const COMING_SOON: { name: string; area: string; coverUrl?: string }[] = [];
 
 export function CafesNearYou({ cafes, cta, gate }: { cafes: RealCafe[]; cta: string; gate: boolean }) {
   const { city } = useSavedLocation();
