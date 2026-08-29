@@ -1190,7 +1190,11 @@ export default function CartPage() {
             time, not a fixed number, so a chai and a plate of nachos differ. */}
         {prepMinutes > 0 && bookableSlots.length > 0 && (
           <div style={{ fontSize: 11.5, color: 'var(--gb-primary)', fontWeight: 700, marginTop: 6, marginLeft: 25 }}>
-            Earliest is about {prepMinutes} min: what this cart takes to make. It shifts with what you order.
+            {slotsData?.label
+              // A cart that outlived the counter closing is looking at tomorrow's
+              // times, where "seven minutes from now" is not a thing that can happen.
+              ? `About ${prepMinutes} min to make, counted from when the counter opens.`
+              : `Earliest is about ${prepMinutes} min: what this cart takes to make. It shifts with what you order.`}
           </div>
         )}
         {slotsLoading && <p style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 10 }}>Loading slots…</p>}
