@@ -465,6 +465,8 @@ export default function CartPage() {
   // applies the same rule, so the only way in is a stale link or a back button.
   const items = cartCafe === null || cartCafe === slug ? heldItems : [];
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  /** ASAP is a moving target, not a time: it has to follow the clock once picked. */
+  const [asapChosen, setAsapChosen] = useState(false);
   const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -528,10 +530,37 @@ export default function CartPage() {
   // on the minute, so measuring from 10:23:40 put the floor at 10:30:40 and threw
   // away the 10:30 slot that is exactly the seven minutes away we just promised.
   const readyAtMs = new Date().setSeconds(0, 0) + prepMinutes * 60_000;
-  // Everything downstream reads this rather than slotsData.slots: what the cafe
-  // offers, minus what it cannot cook in time.
-  const bookableSlots = (slotsData?.slots ?? []).filter(
+  // The cafe's slots sit on a grid anchored to its opening time, so the first one
+  // at or after the food is ready can be minutes later than the food is ready: a
+  // seven minute cart at 1:50 landed on 2:00 and read as a ten minute wait next to
+  // a seven minute promise. ASAP is that exact minute instead, which the order API
+  // accepts the same way it accepts a custom time off the wheel.
+  //
+  // Only for today's own slots: when the cart has fallen through to tomorrow's
+  // list, nothing is ready in seven minutes and offering it would be a lie. And
+  // only inside the window the cafe actually generated, so it can never outlive
+  // the counter's last slot.
+  const gridSlots = (slotsData?.slots ?? []).filter(
     s => new Date(s.slot_start).getTime() >= readyAtMs);
+  const asapSlot: GrabbitAvailableSlot | null = (() => {
+    const all = slotsData?.slots ?? [];
+    if (slotsData?.label || prepMinutes <= 0 || all.length === 0) return null;
+    const lastStart = new Date(all[all.length - 1].slot_start).getTime();
+    if (readyAtMs > lastStart) return null;
+    // The grid already offers this exact minute, so there is nothing to add.
+    if (all.some(x => new Date(x.slot_start).getTime() === readyAtMs)) return null;
+    const first = all[0];
+    const spanMs = Math.max(
+      new Date(first.slot_end).getTime() - new Date(first.slot_start).getTime(), 60_000);
+    return {
+      ...first,
+      slot_start: new Date(readyAtMs).toISOString(),
+      slot_end: new Date(readyAtMs + spanMs).toISOString(),
+    };
+  })();
+  // Everything downstream reads this rather than slotsData.slots: what the cafe
+  // offers, minus what it cannot cook in time, with the exact ready minute first.
+  const bookableSlots = asapSlot ? [asapSlot, ...gridSlots] : gridSlots;
   /** The cafe has slots left today, but none of them far enough out for this cart. */
   const tooLateForToday = (slotsData?.slots.length ?? 0) > 0 && bookableSlots.length === 0;
 
@@ -540,12 +569,17 @@ export default function CartPage() {
   // rather than send the counter a time it cannot hit.
   useEffect(() => {
     if (!selectedSlot) return;
+    if (asapChosen) {
+      // Every minute that passes moves "as soon as possible" along with it.
+      if (asapSlot && selectedSlot !== asapSlot.slot_start) setSelectedSlot(asapSlot.slot_start);
+      return;
+    }
     if (new Date(selectedSlot).getTime() >= new Date().setSeconds(0, 0) + prepMinutes * 60_000) return;
     setSelectedSlot(null);
     setShowCustomTime(false);
     setCustomTimeIso(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSlot, prepMinutes]);
+  }, [selectedSlot, prepMinutes, asapChosen, asapSlot?.slot_start]);
 
   const canProceed = dineInTable ? true : !!selectedSlot;
 
@@ -1176,7 +1210,7 @@ export default function CartPage() {
               <button
                 key={slot.slot_start}
                 disabled={full}
-                onClick={() => { setSelectedSlot(slot.slot_start); setShowCustomTime(false); setCustomTimeIso(null); }}
+                onClick={() => { setSelectedSlot(slot.slot_start); setAsapChosen(asap); setShowCustomTime(false); setCustomTimeIso(null); }}
                 style={{
                   flex: 'none', border: `1.5px solid ${sel ? 'var(--gb-primary)' : full ? 'var(--gb-line-4)' : '#EEE4D6'}`,
                   background: sel ? 'var(--gb-primary-pale)' : '#fff', color: sel ? 'var(--gb-primary)' : full ? 'var(--gb-muted-2)' : '#5A4E42',
@@ -1203,6 +1237,7 @@ export default function CartPage() {
             const chosen = new Date(clamped).toISOString();
             setCustomTimeIso(chosen);
             setSelectedSlot(chosen);
+            setAsapChosen(false);
             setShowCustomTime(true);
             setPickerOpen(false);
           }}
