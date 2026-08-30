@@ -9,7 +9,7 @@ export const ALTERNATE_NAMES = ['LetsGrabbit', 'Lets Grabbit', 'Order Ahead'];
 
 export const DESCRIPTION =
   'Grabbit — order coffee and snacks ahead from cafes near you in Delhi. ' +
-  'Pre-order, skip the queue, pick up in minutes. ' +
+  'Pre-order any time, skip the queue with pickup in minutes, or get it delivered by our cafe delivery partners. ' +
   'Pay online with UPI, card, or netbanking. WhatsApp updates. Now live in Delhi.';
 
 export const BRAND_KEYWORDS = [
@@ -64,7 +64,7 @@ export const organizationSchema: SeoSchema = {
   name: 'Grabbit',
   alternateName: ['LetsGrabbit', 'Lets Grabbit', 'Grabbit Coffee'],
   url: SITE_URL,
-  logo: `${SITE_URL}/grabbit-logo.svg`,
+  logo: `${SITE_URL}/new-logo.svg`,
   brand: { '@type': 'Brand', name: 'Grabbit', alternateName: ['LetsGrabbit', 'Lets Grabbit'] },
   description: DESCRIPTION,
   keywords: BRAND_KEYWORDS.join(', '),

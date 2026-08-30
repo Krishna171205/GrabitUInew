@@ -98,12 +98,12 @@ export function VoiceSearch({ onResult }: { onResult: (text: string) => void }) 
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           border: 'none', background: 'none', padding: 4, cursor: 'pointer', flex: 'none',
-          color: listening ? 'var(--gb-danger)' : '#C1502E',
+          color: listening ? 'var(--gb-danger)' : 'var(--gb-primary)',
           animation: listening ? 'pulse-ring 1.2s var(--ease-out) infinite' : 'none',
           borderRadius: '50%',
         }}
       >
-        <MS name={listening ? 'graphic_eq' : 'mic'} size={20} fill={listening} color={listening ? 'var(--gb-danger)' : '#C1502E'} />
+        <MS name={listening ? 'graphic_eq' : 'mic'} size={20} fill={listening} color={listening ? 'var(--gb-danger)' : 'var(--gb-primary)'} />
       </button>
 
       {/* Portaled to document.body: in MenuClient the search bar sits inside a

@@ -556,7 +556,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
       {/* filter chips — sticky so switching category/subcategory is always one tap away.
           Subcategories share the same row as categories (Zomato-style), with a "+More"
           chip opening a sheet once there are more than fit on one line. */}
-      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(60,40,25,.35)', display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', padding: '14px 16px' }}>
+      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(15,23,42,.35)', display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', padding: '14px 16px' }}>
         <button style={chip(sortMode !== 'recommended')} onClick={() => setShowSortSheet(true)} aria-label="Sort and filter menu">
           <MS name="tune" size={17} color={sortMode !== 'recommended' ? '#fff' : 'var(--gb-primary)'} />Filters
         </button>
@@ -703,20 +703,20 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
 
       {/* floating cart bar */}
       {cartCount > 0 && (
-        <div className="gb-glass-ink gb-press gb-cart-pill" style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, borderRadius: 'var(--gb-r-md)', padding: '12px 12px 12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: '#fff', minWidth: 0 }}>
-            <span style={{ background: 'rgba(255,255,255,.16)', borderRadius: 'var(--gb-r-xs)', padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
+        <div className="gb-glass gb-press gb-cart-pill" style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, borderRadius: 'var(--gb-r-md)', padding: '12px 12px 12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: 'var(--gb-text)', minWidth: 0 }}>
+            <span style={{ background: 'var(--gb-primary-soft)', color: 'var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
             <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(cartTotal())}</span>
             {/* The arrow gets its own well rather than floating beside the label: the
                 CTA reads as one machined part instead of text with an icon after it. */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: 'var(--gb-peach)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: 'var(--gb-primary)' }}>
               Next
-              <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,.14)', display: 'grid', placeItems: 'center', flex: 'none' }}>
-                <MS name="arrow_forward" size={18} color="var(--gb-peach)" />
+              <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', flex: 'none' }}>
+                <MS name="arrow_forward" size={18} color="var(--gb-primary)" />
               </span>
             </span>
           </Link>
-          <button onClick={() => setShowClearConfirm(true)} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.16)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+          <button onClick={() => setShowClearConfirm(true)} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(15,23,42,.06)', color: 'var(--gb-icon)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
             <MS name="close" size={16} />
           </button>
         </div>

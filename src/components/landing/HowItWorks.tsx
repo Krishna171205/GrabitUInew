@@ -1,154 +1,325 @@
-// grabbit/src/components/landing/HowItWorks.tsx
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import {
-  motion, useScroll, useTransform, useMotionValue, useMotionValueEvent,
-  useReducedMotion, type MotionValue,
-} from 'framer-motion';
-import { STEPS } from './content';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { useRef } from 'react';
+import { Annotation } from './Annotation';
+import { Sticker } from './Sticker';
+import { CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 
-type NodeDef = { x: number; y: number; at: number; side: 'left' | 'right' };
-type Layout = { viewBox: string; path: string; maxH: string; cardW: number; nodes: NodeDef[] };
+const STEP_1_ITEMS = [
+  { name: 'Cold Brew', price: '₹220', tag: 'Popular' },
+  { name: 'Flat White', price: '₹280', tag: 'Artisan' },
+];
 
-// Clean espresso base with a warm top glow — replaces the muddy olive-transition
-// gradient. Marigold pop comes from the journey path/token, not the backdrop.
-const SECTION_BG = 'radial-gradient(125% 95% at 50% 6%, #3A2512 0%, #22140B 52%, #150C05 100%)';
+const STEP_2_OPTIONS = [
+  { label: 'Milk Choice', value: 'Oat Milk (+₹30)' },
+  { label: 'Espresso Roast', value: 'Dark Single-Origin' },
+  { label: 'Sweetness', value: 'Zero Sugar' },
+];
 
-// Desktop: serpentine left → right → left. Station cards sit ON the path (line routes behind them).
-const DESKTOP: Layout = {
-  viewBox: '0 0 1000 720',
-  maxH: '58vh',
-  cardW: 400,
-  path: 'M 180 130 C 545 150, 415 360, 760 360 C 415 360, 545 570, 180 590',
-  nodes: [
-    { x: 180, y: 130, at: 0.06, side: 'left' },
-    { x: 760, y: 360, at: 0.5, side: 'right' },
-    { x: 180, y: 590, at: 0.94, side: 'left' },
-  ],
+const STEPS = [
+  {
+    step: '01',
+    title: 'Choose Your Spot',
+    subtitle: 'Browse nearby campus cafes',
+    desc: 'Instantly view live prep times, open counters, and curated menus across your campus before leaving your desk or classroom.',
+    tag: 'Live ETA',
+  },
+  {
+    step: '02',
+    title: 'Customize in 10s',
+    subtitle: 'Your drink, made your way',
+    desc: 'Oat milk, extra shot, less sweet, or double ice. Customize with a tap and checkout securely via UPI in under 10 seconds.',
+    tag: 'Bespoke',
+  },
+  {
+    step: '03',
+    title: 'Walk In & Grab',
+    subtitle: 'Zero lines. Zero friction.',
+    desc: 'Your drink is freshly brewed and labeled at the counter when you arrive. Flash your token, grab your order, and keep moving.',
+    tag: 'Instant Pickup',
+  }
+];
+
+const SPRING_CONFIG = {
+  stiffness: 85,
+  damping: 24,
+  mass: 0.2,
+  restDelta: 0.0005,
 };
 
-// Mobile: vertical rail, cards stacked, line bows right between stops.
-const MOBILE: Layout = {
-  viewBox: '0 0 400 760',
-  maxH: '64vh',
-  cardW: 332,
-  path: 'M 54 90 C 265 175, 265 295, 54 380 C 265 465, 265 585, 54 670',
-  nodes: [
-    { x: 54, y: 90, at: 0.06, side: 'left' },
-    { x: 54, y: 380, at: 0.5, side: 'left' },
-    { x: 54, y: 670, at: 0.94, side: 'left' },
-  ],
-};
+function HowItWorksHeader() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start']
+  });
 
-function Station({
-  node, step, cardW, progress, reduced,
-}: {
-  node: NodeDef; step: (typeof STEPS)[number]; cardW: number;
-  progress: MotionValue<number>; reduced: boolean;
-}) {
-  const a0 = node.at - 0.16;
-  const opacity = useTransform(progress, [a0, node.at], [0.4, 1]);
-  const lift = useTransform(progress, [a0, node.at], [16, 0]);
-  const ring = useTransform(progress, [a0, node.at], [0, 1]);
-  const right = node.side === 'right';
-  const foX = right ? node.x + 46 - cardW : node.x - 46;
-
-  const badge = (
-    <div style={{ position: 'relative', width: 48, height: 48, flex: 'none' }}>
-      <motion.div style={{ position: 'absolute', inset: -7, borderRadius: 999, border: '2px solid var(--gb-primary)', opacity: reduced ? 1 : ring }} />
-      <div style={{ width: 48, height: 48, borderRadius: 999, background: 'var(--gb-primary)', color: '#241612', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{step.n}</div>
-    </div>
-  );
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.08, 0.32, 0.75, 0.95], [0, 1, 1, 0]);
+  const y = useTransform(smoothProgress, [0.08, 0.32, 0.75, 0.95], [40, 0, 0, -30]);
+  const scale = useTransform(smoothProgress, [0.08, 0.32, 0.75, 0.95], [0.94, 1, 1, 0.96]);
 
   return (
-    <motion.foreignObject x={foX} y={node.y - 78} width={cardW} height={156}
-      style={{ opacity: reduced ? 1 : opacity, y: reduced ? 0 : lift, overflow: 'visible' }}>
-      <div style={{ borderRadius: 24, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)', padding: 6, boxShadow: '0 18px 46px -26px rgba(0,0,0,.6)' }}>
-        <div style={{ display: 'flex', flexDirection: right ? 'row-reverse' : 'row', alignItems: 'center', gap: 14, borderRadius: 18, background: 'rgba(24,14,9,.92)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)', padding: '14px 16px', textAlign: right ? 'right' : 'left' }}>
-          {badge}
-          <div>
-            <div className="gb-serif" style={{ fontSize: 30, fontWeight: 600, color: '#fff', lineHeight: 1.12 }}>{step.title}</div>
-            <div style={{ fontSize: 21, lineHeight: 1.38, color: 'rgba(255,255,255,.85)', marginTop: 5 }}>{step.body}</div>
+    <motion.div 
+      ref={ref}
+      style={{ opacity, y, scale }}
+      className="text-center max-w-3xl mx-auto mb-20 md:mb-28 relative transform-gpu"
+    >
+      <div className="absolute -top-10 left-[6%] md:left-[10%] rotate-[-8deg] pointer-events-none">
+        <Annotation text="three simple steps" arrowDirection="down-right" delay={0.2} />
+      </div>
+      
+      <h2 className="text-[54px] sm:text-[72px] md:text-[90px] font-black tracking-wider leading-[0.88] text-[#0F172A] uppercase drop-shadow-sm" style={{ fontFamily: 'var(--font-anton)' }}>
+        HOW IT WORKS?
+      </h2>
+      <p className="text-slate-500 font-semibold text-base sm:text-lg max-w-lg mx-auto mt-4">
+        Built for campus hustle. Fresh food & specialty coffee without wasting 20 minutes standing in line.
+      </p>
+    </motion.div>
+  );
+}
+
+function Step1Row() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'end start']
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0, 1, 1, 0]);
+  const leftX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [-60, 0, 0, -40]);
+  const rightX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [60, 0, 0, 40]);
+  const y = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [30, 0, 0, -20]);
+  const scale = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0.94, 1, 1, 0.96]);
+
+  return (
+    <div ref={rowRef} className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 relative">
+      <motion.div 
+        style={{ opacity, x: leftX, y, scale }}
+        className="w-full md:w-5/12 order-2 md:order-1 flex justify-center md:justify-end relative transform-gpu"
+      >
+        <Sticker text="CAMPUS RADAR" color="blue" rotation={-10} className="top-2 -left-4 z-30" />
+        <div className="w-full max-w-[360px] bg-white rounded-[24px] p-5 shadow-[8px_8px_0px_#0F172A] border-[3px] border-[#0F172A] relative z-10 rotate-[1.5deg] hover:rotate-0 transition-transform duration-300">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+            <div>
+              <div className="text-[16px] font-black text-[#0F172A] leading-tight">The Raydee Cafe</div>
+              <div className="text-[11px] font-semibold text-slate-500">DTU Main Block · 150m away</div>
+            </div>
+            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">
+              Open
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {STEP_1_ITEMS.map((it, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                <div>
+                  <div className="font-bold text-[13px] text-[#0F172A]">{it.name}</div>
+                  <span className="text-[10px] font-extrabold text-[#0055D4] bg-[#0055D4]/10 px-1.5 py-0.5 rounded">
+                    {it.tag}
+                  </span>
+                </div>
+                <span className="font-black text-[13px] text-[#0F172A]">{it.price}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+            <span className="flex items-center gap-1"><Clock size={12} className="text-[#0055D4]" /> 5-8 min prep</span>
+            <span className="text-[#0055D4] font-black">Tap to order →</span>
           </div>
         </div>
-      </div>
-    </motion.foreignObject>
+      </motion.div>
+
+      <motion.div 
+        style={{ opacity, x: rightX, y, scale }}
+        className="w-full md:w-5/12 order-1 md:order-2 pl-0 md:pl-8 transform-gpu"
+      >
+        <span className="text-[64px] font-black text-[#0055D4]/20 leading-none block -mb-4 font-sans">01</span>
+        <h3 className="text-[34px] sm:text-[44px] font-black leading-[0.92] mb-3 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
+          {STEPS[0].title} <br />
+          <span className="text-[#0055D4] text-[22px] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>{STEPS[0].subtitle}</span>
+        </h3>
+        <p className="text-slate-600 text-[15px] sm:text-[16px] font-semibold leading-relaxed border-l-4 border-[#0055D4] pl-4">
+          {STEPS[0].desc}
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
+function Step2Row() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'end start']
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0, 1, 1, 0]);
+  const leftX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [-60, 0, 0, -40]);
+  const rightX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [60, 0, 0, 40]);
+  const y = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [30, 0, 0, -20]);
+  const scale = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0.94, 1, 1, 0.96]);
+
+  return (
+    <div ref={rowRef} className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 relative">
+      <motion.div 
+        style={{ opacity, x: leftX, y, scale }}
+        className="w-full md:w-5/12 pr-0 md:pr-8 text-left md:text-right transform-gpu"
+      >
+        <span className="text-[64px] font-black text-[#0055D4]/20 leading-none block -mb-4 font-sans">02</span>
+        <h3 className="text-[34px] sm:text-[44px] font-black leading-[0.92] mb-3 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
+          {STEPS[1].title} <br />
+          <span className="text-[#0055D4] text-[22px] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>{STEPS[1].subtitle}</span>
+        </h3>
+        <p className="text-slate-600 text-[15px] sm:text-[16px] font-semibold leading-relaxed border-l-4 md:border-l-0 md:border-r-4 border-[#0055D4] pl-4 md:pl-0 md:pr-4">
+          {STEPS[1].desc}
+        </p>
+      </motion.div>
+
+      <motion.div 
+        style={{ opacity, x: rightX, y, scale }}
+        className="w-full md:w-5/12 pl-0 md:pl-8 flex justify-center md:justify-start relative transform-gpu"
+      >
+        <Sticker text="ONE TAP UPI" color="cream" rotation={12} className="-bottom-3 -right-4 z-30" />
+        <div className="w-full max-w-[360px] bg-white rounded-[24px] p-5 shadow-[8px_8px_0px_#0F172A] border-[3px] border-[#0F172A] relative z-10 rotate-[-1.5deg] hover:rotate-0 transition-transform duration-300">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-3">
+            <div>
+              <div className="text-[17px] font-black text-[#0F172A]">Iced Americano</div>
+              <div className="text-[11px] text-slate-500 font-bold">Double Espresso · Chilled</div>
+            </div>
+            <span className="text-[18px] font-black text-[#0F172A]">₹180</span>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            {STEP_2_OPTIONS.map((opt, idx) => (
+              <div key={idx} className="flex justify-between items-center p-2 rounded-xl bg-slate-50 border border-slate-200/60 text-[12px]">
+                <span className="text-slate-500 font-medium">{opt.label}</span>
+                <span className="text-white font-bold bg-[#0055D4] px-2 py-0.5 rounded-md text-[11px]">{opt.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <button className="w-full bg-[#0055D4] text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:bg-[#0040A1] transition-colors">
+            <span>Pay ₹180 via UPI</span>
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function Step3Row() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: rowRef,
+    offset: ['start end', 'end start']
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, SPRING_CONFIG);
+  const opacity = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0, 1, 1, 0]);
+  const leftX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [-60, 0, 0, -40]);
+  const rightX = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [60, 0, 0, 40]);
+  const y = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [30, 0, 0, -20]);
+  const scale = useTransform(smoothProgress, [0.06, 0.28, 0.72, 0.94], [0.94, 1, 1, 0.96]);
+
+  return (
+    <div ref={rowRef} className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 relative">
+      <motion.div 
+        style={{ opacity, x: leftX, y, scale }}
+        className="w-full md:w-5/12 order-2 md:order-1 flex justify-center md:justify-end relative transform-gpu"
+      >
+        <Sticker text="ZERO LINE" color="navy" rotation={-6} className="-top-4 right-6 z-30" />
+        <div className="w-full max-w-[360px] bg-white rounded-[24px] p-6 text-center shadow-[8px_8px_0px_#0F172A] border-[3px] border-[#0F172A] flex flex-col items-center justify-center text-[#0F172A] relative z-10 rotate-[1.5deg] hover:rotate-0 transition-transform duration-300">
+          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-3 text-[#0055D4] border-2 border-[#0F172A] shadow-sm">
+            <CheckCircle2 size={32} strokeWidth={2.5} />
+          </div>
+          <div className="text-[10px] font-black tracking-widest uppercase text-slate-500 mb-0.5">Order Status</div>
+          <div className="text-[32px] font-black leading-none mb-4 text-[#0F172A]" style={{ fontFamily: 'var(--font-anton)' }}>
+            READY FOR PICKUP
+          </div>
+          
+          <div className="bg-[#F8FAFC] text-[#0F172A] w-full py-3.5 px-4 rounded-2xl border-2 border-[#0F172A] shadow-inner flex items-center justify-between">
+            <div className="text-left">
+              <div className="text-[9px] font-bold tracking-widest uppercase text-slate-500">Pickup Counter</div>
+              <div className="text-[13px] font-black text-[#0F172A]">Main Block #2</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[9px] font-bold tracking-widest uppercase text-slate-500">Token</div>
+              <div className="text-[20px] font-black text-[#0055D4] leading-none">#GB-408</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div 
+        style={{ opacity, x: rightX, y, scale }}
+        className="w-full md:w-5/12 order-1 md:order-2 pl-0 md:pl-8 transform-gpu"
+      >
+        <span className="text-[64px] font-black text-[#0055D4]/20 leading-none block -mb-4 font-sans">03</span>
+        <h3 className="text-[34px] sm:text-[44px] font-black leading-[0.92] mb-3 text-[#0F172A] uppercase" style={{ fontFamily: 'var(--font-anton)' }}>
+          {STEPS[2].title} <br />
+          <span className="text-[#0055D4] text-[22px] font-medium" style={{ fontFamily: 'var(--font-caveat)' }}>{STEPS[2].subtitle}</span>
+        </h3>
+        <p className="text-slate-600 text-[15px] sm:text-[16px] font-semibold leading-relaxed border-l-4 border-[#0055D4] pl-4">
+          {STEPS[2].desc}
+        </p>
+      </motion.div>
+    </div>
   );
 }
 
 export default function HowItWorks() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const pathRef = useRef<SVGPathElement>(null);
-  const lenRef = useRef(0);
-  const reduced = !!useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
-  const L = isMobile ? MOBILE : DESKTOP;
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)');
-    const on = () => setIsMobile(mq.matches);
-    on();
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
-  const trail = useTransform(scrollYProgress, [0, 1], [1, 0]);
-
-  const tokenX = useMotionValue(L.nodes[0].x);
-  const tokenY = useMotionValue(L.nodes[0].y);
-
-  useEffect(() => {
-    const p = pathRef.current;
-    if (!p) return;
-    lenRef.current = p.getTotalLength();
-    const prog = reduced ? 1 : scrollYProgress.get();
-    const pt = p.getPointAtLength(prog * lenRef.current);
-    tokenX.set(pt.x); tokenY.set(pt.y);
-  }, [reduced, isMobile, tokenX, tokenY, scrollYProgress]);
-
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    const p = pathRef.current; if (!p || reduced) return;
-    const len = lenRef.current || p.getTotalLength();
-    const pt = p.getPointAtLength(Math.max(0, Math.min(1, v)) * len);
-    tokenX.set(pt.x); tokenY.set(pt.y);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start 70%', 'end 85%']
   });
 
+  const smoothBeamProgress = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 24,
+    mass: 0.15
+  });
+
+  const beamHeight = useTransform(smoothBeamProgress, [0, 1], ['0%', '100%']);
+  const beamOpacity = useTransform(smoothBeamProgress, [0, 0.05, 0.95, 1], [0, 1, 1, 0.8]);
+
   return (
-    <section id="how-it-works" ref={sectionRef} style={{ position: 'relative', height: '240vh', background: SECTION_BG, color: '#fff' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 22px', overflow: 'hidden' }}>
-        <div style={{ maxWidth: 1000, width: '100%', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gb-peach)', border: '1px solid rgba(255,255,255,.16)', borderRadius: 999, padding: '5px 12px' }}>How it works</span>
+    <section id="how-it-works" ref={containerRef} className="relative py-24 md:py-32 bg-[#F8FAFC] text-[#0F172A] overflow-hidden border-b-2 border-[#0F172A]/10">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <HowItWorksHeader />
+
+        {/* 3-Step Alternating Grid */}
+        <div className="relative space-y-24 md:space-y-32">
+          {/* Vertical Center Connector Track on Desktop */}
+          <div className="hidden md:block absolute left-1/2 top-10 bottom-10 w-6 -translate-x-1/2 pointer-events-none z-10">
+            {/* Background Dashed Line (Perfect 2px centered stroke) */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 border-l-2 border-dashed border-[#0055D4]/25" />
+
+            {/* Active Solid Laser Beam (Exact same 2px centered axis) */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 overflow-hidden">
+              <motion.div
+                style={{ height: beamHeight, opacity: beamOpacity }}
+                className="w-full bg-gradient-to-b from-[#0055D4] via-[#38BDF8] to-[#0055D4] shadow-[0_0_12px_#38BDF8]"
+              />
+            </div>
+
+            {/* Tracer Sparkle Dot that rides the exact center track (static solid glow, no blinking) */}
+            <motion.div
+              style={{ top: beamHeight, opacity: beamOpacity }}
+              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#0055D4] border-2 border-white shadow-[0_0_12px_rgba(0,85,212,0.6)] flex items-center justify-center z-20"
+            >
+              <div className="w-1 h-1 rounded-full bg-white" />
+            </motion.div>
           </div>
-          <h2 className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, lineHeight: 1.1, margin: '0 0 8px', textAlign: 'center' }}>
-            From browse to pickup<br /><span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>in minutes.</span>
-          </h2>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 10px' }}>
-            Follow an order from tap to counter.
-          </p>
 
-          <svg viewBox={L.viewBox} style={{ width: '100%', height: 'auto', maxHeight: L.maxH, display: 'block', margin: '0 auto', overflow: 'visible' }} aria-hidden>
-            {/* ambient glow under the route */}
-            <path d={L.path} fill="none" stroke="var(--gb-primary)" strokeWidth={9} strokeLinecap="round" style={{ filter: 'blur(7px)', opacity: 0.16 }} />
-            {/* dotted full track */}
-            <path d={L.path} fill="none" stroke="rgba(255,255,255,.16)" strokeWidth={2.5} strokeLinecap="round" strokeDasharray="1 12" />
-            {/* trail drawn in on scroll */}
-            <motion.path ref={pathRef} d={L.path} fill="none" stroke="var(--gb-primary)" strokeWidth={4} strokeLinecap="round"
-              pathLength={1} strokeDasharray={1} style={{ strokeDashoffset: reduced ? 0 : trail }} />
-
-            {/* station cards render after the path, so the line routes behind them */}
-            {L.nodes.map((node, i) => (
-              <Station key={`${isMobile}-${i}`} node={node} step={STEPS[i]} cardW={L.cardW} progress={scrollYProgress} reduced={reduced} />
-            ))}
-
-            {/* travelling order token, on top */}
-            <motion.g style={{ x: tokenX, y: tokenY }}>
-              <circle r={23} fill="var(--gb-primary)" style={{ filter: 'drop-shadow(0 0 11px rgba(255,177,0,.75))' }} />
-              <circle r={23} fill="none" stroke="#241612" strokeWidth={2} />
-              <text y={7} textAnchor="middle" fontSize={20}>☕</text>
-            </motion.g>
-          </svg>
+          <Step1Row />
+          <Step2Row />
+          <Step3Row />
         </div>
       </div>
     </section>

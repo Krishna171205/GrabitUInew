@@ -73,9 +73,8 @@ export function DesktopTopNav({ signedIn = true }: { signedIn?: boolean }) {
   const tabs = signedIn ? TABS : TABS.filter((t) => t.href === '/home' || t.href === '/explore');
   return (
     <nav className="gb-topnav">
-      <Link href="/home" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <MS name="storefront" size={24} color="var(--gb-primary)" />
-        <span className="gb-serif" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gb-ink)' }}>Grabbit</span>
+      <Link href="/home" style={{ display: 'flex', alignItems: 'center' }}>
+        <img src="/new-logo.svg" alt="Grabbit" style={{ height: 48, width: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }} />
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
         {tabs.map((t) => {

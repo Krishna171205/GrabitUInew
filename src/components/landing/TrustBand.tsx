@@ -1,23 +1,46 @@
 // grabbit/src/components/landing/TrustBand.tsx
 'use client';
-import { MS } from '@/components/gb/kit';
+import { motion } from 'framer-motion';
+import { Zap, SmartphoneNfc, MessageCircleHeart, Flame, BadgeCheck } from 'lucide-react';
 
 const PILLARS = [
-  { icon: 'bolt', label: 'Skip the wait' },
-  { icon: 'payments', label: 'Pay online, skip the queue' },
-  { icon: 'chat', label: 'WhatsApp updates' },
+  { icon: Zap, label: 'Skip the wait' },
+  { icon: SmartphoneNfc, label: 'Pay online, skip the queue' },
+  { icon: MessageCircleHeart, label: 'WhatsApp updates' },
+  { icon: Flame, label: 'Freshly brewed' },
+  { icon: BadgeCheck, label: 'Verified Partners' },
 ];
 
 export default function TrustBand() {
+  // We duplicate the items so the marquee can scroll seamlessly
+  const marqueeItems = [...PILLARS, ...PILLARS, ...PILLARS, ...PILLARS];
+
   return (
-    <section style={{ background: 'var(--gb-surface)', padding: '40px 22px' }}>
-      <div style={{ maxWidth: 1120, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'center' }}>
-        {PILLARS.map((p) => (
-          <div key={p.label} className="gb-hover-soft" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px', borderRadius: 999 }}>
-            <MS name={p.icon} size={24} fill color="var(--gb-primary)" />
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{p.label}</span>
-          </div>
-        ))}
+    <section className="relative overflow-hidden pt-28 pb-20 bg-[#F8FAFC] flex items-center justify-center z-10">
+      <div 
+        className="w-[110%] bg-[#0055D4] flex items-center shadow-[0_12px_40px_rgba(0,85,212,0.25)]"
+        style={{ transform: 'rotate(-2.5deg)' }}
+      >
+        <motion.div
+          animate={{ x: [0, "-50%"] }}
+          transition={{ repeat: Infinity, ease: 'linear', duration: 40 }}
+          className="flex items-center gap-16 py-4 md:py-5 px-8 shrink-0 w-max"
+        >
+          {marqueeItems.map((p, idx) => {
+            const Icon = p.icon;
+            return (
+              <div key={`${p.label}-${idx}`} className="flex items-center gap-3.5 shrink-0 group">
+                <Icon size={26} strokeWidth={2.5} className="text-[#FFEA00] -rotate-3 transition-transform group-hover:rotate-12 group-hover:scale-110" />
+                <span 
+                  className="text-[18px] md:text-[24px] font-normal text-white uppercase tracking-[0.15em]"
+                  style={{ fontFamily: 'var(--font-anton)' }}
+                >
+                  {p.label}
+                </span>
+              </div>
+            );
+          })}
+        </motion.div>
       </div>
     </section>
   );

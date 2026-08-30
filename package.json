@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@gradient365/gradient-commons": "file:../types",
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
     "@sentry/nextjs": "^10.67.0",
     "@tanstack/react-query": "^5.51.1",
     "clsx": "^2.1.1",
@@ -18,11 +20,14 @@
     "gsap": "^3.14.2",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
+    "lenis": "^1.3.26",
+    "lucide-react": "^1.33.0",
     "next": "^15.5.23",
     "ogl": "^1.0.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.5.0",
+    "three": "^0.185.1",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
@@ -30,6 +35,7 @@
     "@types/leaflet": "^1.9.22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
     "@typescript/native": "npm:typescript@^7.0.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.0.0",

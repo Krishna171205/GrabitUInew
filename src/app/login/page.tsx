@@ -1,8 +1,9 @@
 'use client';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MS } from '@/components/gb/kit';
-import { ph } from '@/components/gb/data';
+import GrabbitCup3D from '@/components/cup3d/GrabbitCup3D';
 
 type Step = 'phone' | 'otp';
 type Mode = 'login' | 'signup';
@@ -26,8 +27,15 @@ function LoginForm() {
   // each tap bought another SMS.
   const [sends, setSends] = useState(0);
   const [showNoAccount, setShowNoAccount] = useState(false);
+  // Splash first, brand-only, then auto-advances into the form - no tap required.
+  const [entered, setEntered] = useState(false);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
   const valid = phone.length === 10;
+
+  useEffect(() => {
+    const t = setTimeout(() => setEntered(true), 1400);
+    return () => clearTimeout(t);
+  }, []);
 
   async function sendOtp() {
     setLoading(true); setError(''); setOtpError(false);
@@ -113,21 +121,43 @@ function LoginForm() {
 
   return (
     <>
-      {/* hero image — a band above the form on a phone, the left half of the card on a laptop */}
-      <div className="gb-login-hero" style={{ position: 'relative', height: 296, flex: 'none' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={ph('photo-1495474472287-4d71bcdd2085', 900, 1000)} alt="Café" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div className="gb-login-scrim" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(40,24,16,.45) 0%,rgba(40,24,16,0) 26%,rgba(40,24,16,.55) 74%,#FAF6F0 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 30, left: 26, right: 26, color: '#fff' }}>
-          <div className="gb-serif" style={{ fontSize: 40, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>Grabbit</div>
-          <div className="gb-serif" style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.3, marginTop: 6, maxWidth: 280 }}>
-            Order ahead from cafés near you. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
-          </div>
-        </div>
-      </div>
+      {/* hero — starts as a full-screen brand splash, then morphs (via layout animation)
+          into the band above the form on a phone / left half of the card on a laptop.
+          Solid brand blue + the same 3D cup used on the landing footer, no stock photo. */}
+      <motion.div
+        layout
+        transition={{ type: 'spring', stiffness: 190, damping: 24 }}
+        className="gb-login-hero"
+        style={entered
+          ? { position: 'relative', height: 296, flex: 'none', overflow: 'hidden', background: 'linear-gradient(155deg, #0055D4 0%, #0040A1 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }
+          : { position: 'fixed', inset: 0, zIndex: 100, overflow: 'hidden', background: 'linear-gradient(155deg, #0055D4 0%, #0040A1 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      >
+        <div aria-hidden="true" style={{ position: 'absolute', top: -70, left: -50, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
+        <div aria-hidden="true" style={{ position: 'absolute', bottom: -90, right: -60, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,.06)' }} />
 
-      {/* form sheet */}
-      <div className="gb-login-form" style={{ flex: 1, background: 'var(--gb-surface)', padding: '14px 26px 30px', position: 'relative', zIndex: 2 }}>
+        <div style={{ position: 'relative', width: 130, height: 130 }}>
+          <GrabbitCup3D variant="spot" />
+        </div>
+        <div className="gb-serif" style={{ position: 'relative', fontSize: 28, fontWeight: 500, color: '#fff', lineHeight: 1.1 }}>
+          Welcome to Grabbit
+        </div>
+        <div className="gb-serif" style={{ position: 'relative', fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.85)', marginTop: 8, textAlign: 'center', maxWidth: 260 }}>
+          Order ahead from cafés near you. Skip the queue.
+        </div>
+
+      </motion.div>
+
+      {/* form sheet — mounts only once the splash has been dismissed */}
+      <AnimatePresence>
+        {entered && (
+          <motion.div
+            key="form"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="gb-login-form"
+            style={{ flex: 1, background: 'var(--gb-surface)', padding: '14px 26px 30px', position: 'relative', zIndex: 2 }}
+          >
         {step === 'phone' ? (
           <>
             {item && (
@@ -148,7 +178,7 @@ function LoginForm() {
                     fontSize: 13.5, fontWeight: 700, fontFamily: 'var(--gb-sans)',
                     background: mode === m ? '#fff' : 'transparent',
                     color: mode === m ? 'var(--gb-text)' : 'var(--gb-muted)',
-                    boxShadow: mode === m ? '0 2px 6px -2px rgba(60,40,25,.3)' : 'none',
+                    boxShadow: mode === m ? '0 2px 6px -2px rgba(15,23,42,.3)' : 'none',
                   }}
                 >
                   {m === 'login' ? 'Log in' : 'Sign up'}
@@ -244,7 +274,9 @@ function LoginForm() {
         )}
 
         {error && step === 'phone' && <p style={{ color: 'var(--gb-danger)', fontSize: 14, marginTop: 14, textAlign: 'center' }}>{error}</p>}
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {showNoAccount && (
         <div

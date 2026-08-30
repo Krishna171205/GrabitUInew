@@ -27,7 +27,11 @@ const securityHeaders = [
       // has to be allowed here or the browser blocks the request before it is sent.
       // That failure is invisible server-side (no S3 log, no object) and surfaces to
       // the user only as "Load failed", the same way the Cashfree iframe did below.
-      `connect-src 'self' https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com https://gradient-cafe-assets-676591241313.s3.ap-south-1.amazonaws.com${isDev ? ` ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8083'}` : ''}`,
+      // blob: is for the 3D cup, not a third party. GLTFLoader unpacks the textures
+      // embedded in the .glb into blob: URLs and fetches them back, which counts as
+      // connect-src - without this the model still renders but arrives untextured
+      // (a blank white cup), and the only trace is a console warning.
+      `connect-src 'self' blob: https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com https://gradient-cafe-assets-676591241313.s3.ap-south-1.amazonaws.com${isDev ? ` ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8083'}` : ''}`,
       // sdk.cashfree.com only hosts the loader/ping atoms. The v3 Drop-in renders the actual
       // checkout by POSTing a form into a modal iframe at api.cashfree.com/pg/view/sessions/checkout
       // (sandbox.cashfree.com in sandbox), so both frame-src AND form-action must allow it -

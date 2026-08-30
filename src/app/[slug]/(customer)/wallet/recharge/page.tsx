@@ -12,7 +12,7 @@ type WalletSlab = { readonly amountPaise: number; readonly bonusPaise: number; r
 
 interface WalletData { wallet: GrabbitWallet; }
 
-const CONFETTI_COLORS = ['#FFB100', '#4ade80', '#60a5fa', '#FF4D6D', '#ec4899', '#8b5cf6'];
+const CONFETTI_COLORS = ['#0055D4', '#4ade80', '#60a5fa', '#FF4D6D', '#ec4899', '#8b5cf6'];
 
 export default function RechargePage() {
   const { slug } = useParams<{ slug: string }>();

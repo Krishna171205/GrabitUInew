@@ -13,17 +13,21 @@ import type { StreakView } from '@/types/grabbit';
 interface Me { customerId: number; name: string | null; email: string | null; phone: string; avatar_url: string | null; }
 interface OrderView { status: string; payment_method: string; payment_status: string; total_amount: number; created_at: string; }
 
-
 /**
  * Index of the local calendar week (Monday to Sunday) a timestamp falls in.
  * The old version bucketed on floor(epoch / 7 days), which is a Thursday-to-Wednesday
  * UTC window, so "this week" rarely matched the week the customer is living in.
  */
-function Stat({ value, label, color }: { value: string; label: string; color: string }) {
+function Stat({ icon, iconColor, iconBg, value, label, color }: { icon: string; iconColor: string; iconBg: string; value: string; label: string; color: string }) {
   return (
-    <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ fontSize: 20, fontWeight: 800, color }}>{value}</div>
-      <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', fontWeight: 700, marginTop: 2 }}>{label}</div>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: iconBg, display: 'grid', placeItems: 'center', flex: 'none' }}>
+        <MS name={icon} size={20} fill color={iconColor} />
+      </div>
+      <div style={{ textAlign: 'left' }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1.1 }}>{value}</div>
+        <div style={{ fontSize: 11, color: 'var(--gb-muted-2)', fontWeight: 700, marginTop: 1 }}>{label}</div>
+      </div>
     </div>
   );
 }
@@ -202,26 +206,26 @@ export default function ProfilePage() {
           instead of being a band across the top of a phone-width strip. */}
       <div className="gb-profile-side">
       {/* header */}
-      <div style={{ background: 'var(--gb-hero)', paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 58, color: '#fff', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 'calc(26px + env(safe-area-inset-top))', right: 22, display: 'flex', gap: 10 }}>
+      <div style={{ background: 'var(--gb-hero)', paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 58, color: '#fff', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 'calc(26px + env(safe-area-inset-top))', right: 22, display: 'flex', gap: 10, zIndex: 1 }}>
           <Link href="/notifications" style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MS name="notifications" size={20} /></Link>
           <Link href="/settings" style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MS name="settings" size={20} /></Link>
         </div>
-        <div className="gb-id-row" style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-          <div style={{ position: 'relative', width: 66, height: 66, flex: 'none' }}>
-            <div style={{ width: 66, height: 66, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 700, background: 'rgba(255,255,255,.16)' }}>
+        <div className="gb-id-row" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10 }}>
+          <div style={{ position: 'relative', width: 92, height: 92, flex: 'none' }}>
+            <div style={{ width: 92, height: 92, borderRadius: '50%', border: '3px solid rgba(255,255,255,.4)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 34, fontWeight: 700, background: 'rgba(255,255,255,.16)' }}>
               {me?.avatar_url
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={me.avatar_url} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={66} />}
+                : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={92} />}
             </div>
             <button
               onClick={() => fileInput.current?.click()}
               disabled={uploadingAvatar}
               aria-label="Change profile picture"
-              style={{ position: 'absolute', bottom: -2, right: -2, width: 26, height: 26, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingAvatar ? 'wait' : 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,.3)' }}
+              style={{ position: 'absolute', bottom: -2, right: -2, width: 30, height: 30, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingAvatar ? 'wait' : 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,.3)' }}
             >
-              <MS name={uploadingAvatar ? 'hourglass_empty' : 'photo_camera'} size={14} color="var(--gb-primary)" />
+              <MS name={uploadingAvatar ? 'hourglass_empty' : 'photo_camera'} size={16} color="var(--gb-primary)" />
             </button>
             <input
               ref={fileInput} type="file" accept="image/*" hidden
@@ -229,9 +233,9 @@ export default function ProfilePage() {
             />
           </div>
           <div>
-            <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, lineHeight: 1.05 }}>{displayName}</div>
+            <div className="gb-serif" style={{ fontSize: 24, fontWeight: 500, lineHeight: 1.15 }}>{displayName}</div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,.78)', fontWeight: 500, marginTop: 3 }}>{me ? `+91 ${me.phone}` : ''}</div>
-            <button onClick={() => setEditing((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 7, background: 'rgba(255,255,255,.16)', padding: '4px 10px', borderRadius: 999, fontSize: 11.5, fontWeight: 700, border: 'none', color: '#fff', cursor: 'pointer' }}>
+            <button onClick={() => setEditing((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 10, background: 'rgba(255,255,255,.16)', padding: '5px 12px', borderRadius: 999, fontSize: 11.5, fontWeight: 700, border: 'none', color: '#fff', cursor: 'pointer' }}>
               <MS name="edit" size={15} />Edit profile
             </button>
           </div>
@@ -267,8 +271,12 @@ export default function ProfilePage() {
       <div className="gb-profile-main">
       {/* stats */}
       <div style={{ margin: '14px 16px 0', position: 'relative', zIndex: 1, background: '#fff', borderRadius: 20, border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-shadow-pop)', display: 'flex', padding: '16px 4px' }}>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}><Stat value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" /></div>
-        <div style={{ flex: 1, textAlign: 'center' }}><Stat value={favouritesCount === null ? '—' : String(favouritesCount)} label="Favourites" color="#C1502E" /></div>
+        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line)' }}>
+          <Stat icon="shopping_bag" iconColor="var(--gb-primary)" iconBg="var(--gb-primary-soft)" value={ordersCount === null ? '—' : String(ordersCount)} label="Orders" color="var(--gb-text)" />
+        </div>
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <Stat icon="favorite" iconColor="#F4623A" iconBg="#FFEDE8" value={favouritesCount === null ? '—' : String(favouritesCount)} label="Favourites" color="#F4623A" />
+        </div>
       </div>
 
       {/* wallet — top-up not live yet */}

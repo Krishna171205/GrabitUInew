@@ -43,7 +43,7 @@ export default function FAQSection() {
           variants={{ visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } } }}
           style={{ textAlign: 'center', marginBottom: 56 }}
         >
-          <motion.span variants={item} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gb-primary-soft)', color: '#241612', fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, marginBottom: 18 }}>
+          <motion.span variants={item} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gb-primary-soft)', color: '#0F172A', fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, marginBottom: 18 }}>
             FAQs
           </motion.span>
           <motion.h2 variants={item} className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, lineHeight: 1.1, margin: '0 0 16px', color: 'var(--gb-text-strong)' }}>

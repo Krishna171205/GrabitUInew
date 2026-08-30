@@ -10,39 +10,47 @@
 
 @theme {
   /* Core palette */
-  --color-primary: #FFB100;            /* Marigold */
-  --color-primary-pressed: #E09A00;
-  --color-primary-container: #FFCA45;
-  --color-on-primary: #241612;         /* INK on gold — never white */
-  --color-primary-tint: #FFF3DC;
-  --color-primary-tint-strong: #FFE7B0;
-  --color-inverse-primary: #FFD98A;
+  --color-primary: #0055D4;            /* Blue */
+  --color-primary-pressed: #0040A1;
+  --color-primary-container: #3377DE;
+  --color-on-primary: #FFFFFF;         /* White on blue */
+  --color-primary-tint: #E6F0FF;
+  --color-primary-tint-strong: #CCE0FF;
+  --color-inverse-primary: #99BBFF;
+
+  /* New premium tokens */
+  --color-espresso: #0F172A;
+  --color-cream: #F8FAFC;
+  --color-warm-neutral: #F1F5F9;
+  --color-amber: #0055D4;
+  --color-charcoal: #1E293B;
+  --color-beige: #E2E8F0;
 
   /* Surfaces / text */
-  --color-surface: #FFFDF8;            /* Paper */
+  --color-surface: #F8FAFC;            /* Paper */
   --color-surface-card: #ffffff;
-  --color-surface-low: #FFF8EC;
-  --color-surface-container: #FFF3DC;  /* Cream */
-  --color-surface-container-low: #FFF8EC;
+  --color-surface-low: #F1F5F9;
+  --color-surface-container: #E2E8F0;  /* Cream -> Slate 200 */
+  --color-surface-container-low: #F1F5F9;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-high: #FBEAC8;
-  --color-surface-dim: #F2E4C8;
-  --color-on-surface: #241612;         /* Espresso Ink */
-  --color-on-surface-strong: #1A0F0B;
-  --color-on-surface-variant: #4A3B33; /* Ink soft */
-  --color-muted: #8A7A6B;
-  --color-muted-2: #A99C8B;
-  --color-inverse-surface: #241612;
-  --color-inverse-on-surface: #FFF3DC;
-  --color-outline: #C9B79E;
-  --color-outline-variant: #EDE2CE;
-  --color-secondary: #6B5D50;
-  --color-secondary-container: #EFE3D0;
+  --color-surface-high: #CBD5E1;
+  --color-surface-dim: #94A3B8;
+  --color-on-surface: #0F172A;         /* Slate 900 */
+  --color-on-surface-strong: #020617;
+  --color-on-surface-variant: #334155; /* Slate 700 */
+  --color-muted: #64748B;
+  --color-muted-2: #94A3B8;
+  --color-inverse-surface: #0F172A;
+  --color-inverse-on-surface: #E6F0FF;
+  --color-outline: #CBD5E1;
+  --color-outline-variant: #E2E8F0;
+  --color-secondary: #475569;
+  --color-secondary-container: #F1F5F9;
 
-  /* Gold accent */
-  --color-tertiary: #8A5A00;
-  --color-tertiary-bright: #FFB100;
-  --color-tertiary-container: #FFE7B0;
+  /* Blue accent */
+  --color-tertiary: #1D4ED8;
+  --color-tertiary-bright: #3B82F6;
+  --color-tertiary-container: #BFDBFE;
 
   /* Status */
   --color-success: #1f9d57;
@@ -56,51 +64,52 @@
   --color-nonveg: #c8102e;
   --color-wa-green: #25d366;
 
-  /* Fonts — Marigold brand: Baloo 2 (display) + Satoshi (UI) + Mukta (Devanagari) */
-  --font-headline: var(--font-display), var(--font-deva), system-ui, sans-serif;
+  /* Fonts — Blue brand: Baloo 2 (display) + Satoshi (UI) + Mukta (Devanagari) */
+  --font-sans: var(--font-ui), var(--font-deva), system-ui, sans-serif;
+  --font-headline: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --font-body: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --font-label: var(--font-ui), var(--font-deva), system-ui, sans-serif;
 }
 
 :root {
   /* ---- Core palette ---- */
-  --primary: #FFB100;
-  --primary-pressed: #E09A00;
-  --primary-container: #FFCA45;
-  --on-primary: #241612;
-  --primary-tint: #FFF3DC;
-  --primary-tint-strong: #FFE7B0;
-  --inverse-primary: #FFD98A;
+  --primary: #0055D4;
+  --primary-pressed: #0040A1;
+  --primary-container: #3377DE;
+  --on-primary: #FFFFFF;
+  --primary-tint: #E6F0FF;
+  --primary-tint-strong: #CCE0FF;
+  --inverse-primary: #99BBFF;
   --pop: #FF4D6D;            /* Berry — rare accent / "hot" */
 
   /* ---- Surfaces ---- */
-  --surface: #FFFDF8;
+  --surface: #F8FAFC;
   --surface-card: #ffffff;
-  --surface-low: #FFF8EC;
-  --surface-container: #FFF3DC;
-  --surface-high: #FBEAC8;
-  --surface-dim: #F2E4C8;
+  --surface-low: #F1F5F9;
+  --surface-container: #E2E8F0;
+  --surface-high: #CBD5E1;
+  --surface-dim: #94A3B8;
 
   /* ---- Text ---- */
-  --on-surface: #241612;
-  --on-surface-strong: #1A0F0B;
-  --on-surface-variant: #4A3B33;
-  --muted: #8A7A6B;
-  --muted-2: #A99C8B;
-  --inverse-surface: #241612;
-  --inverse-on-surface: #FFF3DC;
+  --on-surface: #0F172A;
+  --on-surface-strong: #020617;
+  --on-surface-variant: #334155;
+  --muted: #64748B;
+  --muted-2: #94A3B8;
+  --inverse-surface: #0F172A;
+  --inverse-on-surface: #E6F0FF;
 
   /* ---- Lines / secondary ---- */
-  --outline: #C9B79E;
+  --outline: #CBD5E1;
   --hairline: rgba(0, 0, 0, 0.08);
   --hairline-strong: rgba(0, 0, 0, 0.12);
-  --secondary: #6B5D50;
-  --secondary-container: #EFE3D0;
+  --secondary: #475569;
+  --secondary-container: #F1F5F9;
 
-  /* ---- Gold accent (ratings / "must try") ---- */
-  --tertiary: #8A5A00;
-  --tertiary-bright: #FFB100;
-  --tertiary-container: #FFE7B0;
+  /* ---- Blue accent (ratings / "must try") ---- */
+  --tertiary: #1D4ED8;
+  --tertiary-bright: #3B82F6;
+  --tertiary-container: #BFDBFE;
 
   /* ---- Functional status ---- */
   --success: #1f9d57;
@@ -115,15 +124,23 @@
   --veg: #1f9d57;
   --nonveg: #c8102e;
 
+  /* ---- New premium tokens ---- */
+  --gb-espresso: #0F172A;
+  --gb-cream: #F8FAFC;
+  --gb-warm-neutral: #F1F5F9;
+  --gb-amber: #0055D4;
+  --gb-charcoal: #1E293B;
+  --gb-beige: #E2E8F0;
+
   /* ---- Frosted nav ---- */
   --glass-bg: rgba(255, 255, 255, 0.82);
   --glass-border: rgba(0, 0, 0, 0.10);
 
-  /* ---- Elevation (tinted to primary hue, not neutral black) ---- */
-  --shadow-card: 0 1px 3px rgba(36, 22, 18, 0.08), 0 8px 24px rgba(36, 22, 18, 0.06);
-  --shadow-float: 0 -2px 12px rgba(36, 22, 18, 0.10), 0 8px 28px rgba(36, 22, 18, 0.12);
-  --shadow-sheet: 0 -8px 40px rgba(36, 22, 18, 0.20);
-  --shadow-pop: 0 12px 40px rgba(36, 22, 18, 0.18);
+  /* ---- Elevation (tinted to cool hue, not neutral black) ---- */
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-float: 0 -2px 12px rgba(15, 23, 42, 0.10), 0 8px 28px rgba(15, 23, 42, 0.12);
+  --shadow-sheet: 0 -8px 40px rgba(15, 23, 42, 0.20);
+  --shadow-pop: 0 12px 40px rgba(15, 23, 42, 0.18);
 
   /* ---- Radii ---- */
   --r-sm: 8px;
@@ -145,7 +162,7 @@
 
   /* ---- Type ---- */
   --font: var(--font-ui), var(--font-deva), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-heading: var(--font-display), var(--font-deva), system-ui, sans-serif;
+  --font-heading: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --mono: 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
 
   /* ---- Motion ---- */
@@ -180,6 +197,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   margin: 0;
+  letter-spacing: 0.03em;
   min-height: max(884px, 100dvh);
 }
 
@@ -207,16 +225,20 @@ button {
 }
 
 /* ---- Type utilities ---- */
-.t-display   { font-size: 34px; font-weight: 800; line-height: 1.04; letter-spacing: -0.022em; }
-.t-headline  { font-size: 28px; font-weight: 700; line-height: 1.1;  letter-spacing: -0.015em; }
-.t-title     { font-size: 22px; font-weight: 700; line-height: 1.18; letter-spacing: -0.01em; }
+.t-display   { font-size: 34px; font-weight: 800; line-height: 1.04; letter-spacing: 0.015em; }
+.t-headline  { font-size: 28px; font-weight: 700; line-height: 1.1;  letter-spacing: 0.01em; }
+.t-title     { font-size: 22px; font-weight: 700; line-height: 1.18; letter-spacing: 0.01em; }
 .t-subtitle  { font-size: 20px; font-weight: 600; line-height: 1.3; }
-.t-headline-card { font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+.t-headline-card { font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; }
 .t-body      { font-size: 15px; font-weight: 400; line-height: 1.5; }
 .t-label     { font-size: 14px; font-weight: 600; line-height: 1.25; }
 .t-caption   { font-size: 13px; font-weight: 400; line-height: 1.35; color: var(--muted); }
-.t-price     { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.t-price     { font-size: 17px; font-weight: 600; letter-spacing: 0.01em; }
 .tabular     { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* New Vibrant Fonts */
+.font-anton { font-family: var(--font-anton), sans-serif; letter-spacing: 0.02em; }
+.font-caveat { font-family: var(--font-caveat), cursive; }
 
 /* ---- Line clamps ---- */
 .clamp1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
@@ -224,7 +246,56 @@ button {
 
 /* ---- Subtle scrollbars ---- */
 .noscroll::-webkit-scrollbar { display: none; }
-.noscroll { -ms-overflow-style: none; scrollbar-width: none; }
+.noscroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Lenis smooth scrolling configuration */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Elegant modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+  border: 2px solid #F1F5F9;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0055D4;
+}
+
+/* GPU hardware acceleration helper */
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
 
 /* ---- Skeleton shimmer ---- */
 @keyframes shimmer { 100% { transform: translateX(100%); } }
@@ -243,9 +314,9 @@ button {
 /* ---- Motion keyframes ---- */
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 @keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 177, 0, 0.45); }
-  70%  { box-shadow: 0 0 0 12px rgba(255, 177, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 177, 0, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(0, 85, 212, 0.45); }
+  70%  { box-shadow: 0 0 0 12px rgba(0, 85, 212, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 85, 212, 0); }
 }
 @keyframes pop-in { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -277,39 +348,39 @@ button {
    dark-cocoa ink, forest-green success, gold accents.
    ============================================================ */
 .gb-app {
-  --gb-surface: #FFF8EC;      /* warm paper */
+  --gb-surface: #F8FAFC;      /* cool paper */
   --gb-card: #ffffff;
-  --gb-ink: #241612;          /* espresso — dark buttons / nav / bezel */
-  --gb-text: #2A201A;
-  --gb-text-strong: #241612;
-  --gb-primary: #FFB100;      /* marigold — pair with INK text, never white */
-  --gb-on-primary: #241612;   /* ink text on marigold */
-  --gb-primary-soft: #FFE7B0; /* tinted chip / avatar bg */
-  --gb-primary-pale: #FFF3DC; /* selected slot */
-  --gb-muted: #8A7A6B;
-  --gb-muted-2: #A99C8B;
-  --gb-muted-3: #B4A691;      /* placeholders */
-  --gb-faint: #A2937F;        /* section eyebrow labels */
-  --gb-faint-2: #B7A992;      /* timestamps */
-  --gb-line: #F3E8D4;         /* row dividers */
-  --gb-line-2: #F0E6D2;       /* card borders */
-  --gb-line-3: #EADFC9;       /* chip borders */
-  --gb-line-4: #EEE3CE;       /* input / slot borders */
-  --gb-icon: #C9B79E;         /* chevrons */
-  --gb-nav-inactive: #B0A18C;
+  --gb-ink: #0F172A;          /* slate — dark buttons / nav / bezel */
+  --gb-text: #1E293B;
+  --gb-text-strong: #020617;
+  --gb-primary: #0055D4;      /* blue */
+  --gb-on-primary: #FFFFFF;   /* white text on blue */
+  --gb-primary-soft: #CCE0FF; /* tinted chip / avatar bg */
+  --gb-primary-pale: #E6F0FF; /* selected slot */
+  --gb-muted: #64748B;
+  --gb-muted-2: #94A3B8;
+  --gb-muted-3: #CBD5E1;      /* placeholders */
+  --gb-faint: #94A3B8;        /* section eyebrow labels */
+  --gb-faint-2: #CBD5E1;      /* timestamps */
+  --gb-line: #E2E8F0;         /* row dividers */
+  --gb-line-2: #E2E8F0;       /* card borders */
+  --gb-line-3: #CBD5E1;       /* chip borders */
+  --gb-line-4: #CBD5E1;       /* input / slot borders */
+  --gb-icon: #94A3B8;         /* chevrons */
+  --gb-nav-inactive: #94A3B8;
   --gb-green: #38743F;
   --gb-green-deep: #2A5238;
   --gb-green-tint: #F1F6EF;
   --gb-veg: #3E8E4E;
-  --gb-gold: #E09A00;
-  --gb-peach: #FFD98A;
+  --gb-gold: #0040A1;
+  --gb-peach: #99BBFF;
   --gb-danger: #C0392B;
 
-  --gb-hero: linear-gradient(158deg,#2A1B10 0%,#8A5A00 58%,#FFB100 116%);
-  --gb-shadow-card: 0 12px 28px -18px rgba(60,40,25,.45);
-  --gb-shadow-soft: 0 10px 22px -14px rgba(60,40,25,.4);
-  --gb-shadow-pop: 0 14px 30px -16px rgba(60,40,25,.4);
-  --gb-shadow-bar: 0 16px 30px -12px rgba(46,32,25,.6);
+  --gb-hero: linear-gradient(158deg,#050B14 0%,#003380 58%,#0055D4 116%);
+  --gb-shadow-card: 0 12px 28px -18px rgba(15,23,42,.45);
+  --gb-shadow-soft: 0 10px 22px -14px rgba(15,23,42,.4);
+  --gb-shadow-pop: 0 14px 30px -16px rgba(15,23,42,.4);
+  --gb-shadow-bar: 0 16px 30px -12px rgba(15,23,42,.6);
   /* One radius and elevation scale, so surfaces stop being hand-tuned per component.
      Four steps, far enough apart to read as deliberate: micro controls, controls,
      nested surfaces, cards. Pills stay 999. */
@@ -407,6 +478,7 @@ button {
   -webkit-backdrop-filter: saturate(160%) blur(28px);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 -20px 50px -24px rgba(46,32,25,.5);
 }
+.gb-app .gb-review-sheet { max-width: 480px; margin: 0 auto; }
 
 /* Pressable chrome answers the finger. Transform only, so it stays on the GPU. */
 .gb-app .gb-press {
@@ -620,8 +692,8 @@ button {
 .gb-hover-soft  { transition: transform 200ms var(--ease-out), background 200ms var(--ease-out); }
 
 @media (hover: hover) and (pointer: fine) {
-  .gb-hover-btn:hover   { transform: translateY(-2px); box-shadow: 0 12px 26px -12px rgba(120,70,0,.42); filter: brightness(1.03); }
-  .gb-hover-lift:hover  { transform: translateY(-4px); box-shadow: 0 20px 44px -18px rgba(120,70,0,.30); }
+  .gb-hover-btn:hover   { transform: translateY(-2px); box-shadow: 0 12px 26px -12px rgba(0,85,212,.42); filter: brightness(1.03); }
+  .gb-hover-lift:hover  { transform: translateY(-4px); box-shadow: 0 20px 44px -18px rgba(0,85,212,.30); }
   .gb-hover-glass:hover { transform: translateY(-4px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.28); }
   .gb-hover-link:hover  { color: var(--gb-ink); }
   .gb-hover-soft:hover  { transform: translateY(-2px); background: var(--gb-primary-soft); }
@@ -630,6 +702,24 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .gb-hover-btn:hover, .gb-hover-lift:hover, .gb-hover-glass:hover, .gb-hover-soft:hover,
   .gb-hover-btn:active { transform: none; }
+  .animate-orbit { animation: none !important; }
+}
+
+/* Orbiting Circles Animation (Magic UI) */
+@keyframes orbit {
+  0% {
+    transform: rotate(calc(var(--angle) * 1deg))
+      translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
+  }
+  100% {
+    transform: rotate(calc(var(--angle) * 1deg + 360deg))
+      translateY(calc(var(--radius) * 1px))
+      rotate(calc((var(--angle) * -1deg) - 360deg));
+  }
+}
+
+.animate-orbit {
+  animation: orbit calc(var(--duration) * 1s) linear infinite;
 }
 
 /* ── Streak card ────────────────────────────────────────────
@@ -652,8 +742,8 @@ button {
 /* Only the week still in play breathes, so the motion means "your turn". */
 .gb-app .gb-streak-now { animation: gb-streak-breathe 2.4s ease-in-out infinite; }
 @keyframes gb-streak-breathe {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,177,0,.45); }
-  50%      { box-shadow: 0 0 0 5px rgba(255,177,0,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,85,212,.45); }
+  50%      { box-shadow: 0 0 0 5px rgba(0,85,212,0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -697,7 +787,7 @@ button {
   .gb-profile-main > button { width: 100% !important; }
   /* Avatar over name rather than beside it: in a 340px panel the name would run
      under the notification and settings buttons pinned to the panel's corner. */
-  .gb-profile-side .gb-id-row { flex-direction: column; align-items: flex-start; gap: 13px; padding-top: 30px; }
+  .gb-profile-side .gb-id-row { flex-direction: column; align-items: center; text-align: center; gap: 13px; padding-top: 30px; }
 
   /* The streak, in a 340px column, was a ring beside copy that wrapped both of
      its lines twice. Stacked it reads as the thing it is meant to be, a stamp
@@ -732,12 +822,6 @@ button {
   /* The card is the whole page here, so it sits in the middle of it. */
   .gb-login-page { min-height: 100dvh; display: flex; align-items: center; justify-content: center; }
   .gb-login-hero { width: 380px; height: auto !important; align-self: stretch; }
-  /* The phone scrim fades to the page colour at its bottom edge so the image
-     melts into the sheet below it. Side by side there is nothing below to melt
-     into, so it goes back to a plain bottom-weighted scrim. */
-  .gb-login-scrim {
-    background: linear-gradient(180deg, rgba(40,24,16,.45) 0%, rgba(40,24,16,.05) 40%, rgba(40,24,16,.65) 100%) !important;
-  }
   .gb-login-form {
     background: var(--gb-card) !important;
     display: flex; flex-direction: column; justify-content: center;
@@ -781,6 +865,7 @@ button {
     /* A sheet is a phone gesture; on a laptop it is a panel that happens to come
        from the bottom edge. Cap it so it stops spanning the whole desk. */
     .gb-app .gb-glass-sheet { max-width: 560px; margin-left: auto; margin-right: auto; }
+    .gb-app .gb-review-sheet { max-width: 560px; }
   }
 
   @media (min-width: 1180px) {

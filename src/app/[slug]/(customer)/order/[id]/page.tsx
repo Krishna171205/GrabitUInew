@@ -32,7 +32,7 @@ function TimelineNode({ state, icon, title, sub, last }: { state: NodeState; ico
         {!last && <span style={{ width: 2, flex: 1, background: '#EEE4D6', minHeight: 22 }} />}
       </div>
       <div style={{ paddingBottom: 20 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: dim ? '#A99C8B' : 'var(--gb-text)' }}>{title}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: dim ? '#94A3B8' : 'var(--gb-text)' }}>{title}</div>
         <div style={{ fontSize: 12.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 1 }}>{sub}</div>
       </div>
     </div>

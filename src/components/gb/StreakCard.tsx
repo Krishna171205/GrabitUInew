@@ -25,11 +25,11 @@ import type { StreakView, StreakWeekCell } from '@/types/grabbit';
  * The ring is milestone progress, which turns a sentence into the shape of the card.
  */
 
-const INK = '#241612';
-const CREAM = '#FFF3E2';
-const MARIGOLD = '#FFB100';
+const INK = '#0F172A';
+const CREAM = '#F1F5F9';
+const MARIGOLD = '#0055D4';
 const FROST = '#9EC9EE';
-const MUTED = '#C6B3A0';
+const MUTED = '#94A3B8';
 
 function daysLeft(iso: string): number {
   return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000));
@@ -45,7 +45,7 @@ function Stamp({ cell }: { cell: StreakWeekCell }) {
     case 'ORDERED':
       return (
         <span title={cell.week} aria-label={`Ordered in week ${cell.week}`} style={{
-          ...base, background: MARIGOLD, color: INK,
+          ...base, background: MARIGOLD, color: '#fff',
           // A pressed stamp, not a flat dot.
           boxShadow: 'inset 0 -2px 0 rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.35)',
         }}>✓</span>
@@ -66,7 +66,7 @@ function Stamp({ cell }: { cell: StreakWeekCell }) {
     default:
       return (
         <span title={cell.week} aria-label={`No order in week ${cell.week}`} style={{
-          ...base, background: 'transparent', border: '1.5px solid rgba(255,243,226,.18)', color: 'transparent',
+          ...base, background: 'transparent', border: '1.5px solid rgba(241,245,249,.18)', color: 'transparent',
         }}>·</span>
       );
   }
@@ -76,7 +76,7 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
   const [rulesOpen, setRulesOpen] = useState(false);
 
   if (!streak) {
-    return <div style={{ margin: '0 16px', borderRadius: 22, height: 168, background: 'rgba(36,22,18,.06)' }} />;
+    return <div style={{ margin: '0 16px', borderRadius: 22, height: 168, background: 'rgba(15,23,42,.06)' }} />;
   }
 
   const s = streak;
@@ -107,8 +107,8 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
       aria-label={`Order streak: ${s.weeks} weeks, ${s.status.toLowerCase().replace('_', ' ')}`}
       style={{
         margin: '0 16px', borderRadius: 22, overflow: 'hidden',
-        background: `linear-gradient(152deg, ${INK} 0%, #33200F 62%, #3E2712 100%)`,
-        boxShadow: '0 14px 32px -18px rgba(36,22,18,.75)',
+        background: `linear-gradient(152deg, ${INK} 0%, #16213A 62%, #1B2942 100%)`,
+        boxShadow: '0 14px 32px -18px rgba(15,23,42,.75)',
         color: CREAM,
       }}
     >
@@ -116,7 +116,7 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
         {/* Grain: the stock should feel printed, not rendered. */}
         <div aria-hidden style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.35,
-          backgroundImage: 'radial-gradient(rgba(255,243,226,.14) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(rgba(241,245,249,.14) 1px, transparent 1px)',
           backgroundSize: '7px 7px',
         }} />
 
@@ -128,13 +128,13 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
               ['--gb-streak-deg' as string]: ringDeg,
               width: 76, height: 76, borderRadius: '50%', flex: 'none', display: 'grid', placeItems: 'center',
               background: dormant
-                ? 'conic-gradient(rgba(255,243,226,.16) 0deg, rgba(255,243,226,.16) 360deg)'
-                : `conic-gradient(${MARIGOLD} var(--gb-streak-deg), rgba(255,243,226,.14) 0)`,
+                ? 'conic-gradient(rgba(241,245,249,.16) 0deg, rgba(241,245,249,.16) 360deg)'
+                : `conic-gradient(${MARIGOLD} var(--gb-streak-deg), rgba(241,245,249,.14) 0)`,
             }}
           >
             <div style={{
               width: 62, height: 62, borderRadius: '50%', display: 'grid', placeItems: 'center',
-              background: 'radial-gradient(circle at 30% 25%, #3A2415, #241612)',
+              background: 'radial-gradient(circle at 30% 25%, #1E293B, #0F172A)',
             }}>
               <span className="gb-serif" style={{
                 fontSize: 30, fontWeight: 600, lineHeight: 1,
@@ -184,7 +184,7 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
         <div style={{ position: 'relative', marginTop: 16 }}>
           <div aria-hidden style={{
             position: 'absolute', left: 6, right: 6, top: '50%', height: 2, transform: 'translateY(-1px)',
-            background: 'rgba(255,243,226,.14)',
+            background: 'rgba(241,245,249,.14)',
           }} />
           <div style={{ position: 'relative', display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'space-between' }}>
             {s.recent_weeks.map((c) => <Stamp key={c.week} cell={c} />)}
@@ -219,9 +219,9 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
       {(s.status === 'BROKEN' && s.earn_back) && (
         <Link href={orderHref} style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px',
-          background: MARIGOLD, color: INK, textDecoration: 'none',
+          background: MARIGOLD, color: '#fff', textDecoration: 'none',
         }}>
-          <MS name="replay" size={19} color={INK} />
+          <MS name="replay" size={19} color="#fff" />
           <span style={{ flex: 1, fontSize: 13.5, fontWeight: 800 }}>
             Order this week, get your {s.earn_back.weeks} weeks back
           </span>
@@ -232,13 +232,13 @@ export function StreakCard({ streak, slug }: { streak: StreakView | null; slug?:
       {(s.status === 'AT_RISK' || s.status === 'NONE') && (
         <Link href={orderHref} style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px',
-          background: MARIGOLD, color: INK, textDecoration: 'none',
+          background: MARIGOLD, color: '#fff', textDecoration: 'none',
         }}>
-          <MS name="local_cafe" size={19} color={INK} />
+          <MS name="local_cafe" size={19} color="#fff" />
           <span style={{ flex: 1, fontSize: 13.5, fontWeight: 800 }}>
             {s.status === 'NONE' ? 'Start your streak' : 'Keep it going'}
           </span>
-          <MS name="chevron_right" size={18} color={INK} />
+          <MS name="chevron_right" size={18} color="#fff" />
         </Link>
       )}
       {rulesOpen && <StreakRulesSheet streak={s} onClose={() => setRulesOpen(false)} />}

@@ -12,6 +12,7 @@
  * cartValue prop. What a cafe charges is a property of an order, not of a home.
  */
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/kit';
 import { MS } from '@/components/gb/kit';
@@ -26,6 +27,7 @@ const labelIcon = (label: string) =>
   label === 'Work' ? 'work' : label === 'Home' ? 'home' : 'location_on';
 
 export default function AddressesPage() {
+  const router = useRouter();
   const [rows, setRows] = useState<SavedAddress[] | null>(null);
   const [signedOut, setSignedOut] = useState(false);
   const [sheet, setSheet] = useState<null | { editing: DraftAddress | null }>(null);
@@ -73,7 +75,7 @@ export default function AddressesPage() {
 
   return (
     <div className="gb-shell gb-shell-read">
-      <TopBar title="Saved addresses" />
+      <TopBar title="Saved addresses" onBack={() => router.push('/profile')} />
 
       {rows === null && (
         <div style={{ padding: '28px 0', textAlign: 'center', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>Loading…</div>

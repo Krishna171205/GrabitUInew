@@ -170,8 +170,9 @@ export function ReviewSheet({ pending, cafeName, onClose, onReviewed }: {
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 320 }}
         onClick={(e) => e.stopPropagation()}
+        className="gb-review-sheet"
         style={{
-          width: '100%', maxWidth: 480, height: '68dvh', background: 'var(--gb-surface)',
+          width: '100%', height: '68dvh', background: 'var(--gb-surface)',
           borderTopLeftRadius: 24, borderTopRightRadius: 24, boxShadow: '0 -18px 48px rgba(30,15,5,.28)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative',
         }}

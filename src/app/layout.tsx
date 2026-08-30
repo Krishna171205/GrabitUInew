@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Baloo_2, Mukta } from 'next/font/google';
+import { Baloo_2, Mukta, Anton, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
 import { UpdateOnResume } from '@/components/gb/UpdateOnResume';
+import AnimatedFavicon from '@/components/cup3d/AnimatedFavicon';
 import { SITE_URL, SITE_NAME, DESCRIPTION } from '@/lib/seo';
 
 // Grabbit brand type, Marigold system.
@@ -36,10 +37,26 @@ const mukta = Mukta({
   variable: '--font-deva',
 });
 
+// Vibrant Display Font
+const anton = Anton({
+  subsets: ['latin'],
+  weight: ['400'],
+  display: 'swap',
+  variable: '--font-anton',
+});
+
+// Handwriting Script Font
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  variable: '--font-caveat',
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME}: Order ahead, skip the queue — ${SITE_NAME}`,
+    default: `${SITE_NAME}: Order ahead, skip the queue`,
     template: `%s | ${SITE_NAME} — Order Coffee Ahead`,
   },
   description: DESCRIPTION,
@@ -98,11 +115,8 @@ export const metadata: Metadata = {
     images: [`${SITE_URL}/og-image.svg`],
   },
   icons: {
-    icon: [
-      { url: '/grabbit-logo.svg', sizes: 'any', type: 'image/svg+xml' },
-      { url: '/grabbit-logo.svg', rel: 'mask-icon', color: '#241612' },
-    ],
-    apple: [{ url: '/grabbit-logo.svg', sizes: '180x180' }],
+    icon: [{ url: '/favicon-icon.png', sizes: '315x315', type: 'image/png' }],
+    apple: [{ url: '/favicon-icon.png', sizes: '315x315' }],
   },
   category: 'Food & Dining',
 };
@@ -115,12 +129,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#FFFDF8',
+  themeColor: '#F8FAFC',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable}`}>
+    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
       <head>
         {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link
@@ -136,6 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <UpdateOnResume />
+        <AnimatedFavicon />
       </body>
     </html>
   );

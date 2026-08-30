@@ -2,7 +2,9 @@
 import { useState } from 'react';
 import { MS, TopBar, Eyebrow } from '@/components/gb/kit';
 
-const SUPPORT_EMAIL = 'support@grabit.app';
+// Grabbit doesn't have its own support inbox yet - route to the parent company's
+// until one exists.
+const SUPPORT_EMAIL = 'hello@unifiednexgrade.com';
 
 const FAQ: { q: string; a: string }[] = [
   { q: 'How do I get a refund?', a: 'If your order was cancelled or not handed over, the amount is auto-refunded to your original payment method within 3–5 business days. Reach out above if it hasn’t arrived.' },
@@ -21,11 +23,11 @@ export default function SupportPage() {
     <div className="gb-shell gb-shell-read">
       <TopBar title="Help & support" />
       <div style={{ padding: '18px 16px 30px' }}>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, lineHeight: 1.3, padding: '0 4px' }}>How can we help?</div>
+        <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3, padding: '0 4px', color: 'var(--gb-text)' }}>How can we help?</div>
 
         {/* email our team */}
         <a href={`mailto:${SUPPORT_EMAIL}`} style={{ marginTop: 14, background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: 16, display: 'flex', alignItems: 'center', gap: 13 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 12, background: '#EDE4D6', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+          <div style={{ width: 46, height: 46, borderRadius: 12, background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
             <MS name="mail" size={24} fill color="var(--gb-gold)" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -39,14 +41,14 @@ export default function SupportPage() {
         {/* problem form */}
         <Eyebrow style={{ padding: '22px 4px 8px' }}>Send us your problem</Eyebrow>
         <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, padding: 16 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6E6155', marginBottom: 6 }}>Subject</div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-muted-2)', marginBottom: 6 }}>Subject</div>
           <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Issue with my order…" style={{ ...field, marginBottom: 14 }} />
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6E6155', marginBottom: 6 }}>Describe the issue</div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-muted-2)', marginBottom: 6 }}>Describe the issue</div>
           <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Tell us what went wrong and we'll get back to you at your registered email…" style={{ ...field, minHeight: 90, lineHeight: 1.5, resize: 'vertical' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, color: 'var(--gb-muted)', fontSize: 12, fontWeight: 600 }}>
             <MS name="attach_file" size={18} color="var(--gb-primary)" />Attach a photo (optional)
           </div>
-          <a href={mailto} style={{ display: 'block', marginTop: 14, background: 'var(--gb-primary)', color: '#fff', borderRadius: 13, padding: 14, textAlign: 'center', fontSize: 15, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(177,90,50,.6)' }}>
+          <a href={mailto} style={{ display: 'block', marginTop: 14, background: 'var(--gb-primary)', color: '#fff', borderRadius: 13, padding: 14, textAlign: 'center', fontSize: 15, fontWeight: 800, boxShadow: '0 12px 24px -10px rgba(0,85,212,.6)' }}>
             Send to {SUPPORT_EMAIL}
           </a>
         </div>
