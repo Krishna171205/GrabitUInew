@@ -1,12 +1,21 @@
 'use client';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Annotation } from './Annotation';
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  // The autoplay attribute alone is flaky on iOS Safari - it silently falls
+  // back to a paused video with native controls instead of actually playing.
+  // muted + playsInline (already set below) make autoplay legal there; this
+  // makes it actually happen.
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {});
+  }, []);
 
   // Scroll parallax effects
   const { scrollY } = useScroll();
@@ -111,6 +120,7 @@ export default function Hero() {
           >
             {/* Gentle continuous float animation on the video element itself */}
             <motion.video
+              ref={videoRef}
               src="/grabv1.mp4"
               autoPlay
               loop
