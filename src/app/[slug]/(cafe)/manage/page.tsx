@@ -282,11 +282,16 @@ function QueueCard({
   // Chef times from the menu give a starting number, so accepting is one tap and
   // adjusting is a nudge, not a calculation.
   const [prepMins, setPrepMins] = useState(order.suggested_prep_minutes ?? 10);
-  const startBy = new Date(new Date(order.pickup_slot).getTime() - prepMins * 60000);
-  const startsLate = startBy.getTime() <= Date.now();
-  const mins = minsUntil(order.pickup_slot);
-  const overdue = mins < 0;
-  const dueText = overdue ? `Overdue ${Math.abs(mins)}m` : mins === 0 ? 'Due now' : `Due in ${mins}m`;
+  // Delivery and dine-in orders have no pickup slot, so there is no deadline to be
+  // late for. Without this, new Date(null) made every such order read "Overdue".
+  const slot = order.pickup_slot;
+  const startBy = slot ? new Date(new Date(slot).getTime() - prepMins * 60000) : null;
+  const startsLate = startBy != null && startBy.getTime() <= Date.now();
+  const mins = slot ? minsUntil(slot) : null;
+  const overdue = mins != null && mins < 0;
+  const dueText = mins == null
+    ? (order.delivery ? 'For delivery' : 'As soon as ready')
+    : overdue ? `Overdue ${Math.abs(mins)}m` : mins === 0 ? 'Due now' : `Due in ${mins}m`;
 
   const hasTimer = order.status === 'prepping' && order.prep_ready_at;
   const prepMinsLeft = hasTimer
@@ -352,7 +357,9 @@ function QueueCard({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="t-caption" style={{ fontWeight: 700, color: 'var(--on-surface-variant)' }}>Prep time</div>
             <div className="t-caption" style={{ color: startsLate ? 'var(--error)' : 'var(--muted)' }}>
-              {startsLate ? 'Start now to make the slot' : `Start by ${startBy.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+              {startBy == null
+                ? 'Start as soon as you can'
+                : startsLate ? 'Start now to make the slot' : `Start by ${startBy.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: 'var(--surface-card)', border: '1px solid var(--hairline)', borderRadius: 'var(--r-pill)', padding: 2 }}>

@@ -21,8 +21,39 @@ import { offerHeadline, offerTerms, type GrabbitOffer } from '@/components/gb/of
 import { useOfferRotation, OFFER_SLIDE_MS } from '@/components/gb/useOfferRotation';
 import { useBackTo } from '@/lib/useBackTo';
 import { menuImageSrc } from '@/lib/menu-image';
+import { AddressSheet } from '@/components/gb/AddressSheet';
+import { getPickedAddress, listAddresses, quoteDelivery, saveAddress, setPickedAddress, shortAddress, type DeliveryQuote, type DraftAddress } from '@/components/gb/delivery';
 
 interface SlotsData { slots: GrabbitAvailableSlot[]; label: string | null; }
+
+/**
+ * Why the cafe will not bring this order here, in words that say what to do next.
+ *
+ * Every branch has an action in it, because "no" on its own leaves the customer
+ * staring at a full basket. Only BELOW_MIN_ORDER is recoverable by spending more,
+ * and it is the one worth naming a number for.
+ */
+function unserviceableReason(quote: DeliveryQuote, itemsPayable: number): string {
+  switch (quote.reason) {
+    case 'BELOW_MIN_ORDER': {
+      const min = Number(quote.min_order_value ?? 0);
+      const short = Math.max(0, min - itemsPayable);
+      return short > 0
+        ? `Delivery starts at ${inr(min)}. Add ${inr(short)} more, or switch to pickup.`
+        : `Delivery starts at ${inr(min)} of items. Switch to pickup to order now.`;
+    }
+    case 'OUT_OF_RANGE':
+      return quote.max_distance_km
+        ? `Too far to deliver. They reach up to ${quote.max_distance_km} km, and this is ${quote.distance_km} km away. Pick another address, or switch to pickup.`
+        : 'This address is outside the area they deliver to. Pick another, or switch to pickup.';
+    case 'NO_PIN':
+      // The cafe has not placed itself on the map, so no distance can be measured.
+      // Nothing the customer can fix, so do not ask them to try another address.
+      return 'This cafe has not set its location yet, so delivery cannot be worked out. Pickup is available.';
+    default:
+      return 'This cafe is not delivering right now. Switch to pickup to order.';
+  }
+}
 
 function dateStr(offsetDays: number) {
   const d = new Date();
@@ -475,6 +506,13 @@ export default function CartPage() {
   const [checkingAuth, setCheckingAuth] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [dineInTable, setDineInTable] = useState<string | null>(null);
+  // Delivery: off unless the cafe offers it, and never on a dine-in table.
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
+  const [mode, setMode] = useState<'pickup' | 'delivery'>('pickup');
+  const [address, setAddress] = useState<DraftAddress | null>(null);
+  const [quote, setQuote] = useState<DeliveryQuote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [addressSheetOpen, setAddressSheetOpen] = useState(false);
   const [notes, setNotes] = useState('');
   const [showCustomTime, setShowCustomTime] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -514,6 +552,9 @@ export default function CartPage() {
   const [recCat, setRecCat] = useState<GrabbitMenuCategory | 'all'>('all');
   useEffect(() => {
     setDineInTable(sessionStorage.getItem('grabbit_table'));
+    // The address the customer last chose survives a reload, because checkout is
+    // open to guests and there is no account to read it back from yet.
+    setAddress(getPickedAddress());
     const savedNotes = sessionStorage.getItem('grabbit_notes') ?? '';
     setNotes(savedNotes);
     if (savedNotes) setShowNoteInput(true);
@@ -535,6 +576,9 @@ export default function CartPage() {
   // seven minute cart at 1:50 landed on 2:00 and read as a ten minute wait next to
   // a seven minute promise. ASAP is that exact minute instead, which the order API
   // accepts the same way it accepts a custom time off the wheel.
+  //
+  // Delivery books no slot at all: the same prep time is what the rider waits on,
+  // not something the customer picks, so none of this is rendered for it.
   //
   // Only for today's own slots: when the cart has fallen through to tomorrow's
   // list, nothing is ready in seven minutes and offering it would be a lie. And
@@ -581,7 +625,13 @@ export default function CartPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSlot, prepMinutes, asapChosen, asapSlot?.slot_start]);
 
-  const canProceed = dineInTable ? true : !!selectedSlot;
+  const delivering = mode === 'delivery' && !dineInTable && deliveryEnabled;
+  const canProceed = dineInTable
+    ? true
+    : delivering
+      ? !!address && !quoting && quote?.serviceable === true
+      : !!selectedSlot;
+
 
   // Habit is to jump straight to Pay: instead of a dead disabled button, point at
   // the thing that's missing (scroll + shake + a short haptic).
@@ -618,13 +668,14 @@ export default function CartPage() {
     const resolveIds = async () => {
       const cached = sessionStorage.getItem(`grabbit_cafe_id_${slug}`);
       let cid: number | null = cached ? Number(cached) : null;
-      if (!cid) {
-        try {
-          const d = await fetch(`/api/proxy/grabit/menu/${slug}`).then(r => (r.ok ? r.json() : null));
-          cid = d?.cafe?.id ?? null;
-          if (cid) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cid));
-        } catch { /* ignore */ }
-      }
+      // Always read the menu: the cached id says nothing about whether this cafe
+      // delivers, and offering delivery it cannot do is the worse failure.
+      try {
+        const d = await fetch(`/api/proxy/grabit/menu/${slug}`).then(r => (r.ok ? r.json() : null));
+        cid = d?.cafe?.id ?? cid;
+        if (cid) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cid));
+        setDeliveryEnabled(d?.cafe?.delivery_enabled === true);
+      } catch { /* ignore */ }
       setCafeId(cid);
     };
     resolveIds();
@@ -690,6 +741,9 @@ export default function CartPage() {
 
   const cafeName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Your order';
   const subtotal = total();
+  // Preview only, the same way the offer discount above is: order creation re-quotes
+  // from the coordinates, so a stale number here can misdisplay but never mischarge.
+  const deliveryFee = delivering && quote?.serviceable ? Number(quote.charge ?? 0) : 0;
 
   // FIRST_ORDER offers depend on eligibility (has this customer ever ordered
   // here?) that only the server knows - never auto-apply one here, since a
@@ -749,7 +803,75 @@ export default function CartPage() {
   // never reach the bill or the create-order payload, or an unclaimed FREE_ITEM
   // reads as auto-applied and the server grants it.
   const appliedOffer = bestOffer && freeItemClaimed ? bestOffer : undefined;
-  const toPay = Math.max(0, appliedOffer ? subtotal - appliedOffer.discount : subtotal);
+  // What the items come to after any offer, before delivery. The server prices the
+  // ride from exactly this number (OrderService: delivery is quoted from `payable`),
+  // and measures the cafe's minimum against it, so quoting from anything else here
+  // would show a customer one answer and charge them another.
+  const itemsPayable = Math.max(0, appliedOffer ? subtotal - appliedOffer.discount : subtotal);
+  const toPay = itemsPayable + deliveryFee;
+
+  // A returning customer has an address book; the one they marked default is the
+  // one they meant. Only consulted when they switch to delivery and have not already
+  // chosen an address for this basket, so a guest never triggers a 401 for nothing
+  // and nobody's explicit choice is overwritten.
+  // A ref, not state, and no cancellation on unmount: React remounts every effect once
+  // in development, and a state flag set on the first mount made the second mount skip
+  // while the first mount's answer was thrown away as stale, so the address never
+  // arrived. Both fetches below are idempotent, so the only guard needed is "once".
+  const defaultTried = useRef(false);
+  useEffect(() => {
+    if (!delivering || address || defaultTried.current) return;
+    defaultTried.current = true;
+    listAddresses().then((rows) => {
+      if (rows.length === 0) return;
+      const preferred = rows.find((r) => r.is_default) ?? rows[0];
+      const { id, label, line1, line2, landmark, formatted_address, latitude, longitude } = preferred;
+      const picked = { id, label, line1, line2, landmark, formatted_address, latitude, longitude };
+      setPickedAddress(picked);
+      setAddress(picked);
+    });
+  }, [delivering, address]);
+
+  // The mirror case: an address chosen before logging in lives only in this browser,
+  // and the customer is sent to log in from this very screen. Adopt it into the book
+  // once there is an account to hang it on, or their first address is the one address
+  // that never appears in their address book. A guest gets null back and nothing else
+  // happens, so this stays a no-op until they sign in.
+  const adoptTried = useRef(false);
+  useEffect(() => {
+    if (!delivering || !address || address.id || adoptTried.current) return;
+    adoptTried.current = true;
+    saveAddress(address).then((saved) => {
+      if (!saved) return;
+      const owned = { ...address, id: saved.id };
+      setPickedAddress(owned);
+      setAddress(owned);
+    });
+  }, [delivering, address]);
+
+  // A cafe can turn delivery off, or move its slabs, between the address being saved
+  // and this basket being paid. Re-quote rather than trusting what was shown before.
+  //
+  // The basket's value is part of the question, not just the address: a cafe with a
+  // minimum refuses the same address until the cart clears it. Debounced, because
+  // this re-runs on every quantity tap.
+  useEffect(() => {
+    if (!delivering || !address || !cafeId) { setQuote(null); setQuoting(false); return; }
+    let live = true;
+    // Drop the previous answer before asking again. It was priced for a different
+    // basket or a different address, and leaving it up meant the bill showed a
+    // delivery charge, and Place Order stayed live, against a quote the server was
+    // about to refuse: drop one item below the cafe's minimum and the old ₹30 stood
+    // for a third of a second with the button still enabled.
+    setQuote(null);
+    setQuoting(true);
+    const timer = setTimeout(() => {
+      quoteDelivery(cafeId, address.latitude, address.longitude, itemsPayable)
+        .then((q) => { if (live) setQuote(q); })
+        .finally(() => { if (live) setQuoting(false); });
+    }, 350);
+    return () => { live = false; clearTimeout(timer); };
+  }, [delivering, address, cafeId, itemsPayable]);
 
   // The customer claims the FREE_ITEM giveaway with an explicit tap (see claimFreeItem
   // below) rather than it being auto-added - not everyone wants the free item, and
@@ -827,7 +949,12 @@ export default function CartPage() {
     : availableRecs.filter(r => r.category === activeRecCat);
 
   async function placeOrder() {
-    if (!canProceed) { nudgeSlot(); return; }
+    if (!canProceed) {
+      // Nothing to shake at when the address itself is missing: open the picker.
+      if (delivering && !address) { setAddressSheetOpen(true); return; }
+      nudgeSlot();
+      return;
+    }
     setCheckingAuth(true);
     setError('');
     // Fresh check right before proceeding - the cafe could have gone offline
@@ -837,7 +964,7 @@ export default function CartPage() {
       .then((d) => d.acceptingOrders !== false)
       .catch(() => true); // fail open, same as the server-side check
     if (!accepting) { setCheckingAuth(false); setShowOfflineModal(true); return; }
-    if (dineInTable) {
+    if (dineInTable || delivering) {
       sessionStorage.removeItem('grabbit_slot');
       sessionStorage.removeItem('grabbit_slot_asap');
     } else {
@@ -916,7 +1043,22 @@ export default function CartPage() {
           cafe_id: cafeId,
           ...(dineInTable
             ? { order_type: 'dine_in', table_number: Number(dineInTable) }
-            : { pickup_slot: selectedSlot }),
+            : delivering && address
+              ? {
+                  order_type: 'delivery',
+                  // No charge in here on purpose: the server re-quotes it from these
+                  // coordinates, so there is nothing for a tampered client to set.
+                  delivery: {
+                    address_id: address.id ?? null,
+                    line1: address.line1,
+                    line2: address.line2 ?? null,
+                    landmark: address.landmark ?? null,
+                    formatted_address: address.formatted_address ?? null,
+                    latitude: address.latitude,
+                    longitude: address.longitude,
+                  },
+                }
+              : { pickup_slot: selectedSlot }),
           ...(notes ? { notes } : {}),
           payment_method: 'online' as const,
           offer_id: offerIdToSend,
@@ -1033,7 +1175,7 @@ export default function CartPage() {
           <button onClick={() => router.push(`/${slug}`)} aria-label="Back" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #EEE5D8', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><MS name="arrow_back" size={19} color="var(--gb-ink)" /></button>
           <div>
             <div className="gb-serif" style={{ fontSize: 17.5, fontWeight: 500, lineHeight: 1 }}>{cafeName}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : 'Pickup'}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{items.length} item{items.length > 1 ? 's' : ''} · {dineInTable ? 'Dine-in' : delivering ? 'Delivery' : 'Pickup'}</div>
           </div>
         </div>
       </div>
@@ -1149,6 +1291,33 @@ export default function CartPage() {
         )}
       </div>
 
+      {/* pickup or delivery: only shown when this cafe actually delivers */}
+      {!dineInTable && deliveryEnabled && (
+        <div style={{ margin: '14px 16px 0', display: 'flex', gap: 3, background: 'var(--gb-surface)', border: '1px solid var(--gb-line-2)', borderRadius: 13, padding: 3 }}>
+          {(['pickup', 'delivery'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => {
+                setMode(m);
+                // Choosing delivery with nothing to deliver to is a dead end: ask straight away.
+                if (m === 'delivery' && !address) setAddressSheetOpen(true);
+              }}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: mode === m ? '#fff' : 'transparent',
+                color: mode === m ? 'var(--gb-text)' : '#8A7C6C',
+                boxShadow: mode === m ? '0 1px 4px rgba(60,40,25,.15)' : 'none',
+                fontSize: 13, fontWeight: 800,
+              }}
+            >
+              <MS name={m === 'pickup' ? 'storefront' : 'delivery_dining'} size={17} />
+              {m === 'pickup' ? 'Pickup' : 'Delivery'}
+            </button>
+          ))}
+        </div>
+      )}
+
       {dineInTable ? (
         /* dine-in: table service, no pickup slot */
         <div style={{ margin: '14px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
@@ -1158,6 +1327,57 @@ export default function CartPage() {
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3, marginLeft: 25 }}>We&apos;ll bring your order to the table.</div>
         </div>
+      ) : delivering ? (
+      /* delivery: an address instead of a slot. Delivery is as soon as it is ready. */
+      <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '14px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <MS name="delivery_dining" size={18} fill color="var(--gb-primary)" />
+          <div className="gb-serif" style={{ fontSize: 15.5, fontWeight: 500, flex: 1 }}>Delivery address</div>
+          {address && (
+            <button
+              onClick={() => setAddressSheetOpen(true)}
+              style={{ flex: 'none', border: '1.5px solid #EEE4D6', background: '#fff', color: '#5A4E42', fontSize: 11.5, fontWeight: 700, padding: '6px 11px', borderRadius: 10, cursor: 'pointer' }}
+            >
+              Change
+            </button>
+          )}
+        </div>
+
+        {!address ? (
+          <button
+            onClick={() => setAddressSheetOpen(true)}
+            style={{ marginTop: 11, width: '100%', display: 'flex', alignItems: 'center', gap: 9, border: '1.5px dashed var(--gb-primary)', background: 'var(--gb-primary-pale)', borderRadius: 13, padding: '12px 13px', cursor: 'pointer', color: 'var(--gb-primary)', fontSize: 13.5, fontWeight: 800 }}
+          >
+            <MS name="add_location_alt" size={19} />Add your delivery address
+          </button>
+        ) : (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <MS name={address.label === 'Work' ? 'work' : address.label === 'Home' ? 'home' : 'location_on'} size={17} color="var(--gb-primary)" />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--gb-text)' }}>{address.label}</div>
+                <div style={{ fontSize: 12, color: 'var(--gb-muted)', marginTop: 2, fontWeight: 600, lineHeight: 1.45 }}>
+                  {shortAddress(address)}{address.landmark ? ` · ${address.landmark}` : ''}
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: 9, fontSize: 12, fontWeight: 700 }}>
+              {quoting && <span style={{ color: 'var(--gb-muted)' }}>Checking delivery…</span>}
+              {!quoting && quote?.serviceable && (
+                <span style={{ color: 'var(--gb-green)' }}>
+                  {quote.charge ? `₹${quote.charge} delivery` : 'Free delivery'}{quote.distance_km ? ` · ${quote.distance_km} km` : ''} · we start as soon as it is ready
+                </span>
+              )}
+              {!quoting && quote && !quote.serviceable && (
+                <span style={{ color: '#C2410C' }}>{unserviceableReason(quote, itemsPayable)}</span>
+              )}
+              {!quoting && quote === null && (
+                <span style={{ color: 'var(--gb-muted)' }}>Could not check delivery for this address just now.</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
       ) : (
       /* pickup slot */
       <div ref={slotRef} className={shakeSlot ? 'gb-shake' : undefined} style={{ margin: '14px 16px 0', background: '#fff', border: `1px solid ${shakeSlot ? 'var(--gb-primary)' : 'var(--gb-line-2)'}`, borderRadius: 16, padding: 14, boxShadow: '0 12px 26px -20px rgba(60,40,25,.4)' }}>
@@ -1231,6 +1451,15 @@ export default function CartPage() {
         </div>
       </div>
       )}
+      {addressSheetOpen && (
+        <AddressSheet
+          cafeId={cafeId}
+          cartValue={itemsPayable}
+          onPicked={(a) => setAddress(a)}
+          onClose={() => setAddressSheetOpen(false)}
+        />
+      )}
+
       {pickerOpen && bookableSlots.length > 0 && (
         <TimeWheelSheet
           initialIso={customTimeIso ?? bookableSlots[nearestAvailableSlotIndexToNow(bookableSlots)].slot_start}
@@ -1302,6 +1531,12 @@ export default function CartPage() {
       <div style={{ margin: '12px 16px 0', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 16, padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Item total</span><span>{inr(subtotal)}</span></div>
         {!dineInTable && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}><span>Platform fee</span><span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span></div>}
+        {delivering && quote?.serviceable && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6E6155', fontWeight: 600, padding: '4px 0' }}>
+            <span>Delivery{quote.distance_km ? ` · ${quote.distance_km} km` : ''}</span>
+            <span>{deliveryFee > 0 ? inr(deliveryFee) : <span style={{ color: 'var(--gb-green)', fontWeight: 700 }}>FREE</span>}</span>
+          </div>
+        )}
         {offersLoading && (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}><span>Checking for offers…</span></div>
         )}
@@ -1340,8 +1575,9 @@ export default function CartPage() {
 
       {/* online-only disclaimer */}
       <p style={{ fontSize: 12, color: 'var(--gb-muted)', fontWeight: 500, margin: '12px 20px 0', lineHeight: 1.5, textAlign: 'center' }}>
-        Paid orders go straight to the cafe and can&apos;t be cancelled. Check your items and pickup
-        slot first. <a href="/refunds" style={{ color: 'var(--gb-muted)', textDecoration: 'underline' }}>Refund policy</a>
+        Paid orders go straight to the cafe and can&apos;t be cancelled. Check your items and{' '}
+        {delivering ? 'delivery address' : dineInTable ? 'table' : 'pickup slot'} first.{' '}
+        <a href="/refunds" style={{ color: 'var(--gb-muted)', textDecoration: 'underline' }}>Refund policy</a>
       </p>
 
       {/* Zomato-style payment footer: static PAY USING label + Place Order.
@@ -1364,7 +1600,7 @@ export default function CartPage() {
           >
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.02em' }}>{inr(toPay)} TOTAL</span>
             <span style={{ fontSize: 15, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              {placing ? 'Placing…' : checkingAuth ? 'Checking…' : canProceed ? 'Place Order' : 'Pick a slot'}<MS name="arrow_forward" size={18} />
+              {placing ? 'Placing…' : checkingAuth ? 'Checking…' : canProceed ? 'Place Order' : delivering ? (address ? 'Check address' : 'Add address') : 'Pick a slot'}<MS name="arrow_forward" size={18} />
             </span>
           </button>
         </div>

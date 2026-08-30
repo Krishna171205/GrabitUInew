@@ -14,6 +14,12 @@ interface OrderItem {
 interface Order {
   id: number; cafe_id: number; status: string; payment_method: string; payment_status: string;
   total_amount: number; created_at: string; items: OrderItem[];
+  /**
+   * Present only on delivery orders, which are never collected from the counter.
+   * The list endpoint sends a thin version of the leg - status and charge, no
+   * address or rider - which is all a card needs. See OrderService's list mapping.
+   */
+  delivery?: { status?: string | null; charge?: number | null } | null;
 }
 
 // An online order whose payment failed never became a real order — treat it as
@@ -25,14 +31,21 @@ function isActive(o: Order) {
 }
 
 function statusLabel(o: Order): { text: string; color: string; bg: string; icon: string } {
+  const delivering = !!o.delivery;
   if (o.payment_method === 'online' && o.payment_status === 'failed')
     return { text: 'Payment failed', color: 'var(--gb-danger)', bg: '#FDECEA', icon: 'error' };
   switch (o.status) {
     case 'pending': return { text: 'Awaiting confirmation', color: 'var(--gb-muted-2)', bg: 'var(--gb-surface)', icon: 'schedule' };
     case 'new_order': case 'confirmed': return { text: 'Confirmed', color: 'var(--gb-green)', bg: '#E9F5EC', icon: 'check_circle' };
     case 'prepping': return { text: 'Preparing', color: 'var(--gb-green)', bg: '#E9F5EC', icon: 'restaurant' };
-    case 'ready': return { text: 'Ready for pickup', color: 'var(--gb-green)', bg: '#E9F5EC', icon: 'check_circle' };
-    case 'completed': return { text: 'Picked up', color: 'var(--gb-muted-2)', bg: 'var(--gb-surface)', icon: 'check_circle' };
+    // A delivery order is never collected, so "ready for pickup" and "picked up"
+    // describe the wrong journey: the same status means the rider has it.
+    case 'ready': return delivering
+      ? { text: 'On the way', color: 'var(--gb-green)', bg: '#E9F5EC', icon: 'delivery_dining' }
+      : { text: 'Ready for pickup', color: 'var(--gb-green)', bg: '#E9F5EC', icon: 'check_circle' };
+    case 'completed': return delivering
+      ? { text: 'Delivered', color: 'var(--gb-muted-2)', bg: 'var(--gb-surface)', icon: 'check_circle' }
+      : { text: 'Picked up', color: 'var(--gb-muted-2)', bg: 'var(--gb-surface)', icon: 'check_circle' };
     case 'cancelled': return { text: 'Cancelled', color: 'var(--gb-danger)', bg: '#FDECEA', icon: 'cancel' };
     default: return { text: o.status, color: 'var(--gb-muted-2)', bg: 'var(--gb-surface)', icon: 'schedule' };
   }

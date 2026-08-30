@@ -106,11 +106,31 @@ export interface GrabbitETABreakdown {
   active_orders: number;
 }
 
+/** The delivery leg of an order. Absent on pickup and dine-in orders. */
+export interface GrabbitOrderDelivery {
+  status: 'pending_assignment' | 'assigned' | 'picked_up' | 'delivered' | 'failed';
+  line1?: string | null;
+  line2?: string | null;
+  landmark?: string | null;
+  formatted_address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  distance_km?: number | null;
+  charge?: number | null;
+  rider_name?: string | null;
+  rider_phone?: string | null;
+  picked_up_at?: string | null;
+  delivered_at?: string | null;
+}
+
 export interface GrabbitOrder {
   id: number;
   cafe_id: number;
   customer_id: number;
-  pickup_slot: string;
+  /** Null on dine-in and delivery orders, which have no pickup slot. */
+  pickup_slot: string | null;
+  /** Present only on delivery orders. */
+  delivery?: GrabbitOrderDelivery | null;
   status: GrabbitOrderStatus;
   payment_method: GrabbitPaymentMethod;
   payment_status: GrabbitPaymentStatus;

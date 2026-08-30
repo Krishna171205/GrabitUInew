@@ -164,7 +164,12 @@ export default function OrderPage() {
     || (slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'the café');
   const mapCafe = cafeGeo ?? { name: cafeName };
   const cafeDistance = distanceLabel(mapCafe, myCoords);
-  const pickupTime = new Date(order.pickup_slot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  // A delivery order has no pickup slot, and formatting null through Date() printed
+  // "Invalid Date" in the header. The delivery block is the flag for the whole screen.
+  const delivery = order.delivery ?? null;
+  const pickupTime = order.pickup_slot
+    ? new Date(order.pickup_slot).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    : null;
   const idx = stepIndex(order.status);
   const nodeState = (threshold: number): NodeState => idx > threshold ? 'done' : idx === threshold ? 'current' : 'upcoming';
 
@@ -257,21 +262,101 @@ export default function OrderPage() {
           <MS name="check_circle" size={36} fill color="#fff" />
         </div>
         <div className="gb-serif" style={{ fontSize: 26, fontWeight: 500, marginTop: 14 }}>Order placed</div>
-        <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>Pickup at {cafeName} · {pickupTime}</div>
+        <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.82)', fontWeight: 500, marginTop: 4 }}>
+          {delivery
+            ? delivery.status === 'failed'
+              ? `${cafeName} could not complete this delivery`
+              : delivery.status === 'delivered'
+                ? `${cafeName} delivered your order`
+                : `${cafeName} is delivering to you`
+            : pickupTime ? `Pickup at ${cafeName} · ${pickupTime}` : `Order at ${cafeName}`}
+        </div>
       </div>
 
-      {/* pickup code */}
-      <div style={{ margin: '-16px 16px 0', position: 'relative', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 20, boxShadow: 'var(--gb-shadow-pop)', textAlign: 'center' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gb-muted-2)' }}>Show this at the counter</div>
-        <div className="gb-serif" style={{ fontSize: 44, fontWeight: 600, letterSpacing: '.16em', color: 'var(--gb-primary)', marginTop: 6 }}>GB-{order.id}</div>
-        <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600 }}>Skip the queue, collect &amp; go</div>
-      </div>
+      {/* where it is going (delivery), or the code to show at the counter (pickup) */}
+      {delivery ? (
+        <div style={{ margin: '-16px 16px 0', position: 'relative', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 18, boxShadow: 'var(--gb-shadow-pop)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gb-muted-2)' }}>Delivering to</div>
+          <div style={{ display: 'flex', gap: 9, marginTop: 8 }}>
+            <MS name="location_on" size={19} color="var(--gb-primary)" />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>
+                {[delivery.line1, delivery.line2].filter(Boolean).join(', ')}
+              </div>
+              {delivery.landmark && (
+                <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{delivery.landmark}</div>
+              )}
+            </div>
+          </div>
+          {delivery.rider_name && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--gb-line-2)', display: 'flex', alignItems: 'center', gap: 9 }}>
+              <MS name="sports_motorsports" size={19} color="var(--gb-primary)" />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>{delivery.rider_name} is bringing it</div>
+                <div style={{ fontSize: 12, color: 'var(--gb-muted)', fontWeight: 600 }}>From {cafeName}</div>
+              </div>
+              {delivery.rider_phone && (
+                <a href={`tel:${delivery.rider_phone}`} style={{ background: '#F4EBDF', color: 'var(--gb-primary)', width: 38, height: 38, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MS name="call" size={19} />
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ margin: '-16px 16px 0', position: 'relative', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 20, padding: 20, boxShadow: 'var(--gb-shadow-pop)', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gb-muted-2)' }}>Show this at the counter</div>
+          <div className="gb-serif" style={{ fontSize: 44, fontWeight: 600, letterSpacing: '.16em', color: 'var(--gb-primary)', marginTop: 6 }}>GB-{order.id}</div>
+          <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600 }}>Skip the queue, collect &amp; go</div>
+        </div>
+      )}
 
       {/* timeline */}
       <div style={{ margin: '20px 20px 0' }}>
         <TimelineNode state={nodeState(0)} icon="check" title="Order confirmed" sub={`${cafeName} got your order`} />
         <TimelineNode state={nodeState(1)} icon="restaurant" title="Preparing your order" sub="Barista is on it" />
-        <TimelineNode state={idx >= 2 ? (idx >= 3 ? 'done' : 'current') : 'upcoming'} icon="shopping_bag" title="Ready for pickup" sub="We'll ping you, skip the queue" last />
+        {delivery ? (
+          <>
+            {/* The leg has five states, not two: pending_assignment, assigned, picked_up,
+                delivered, failed. Reading only the last two left an assigned rider
+                showing as nothing happening, and a failed delivery showing as one still
+                on its way, forever. */}
+            <TimelineNode
+              state={
+                delivery.status === 'delivered' ? 'done'
+                  : delivery.status === 'picked_up' || delivery.status === 'failed' ? 'current'
+                  : delivery.status === 'assigned' ? 'current'
+                  : 'upcoming'
+              }
+              icon="delivery_dining"
+              title={delivery.status === 'assigned' ? 'Rider on the way to the cafe' : 'On the way'}
+              sub={
+                delivery.status === 'assigned'
+                  ? delivery.rider_name ? `${delivery.rider_name} is collecting it` : 'A rider is heading to the cafe'
+                  : delivery.rider_name ? `${delivery.rider_name} has your order` : 'A rider will pick it up from the cafe'
+              }
+            />
+            {delivery.status === 'failed' ? (
+              <TimelineNode
+                state="current"
+                icon="error"
+                title="Delivery could not be completed"
+                sub="The cafe will be in touch. Nothing more is charged."
+                last
+              />
+            ) : (
+              <TimelineNode
+                state={delivery.status === 'delivered' ? 'done' : 'upcoming'}
+                icon="home"
+                title="Delivered"
+                sub="Straight to your door"
+                last
+              />
+            )}
+          </>
+        ) : (
+          <TimelineNode state={idx >= 2 ? (idx >= 3 ? 'done' : 'current') : 'upcoming'} icon="shopping_bag" title="Ready for pickup" sub="We'll ping you, skip the queue" last />
+        )}
       </div>
 
       </div>
@@ -286,19 +371,27 @@ export default function OrderPage() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-text)' }}>{cafeName}</div>
           <div style={{ fontSize: 12, color: 'var(--gb-muted-2)', fontWeight: 600 }}>
-            {cafeDistance ?? 'Tap for directions'}
+            {delivery
+              ? delivery.distance_km != null
+                ? `${delivery.distance_km} km away · bringing it to you`
+                : 'Bringing it to you'
+              : cafeDistance ?? 'Tap for directions'}
           </div>
         </div>
-        <a
-          href={directionsUrl(mapCafe)}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Directions to ${cafeName}`}
-          className="gb-press"
-          style={{ background: '#F4EBDF', color: 'var(--gb-primary)', width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}
-        >
-          <MS name="directions" size={22} />
-        </a>
+        {/* Directions to the cafe help someone collecting. They are noise when the
+            cafe is the one travelling. */}
+        {!delivery && (
+          <a
+            href={directionsUrl(mapCafe)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Directions to ${cafeName}`}
+            className="gb-press"
+            style={{ background: '#F4EBDF', color: 'var(--gb-primary)', width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}
+          >
+            <MS name="directions" size={22} />
+          </a>
+        )}
       </div>
 
       {/* order summary */}
@@ -315,6 +408,12 @@ export default function OrderPage() {
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gb-text)', flex: 'none' }}>{inr(item.unit_price * item.quantity + (item.addons_total ?? 0))}</div>
           </div>
         ))}
+        {delivery && delivery.charge != null && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gb-muted)' }}>Delivery</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gb-muted)' }}>{inr(delivery.charge)}</div>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--gb-line-2)' }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>Total paid</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--gb-text)' }}>{inr(order.total_amount)}</div>

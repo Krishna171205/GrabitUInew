@@ -128,20 +128,28 @@ function render(order: GrabbitOrderWithItems, cafeName: string, doc: jsPDF): { d
 
   // ---- what it cost ----
   rule();
+  // On a delivery order the total carries the ride as well as the food. The cafe's
+  // GST rate belongs to what it cooked, so the tax is carved out of the food alone
+  // and the delivery charge is shown as its own line: billing it at the food rate
+  // overstated the customer's CGST and SGST, and leaving it out entirely meant the
+  // item rows above did not add up to the total below.
+  const deliveryCharge = Number(order.delivery?.charge ?? 0);
+  const foodTotal = round2(order.total_amount - deliveryCharge);
   if (taxed) {
     // The price already contains the GST, so the bill shows the value it was carved
     // out of and the two halves. Same arithmetic as the POS bill, down to the odd
     // paisa going to SGST, so the two documents agree to the last rupee.
-    const taxable = round2(order.total_amount / (1 + gstRate / 100));
-    const gst = round2(order.total_amount - taxable);
+    const taxable = round2(foodTotal / (1 + gstRate / 100));
+    const gst = round2(foodTotal - taxable);
     const cgst = Math.floor((gst / 2) * 100) / 100;
     const halfPct = String(Math.round((gstRate / 2) * 100) / 100);
     row('Taxable value', rs(taxable));
     row(`CGST @ ${halfPct}%`, rs(cgst));
     row(`SGST @ ${halfPct}%`, rs(round2(gst - cgst)));
   } else {
-    row('Subtotal', rs(order.total_amount));
+    row('Subtotal', rs(foodTotal));
   }
+  if (deliveryCharge > 0) row('Delivery', rs(deliveryCharge));
 
   y += 2;
   rule(false);

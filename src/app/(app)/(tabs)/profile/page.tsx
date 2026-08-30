@@ -290,6 +290,7 @@ export default function ProfilePage() {
       <div style={{ margin: '20px 16px 16px', background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 18, overflow: 'hidden' }}>
         <MenuRow icon="receipt_long" label="Your orders" href="/orders" />
         <MenuRow icon="favorite" label="Favourites" href="/favourites" />
+        <MenuRow icon="location_on" label="Saved addresses" href="/addresses" />
         <MenuRow icon="local_offer" label="Offers" href="/offers" />
         <MenuRow icon="help" label="Help & support" href="/support" last />
       </div>
