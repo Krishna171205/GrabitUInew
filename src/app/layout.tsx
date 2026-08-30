@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from 'next';
-import { Baloo_2, Mukta, Anton, Caveat } from 'next/font/google';
+import { Baloo_2, Mukta, Anton, Caveat, Geist } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
 import { SITE_URL, SITE_NAME, DESCRIPTION } from '@/lib/seo';
 import SmoothScrollProvider from '@/components/SmoothScroll';
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 // Grabbit brand type, Marigold system.
 // Display / wordmark: Baloo 2 (rounded, playful, native Devanagari).
@@ -113,12 +117,16 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: [`${SITE_URL}/og-image.svg`],
   },
+  // Rendered from the 3D cup by `npm run build:favicon`. The wordmark SVG that
+  // used to sit here is a 3.5:1 letterform that turns to mush at 16px; the cup's
+  // blue/white banding still reads at tab size.
   icons: {
     icon: [
-      { url: '/new-logo.svg', sizes: 'any', type: 'image/svg+xml' },
-      { url: '/new-logo.svg', rel: 'mask-icon', color: '#241612' },
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
     ],
-    apple: [{ url: '/new-logo.svg', sizes: '180x180' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
   category: 'Food & Dining',
 };
@@ -131,12 +139,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#FFFDF8',
+  // Matches --surface. Was #FFFDF8, a cream left from the old warm palette,
+  // which showed as a beige mobile browser chrome above a blue-grey page.
+  themeColor: '#F8FAFC',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
+    <html lang="en" className={cn("scroll-smooth", baloo.variable, satoshi.variable, mukta.variable, anton.variable, caveat.variable, "font-sans", geist.variable)}>
       <head>
         {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link
