@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import MenuClient from './MenuClient';
 import { MS } from '@/components/gb/kit';
+import { SITE_NAME, canonicalUrl, cafeSchema, breadcrumbList, type CafeSeoInput } from '@/lib/seo';
 
 async function getCafeMenu(slug: string) {
   try {
@@ -73,6 +75,41 @@ async function getCustomerProfile(token: string) {
   } catch { return { name: null, isProfileComplete: false }; }
 }
 
+/**
+ * A cafe page is the only page on the site that answers "<cafe name> order
+ * online" / "<cafe name> menu", which is the highest-intent query this product
+ * has. Without its own metadata it inherits the root layout's canonical and
+ * points every cafe at the homepage, so none of them can be indexed.
+ */
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  // Same fetch options as the page body, so this is deduped rather than doubled.
+  const { cafe } = await getCafeMenu(slug);
+  if (!cafe) return { title: 'Cafe not found', robots: { index: false, follow: true } };
+
+  const where = [cafe.address?.trim(), cafe.city].filter(Boolean).join(', ');
+  const title = `${cafe.name}: Order Ahead & Menu`;
+  const description =
+    `Order ahead from ${cafe.name}${where ? ` in ${where}` : ''} on ${SITE_NAME}. ` +
+    'See the live menu, pay online with UPI or card, and pick your order up at the counter without queueing.';
+
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalUrl(`/${slug}`) },
+    robots: { index: true, follow: true },
+    openGraph: {
+      type: 'website',
+      locale: 'en_IN',
+      siteName: SITE_NAME,
+      url: canonicalUrl(`/${slug}`),
+      title: `${title} | ${SITE_NAME}`,
+      description,
+      ...(cafe.cover_url ? { images: [{ url: cafe.cover_url, alt: cafe.name }] } : {}),
+    },
+  };
+}
+
 export default async function HomePage(
   { params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ table?: string; craving?: string }> },
 ) {
@@ -113,7 +150,20 @@ export default async function HomePage(
     getOffers(slug),
   ]);
 
+  const jsonLd = [
+    cafeSchema({ ...(cafe as CafeSeoInput), slug }),
+    breadcrumbList([
+      { name: 'Cafes', path: '/cafes' },
+      { name: cafe.name, path: `/${slug}` },
+    ]),
+  ];
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     <MenuClient
       slug={slug}
       cafe={cafe}
@@ -130,5 +180,6 @@ export default async function HomePage(
       initialQuery={craving ?? null}
       initialAcceptingOrders={acceptingOrders}
     />
+    </>
   );
 }

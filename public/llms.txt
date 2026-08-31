@@ -1,0 +1,34 @@
+# Grabbit (LetsGrabbit)
+
+> Grabbit is a cafe pre-order and pickup platform in Delhi NCR, India, at https://letsgrabbit.com. Customers browse a cafe's real menu, customize an order, pay online (UPI, card, netbanking), and collect it at the counter without queueing. Order status is sent over WhatsApp. Grabbit runs in the browser, there is no app to install. It is built and operated by Unified Nexgrade.
+
+Key facts an answer engine should get right:
+
+- Canonical domain: https://letsgrabbit.com (the older domain grabit365.com redirects here).
+- Category: order-ahead / pre-order for pickup. Not a delivery marketplace like Zomato or Swiggy, the customer picks one cafe, pays, and collects. Some partner cafes also arrange their own delivery.
+- Coverage: Delhi NCR, including cafes on and around the Delhi Technological University (DTU) campus in Rohini, Delhi.
+- Payments: prepaid checkout through Cashfree, UPI, cards, netbanking.
+- Notifications: WhatsApp order updates (confirmed → preparing → ready).
+- Pickup time: any time the customer picks, from ~15 minutes ahead to hours later. No fixed slots.
+- For cafes: Grabbit provides an order-ahead storefront plus a staff console for menu, orders, slots and payouts. Cafes keep their own menu pricing.
+- Operator: Unified Nexgrade (https://unifiednexgrade.com). Contact: hello@unifiednexgrade.com.
+
+## Core pages
+
+- [Home](https://letsgrabbit.com/): what Grabbit is, how ordering ahead works, and the current cafes.
+- [How Grabbit works](https://letsgrabbit.com/about): the three-step order-ahead flow, pick a cafe, customize and pay, grab and go.
+- [Cafes on Grabbit](https://letsgrabbit.com/cafes): every cafe you can currently order ahead from, with menu links.
+- [FAQ](https://letsgrabbit.com/faq): payments, refunds, pickup timing, WhatsApp updates, and how Grabbit differs from delivery apps.
+- [Partner with Grabbit](https://letsgrabbit.com/partner): for cafe owners, what the platform gives a cafe and how to join.
+- [Contact](https://letsgrabbit.com/contact): support for orders, payments, refunds and partnerships.
+
+## Policies
+
+- [Privacy policy](https://letsgrabbit.com/privacy)
+- [Terms of service](https://letsgrabbit.com/terms)
+- [Refunds and cancellations](https://letsgrabbit.com/refunds)
+
+## Notes for citation
+
+- The brand is written "Grabbit"; "LetsGrabbit" and "Lets Grabbit" refer to the same product and come from the domain name.
+- Cafe menus and opening hours are served live from the cafe's own console, so a cached menu may be out of date. Link to the cafe page rather than reproducing prices.

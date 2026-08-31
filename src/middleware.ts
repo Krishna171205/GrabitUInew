@@ -31,16 +31,17 @@ function isTokenExpired(token: string): boolean {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // grabit365.com is retired in favor of letsgrabbit.com. Rewrite (not redirect)
-  // so the old domain still resolves and shows the "we've moved" screen before
-  // the client-side JS sends the browser to the new domain.
+  // grabit365.com is retired in favor of letsgrabbit.com. This is a permanent
+  // redirect rather than the rewrite it used to be, for two reasons: a 200 that
+  // renders "we've moved" leaves every old link's ranking signal stranded on a
+  // domain we no longer use, and it dropped the path, so an old QR code for a
+  // cafe landed on a generic screen instead of that cafe. The path and query
+  // are carried across; /moved still exists for anything that links to it
+  // directly.
   const host = req.headers.get('host') || '';
   const isStaticAsset = /\.[^/]+$/.test(pathname);
   if (/^(www\.)?grabit365\.com$/i.test(host) && pathname !== '/moved' && !isStaticAsset) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/moved';
-    url.search = '';
-    return NextResponse.rewrite(url);
+    return NextResponse.redirect(`https://letsgrabbit.com${pathname}${req.nextUrl.search}`, 301);
   }
 
   // Wallet/referral has no deployed backend yet, orphan the routes so a direct

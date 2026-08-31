@@ -28,14 +28,6 @@ export const metadata: Metadata = {
     siteName: 'Grabbit',
     type: 'website',
     locale: 'en_IN',
-    images: [
-      {
-        url: `https://letsgrabbit.com/og-image.svg`,
-        width: 1200,
-        height: 630,
-        alt: 'Grabbit — Order coffee ahead, skip the queue | LetsGrabbit',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -45,7 +37,6 @@ export const metadata: Metadata = {
     description:
       'LetsGrabbit — order coffee and snacks ahead from cafes near you in Delhi. ' +
       'Pre-order, skip the queue, pick up in minutes.',
-    images: ['https://letsgrabbit.com/og-image.svg'],
   },
   alternates: {
     canonical: SITE_URL,

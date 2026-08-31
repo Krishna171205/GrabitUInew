@@ -54,6 +54,7 @@ export default function LandingFooter() {
             {[
               { label: 'Our story', href: '/about' },
               { label: 'Walk-in cafes', href: '/cafes' },
+              { label: 'Guides', href: '/guides' },
               { label: 'Partner with us', href: '/partner' },
             ].map(({ label, href }) => (
               <Link key={label} href={href} className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">

@@ -24,6 +24,14 @@ pipeline {
         // "safe to ship in the browser bundle". Value from
         // /monitoring/dsn/grabit-web.
         NEXT_PUBLIC_SENTRY_DSN = 'https://113cf401662b4ccd970a7951cbbf8b05@monitor.unifiednexgrade.com/7'
+        // Google Tag Manager container. Public by design (it is fetched by the
+        // browser). Empty = no tag rendered at all, which is what local and any
+        // non-production build should do.
+        NEXT_PUBLIC_GTM_ID = ''
+        // Search console ownership proof. Both are also verifiable by DNS TXT;
+        // these render the meta-tag method so a DNS change is not required.
+        NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION = ''
+        NEXT_PUBLIC_BING_SITE_VERIFICATION = ''
     }
 
     stages {

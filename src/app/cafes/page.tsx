@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LandingNav from '@/components/landing/LandingNav';
 import LandingFooter from '@/components/landing/LandingFooter';
 import { type RealCafe } from '@/components/gb/cards';
-import { SITE_URL } from '@/lib/seo';
+import { SITE_URL, canonicalUrl, cafeSchema, breadcrumbList, type CafeSeoInput } from '@/lib/seo';
 import CafeListing from './CafeListing';
 
 export const metadata: Metadata = {
@@ -24,8 +24,30 @@ async function getCafes(): Promise<RealCafe[]> {
 
 export default async function CafesPage() {
   const cafes = await getCafes();
+
+  // ItemList of the live cafes, each expanded to its full Restaurant node. The
+  // list page is what a crawler reaches first, so naming every cafe here is
+  // what gets the individual cafe pages discovered and understood together.
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Cafes on Grabbit',
+      description: 'Every cafe in Delhi you can pre-order from on Grabbit.',
+      numberOfItems: cafes.length,
+      itemListElement: cafes.map((cafe, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: canonicalUrl(`/${cafe.slug}`),
+        item: cafeSchema(cafe as unknown as CafeSeoInput),
+      })),
+    },
+    breadcrumbList([{ name: 'Cafes', path: '/cafes' }]),
+  ];
+
   return (
     <div className="gb-app" style={{ background: 'var(--gb-surface)', color: 'var(--gb-text-strong)' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <LandingNav />
       <main style={{ paddingTop: 96, paddingBottom: 40, maxWidth: 1040, margin: '0 auto', padding: '96px 20px 40px' }}>
         <div className="gb-serif" style={{ fontSize: 34, fontWeight: 500, letterSpacing: '-.01em' }}>Cafes on Grabbit</div>
