@@ -39,7 +39,11 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
   // An item with variations has no meaningful "plain" price, so the first one is the
   // opening position - same as every aggregator sheet, and the guest can move off it.
   const [variationId, setVariationId] = useState<number | null>(variations[0]?.id ?? null);
-  const [optionIds, setOptionIds] = useState<Set<number>>(new Set());
+  // A required group with exactly one option isn't a real decision - pre-pick it so the
+  // guest doesn't have to tap through a "choice" that was never actually optional.
+  const [optionIds, setOptionIds] = useState<Set<number>>(() => new Set(
+    groups.filter(g => g.min_select > 0 && g.options.length === 1).map(g => g.options[0].id),
+  ));
   const [addonIds, setAddonIds] = useState<Set<number>>(new Set());
   const [quantity, setQuantity] = useState(1);
 
@@ -129,28 +133,34 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
             </Section>
           )}
 
-          {groups.map((g, i) => (
-            <Section
-              key={g.id}
-              title={g.name}
-              rule={g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`}
-            >
-              {g.options.map(o => (
-                <Row
-                  key={o.id}
-                  choice={{
-                    id: o.id,
-                    name: o.name,
-                    priceLabel: o.price_delta > 0 ? `+ ${inr(o.price_delta)}` : 'Free',
-                    selected: optionIds.has(o.id),
-                    onSelect: () => toggleOption(g, o.id),
-                  }}
-                  veg={item.is_veg}
-                  single={g.max_select === 1}
-                />
-              ))}
-            </Section>
-          ))}
+          {groups.map((g, i) => {
+            // A required group with exactly one option has nothing to contrast a price
+            // against - "Free" implies a paid alternative that doesn't exist here, so
+            // it's just noise. Show the label only where there is a real choice to make.
+            const soleRequiredChoice = g.options.length === 1 && g.min_select > 0;
+            return (
+              <Section
+                key={g.id}
+                title={g.name}
+                rule={g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`}
+              >
+                {g.options.map(o => (
+                  <Row
+                    key={o.id}
+                    choice={{
+                      id: o.id,
+                      name: o.name,
+                      priceLabel: soleRequiredChoice ? '' : (o.price_delta > 0 ? `+ ${inr(o.price_delta)}` : 'Free'),
+                      selected: optionIds.has(o.id),
+                      onSelect: () => toggleOption(g, o.id),
+                    }}
+                    veg={item.is_veg}
+                    single={g.max_select === 1}
+                  />
+                ))}
+              </Section>
+            );
+          })}
 
           {addons.length > 0 && (
             <Section title="Extras" rule="Add as many as you like">
@@ -247,7 +257,9 @@ function Row({ choice, veg, single }: { choice: Choice; veg?: boolean | null; si
       <input type={single ? 'radio' : 'checkbox'} checked={selected} onChange={onSelect} style={S.srOnly} />
       <Veg veg={veg} />
       <span style={S.rowName}>{name}</span>
-      <span style={{ ...S.rowPrice, ...(priceLabel === 'Free' ? S.rowFree : null) }}>{priceLabel}</span>
+      {priceLabel && (
+        <span style={{ ...S.rowPrice, ...(priceLabel === 'Free' ? S.rowFree : null) }}>{priceLabel}</span>
+      )}
       {/* Thumb reaches the control last, so it sits on the edge it is tapped from. */}
       <span
         aria-hidden
