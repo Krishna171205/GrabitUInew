@@ -34,24 +34,51 @@ NEXT_PUBLIC_BING_SITE_VERIFICATION       # Bing Webmaster msvalidate.01 token
 All three are currently empty. The site builds and runs fine that way; it just
 has no analytics and no verified console.
 
-## Account work (needs the Google/Bing account, cannot be done from the repo)
+## Search Console: done on 2026-08-31
 
-1. **Create the GTM container** for `letsgrabbit.com`, copy the `GTM-XXXXXXX`
+Both properties are live under **`hello@unifiednexgrade.com`**, as *Domain*
+properties (not URL-prefix), so http/https/www all report together.
+
+| Domain | Property | Verified by | DNS record |
+|---|---|---|---|
+| letsgrabbit.com | Domain | DNS TXT | `TXT @ google-site-verification=qhWtoIyqgU-wyBbk9R2c-kuSk29puW32Orc9Kgia4Jo` |
+| grabit365.com | Domain | DNS TXT | `TXT @ google-site-verification=C2eEKs_vTMqRrG93vgt6P1dZ-2j5AQSS23ytbMzpjSQ` |
+
+**Do not delete either TXT record.** Removing one un-verifies the property and
+the history goes with it.
+
+Note the two domains live on **different Hostinger accounts**. `grabit365.com`
+is on the account whose API token is in SSM at `/omega/deploy/hostinger_token`
+(so it is scriptable); `letsgrabbit.com` is not on that account and has to be
+edited through hPanel by hand. `letsgrabbit.com` nameservers are
+`horizon/orbit.dns-parking.com`, `grabit365.com` is `atlas/hyperion`.
+
+`https://letsgrabbit.com/sitemap.xml` is submitted. It read "Couldn't fetch"
+immediately after submission, which is the pre-crawl state, not an error: the
+URL returns 200 `application/xml` to a Googlebot user agent in under 0.3s.
+
+Both properties report "Processing data, check again in a day or so". Search
+Console holds history from before a property is verified, so whatever exists
+will appear once processing finishes rather than starting from today.
+
+### Still to do
+
+1. **Change of address, grabit365.com to letsgrabbit.com.** Set up but *not
+   submitted*: it validates that the old domain 301s, and production still
+   answers `200` because the redirect in this PR is not deployed. Run it at
+   Settings > Change of address on the `grabit365.com` property once this is
+   live. The 301 alone is not the whole migration.
+2. **Create the GTM container** for `letsgrabbit.com`, copy the `GTM-XXXXXXX`
    id into `NEXT_PUBLIC_GTM_ID` in the Jenkinsfile, and deploy.
-2. **Create the GA4 property**, then add the GA4 Configuration tag *inside GTM*
+3. **Create the GA4 property**, then add the GA4 Configuration tag *inside GTM*
    (not in code) on the All Pages trigger, plus a second tag on a Custom Event
    trigger for `page_view` so SPA navigations are counted. Nothing needs to be
    redeployed for GA4 itself, that is the reason for using GTM at all.
-3. **Google Search Console**, add `letsgrabbit.com` as a *Domain* property
-   (DNS TXT at Hostinger) rather than a URL-prefix property, so http/https and
-   www all report together. Then:
-   - submit `https://letsgrabbit.com/sitemap.xml`
-   - add `grabit365.com` as its own property and use **Change of Address** to
-     point it at `letsgrabbit.com`; the 301 alone is not the whole migration
-   - request indexing for `/`, `/cafes`, `/guides` and both cafe pages
-4. **Bing Webmaster Tools**, import from Search Console (one click), or verify
-   with `NEXT_PUBLIC_BING_SITE_VERIFICATION`. Bing feeds ChatGPT's web results,
-   so this is an AEO step, not just a Bing step.
+4. **Request indexing** for `/`, `/cafes`, `/guides` and both cafe pages once
+   this PR is deployed.
+5. **Bing Webmaster Tools**, import from Search Console, or verify with
+   `NEXT_PUBLIC_BING_SITE_VERIFICATION`. Bing feeds ChatGPT's web results, so
+   this is an AEO step, not just a Bing step.
 5. **Google Business Profile** for each partner cafe is the cafe's own listing,
    not ours, but ask each partner to add the Grabbit cafe URL as their
    "Order ahead" / "Menu" link. That is both a real backlink from a high-trust
