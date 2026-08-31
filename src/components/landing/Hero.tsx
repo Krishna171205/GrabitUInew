@@ -147,7 +147,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.6, ease: "easeOut" }}
         >
-          Any café, any time. Pickup in minutes, or delivered to you.
+          Pickup in minutes, or delivered to you.
         </motion.p>
 
         {/* Flexible spacer: absorbs mobile's leftover viewport space so the CTA

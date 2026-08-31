@@ -199,6 +199,11 @@ body {
   margin: 0;
   letter-spacing: 0.03em;
   min-height: max(884px, 100dvh);
+  /* Chrome/Firefox auto-compensate scroll when content is inserted above the viewport
+     (native CSS scroll anchoring); Safari/WebKit does not. Any page doing its own manual
+     compensation for that case (e.g. the favourites strip on a cafe menu) would double up
+     on Chrome/Firefox while staying broken on Safari - one implementation, everywhere. */
+  overflow-anchor: none;
 }
 
 a {

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -197,6 +197,37 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   }
 
   const favoriteItems = items.filter(i => favIds.has(i.id) && i.is_available);
+
+  // The favourites strip is a fixed-height single row, so a 2nd/3rd favourite added while
+  // it's already showing doesn't change the page's height at all - the only disruptive
+  // change is the strip mounting or unmounting (0 <-> 1 favourites), which inserts/removes
+  // a whole section above everything else on the page. Compensate scroll by exactly that
+  // height each way so a user scrolled down doesn't see the page silently shift under
+  // them; skip it if they're already at the top, where the change is just normal, visible
+  // content moving in the direction they'd expect. Native CSS scroll anchoring would
+  // otherwise try to do this too on Chrome/Firefox (doubling up with this) while doing
+  // nothing on Safari, so it's turned off globally (globals.css) in favour of this one
+  // explicit, cross-browser implementation.
+  const favSectionRef = useRef<HTMLDivElement>(null);
+  const favSectionHeightRef = useRef(0);
+  const hadFavoritesRef = useRef(favoriteItems.length > 0);
+  useLayoutEffect(() => {
+    if (favSectionRef.current) favSectionHeightRef.current = favSectionRef.current.offsetHeight;
+  });
+  useLayoutEffect(() => {
+    const hasFavorites = favoriteItems.length > 0;
+    if (window.scrollY > 0) {
+      // behavior: 'instant' matters - html has scroll-smooth (Tailwind), so an
+      // unqualified scrollBy here would itself glide over ~300ms and read as exactly
+      // the jump this is meant to prevent.
+      if (!hadFavoritesRef.current && hasFavorites && favSectionRef.current) {
+        window.scrollBy({ top: favSectionRef.current.offsetHeight, behavior: 'instant' });
+      } else if (hadFavoritesRef.current && !hasFavorites) {
+        window.scrollBy({ top: -favSectionHeightRef.current, behavior: 'instant' });
+      }
+    }
+    hadFavoritesRef.current = hasFavorites;
+  }, [favoriteItems.length]);
 
 
   useEffect(() => {
@@ -481,7 +512,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
         </div>
       )}
       {isLoggedIn && favoriteItems.length > 0 && (
-        <div style={{ padding: '14px 0 4px' }}>
+        <div ref={favSectionRef} style={{ padding: '14px 0 4px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
             <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Your favourites</span>
           </div>
