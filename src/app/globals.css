@@ -831,6 +831,11 @@ html.lenis, html.lenis body {
     background: var(--gb-card) !important;
     display: flex; flex-direction: column; justify-content: center;
     padding: 44px 48px !important;
+    /* Flex items default to min-width:auto, so the form refused to shrink below
+       its widest child's intrinsic width. A bare <input> is 20 characters wide by
+       default, so the six OTP boxes forced the form to ~1700px and the digits ran
+       out past the card's edge. */
+    min-width: 0;
   }
 }
 
