@@ -81,28 +81,36 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
   return (
     <div className="gb-scrim-in" style={S.scrim} onClick={onClose}>
       <div className="gb-sheet-in" style={S.sheet} onClick={e => e.stopPropagation()}>
-        {/* Solid, not glass: the menu photo behind used to read straight through the title,
-            and warm paper is what every other surface in the app already is. */}
-        <header style={S.header}>
-          <div style={S.headerRow}>
-            <div style={S.thumb}>
-              <Image
-                src={menuImageSrc(item.image_url)}
-                alt=""
-                fill
-                sizes="56px"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
-            <span style={S.title}>{item.name}</span>
-            <button onClick={onClose} aria-label="Close" className="gb-press" style={S.close}>
-              <MS name="close" size={19} />
+        <div style={S.body}>
+          <div style={S.hero}>
+            <Image
+              src={menuImageSrc(item.image_url)}
+              alt=""
+              fill
+              sizes="448px"
+              style={{ objectFit: 'cover' }}
+            />
+            <button onClick={onClose} aria-label="Close" className="gb-press" style={S.heroClose}>
+              <MS name="close" size={18} />
             </button>
           </div>
-        </header>
 
-        <div style={S.body}>
-          {variations.length > 0 && (
+          <div style={S.contentWrap}>
+            <div>
+              <div style={S.nameRow}>
+                <Veg veg={item.is_veg} />
+                <span style={S.name}>{item.name}</span>
+              </div>
+              {item.is_bestseller && (
+                <div style={S.bestseller}>
+                  <MS name="local_fire_department" size={12} fill color="#FFD27A" />
+                  BESTSELLER
+                </div>
+              )}
+              {item.description && <div style={S.description}>{item.description}</div>}
+            </div>
+
+            {variations.length > 0 && (
             <Section title="Customized" rule="Select any 1">
               {variations.map(v => (
                 <Row
@@ -166,6 +174,7 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
               ))}
             </Section>
           )}
+          </div>
         </div>
 
         <footer style={S.footer}>
@@ -285,22 +294,22 @@ const S: Record<string, React.CSSProperties> = {
     background: C.page, borderRadius: '20px 20px 0 0', overflow: 'hidden',
   },
 
-  header: { background: C.card, padding: '16px 16px 17px', flex: 'none' },
-  headerRow: { display: 'flex', alignItems: 'center', gap: 13 },
-  thumb: {
-    position: 'relative', width: 34, height: 34, borderRadius: 8, overflow: 'hidden',
-    flex: 'none', background: C.page, border: `1px solid ${C.line}`,
+  body: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' },
+  hero: { position: 'relative', width: '100%', aspectRatio: '4 / 3', flex: 'none', background: C.page },
+  heroClose: {
+    position: 'absolute', top: 12, left: 12, width: 32, height: 32, borderRadius: '50%',
+    border: 'none', background: 'rgba(0,0,0,.45)', color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
   },
-  title: {
-    flex: 1, minWidth: 0, fontSize: 18, fontWeight: 700, color: C.ink,
-    letterSpacing: '-.01em', lineHeight: 1.2,
+  contentWrap: { padding: '18px 15px 22px', display: 'flex', flexDirection: 'column', gap: 24 },
+  nameRow: { display: 'flex', alignItems: 'center', gap: 8 },
+  name: { fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: '-.01em', lineHeight: 1.25 },
+  bestseller: {
+    display: 'inline-flex', alignItems: 'center', gap: 3, width: 'fit-content', marginTop: 8,
+    background: 'rgba(30,22,14,.86)', color: '#FFD27A', fontSize: 10, fontWeight: 800,
+    padding: '4px 8px 4px 6px', borderRadius: 999, letterSpacing: 0.3,
   },
-  close: {
-    width: 26, height: 26, flex: 'none', border: 'none', background: 'transparent',
-    color: '#3E4152', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-  },
-
-  body: { flex: 1, overflowY: 'auto', padding: '20px 15px 22px', display: 'flex', flexDirection: 'column', gap: 24 },
+  description: { fontSize: 13.5, color: C.sub, lineHeight: 1.5, marginTop: 8 },
   sectionHead: { padding: '0 1px 14px' },
   sectionTitle: { fontSize: 15.5, fontWeight: 700, color: C.ink, letterSpacing: '-.005em' },
   rule: { fontSize: 13.5, fontWeight: 400, color: C.sub, marginTop: 3 },

@@ -327,14 +327,15 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
     );
   };
 
-  // Grid-card variant (image-top layout): pinned bottom-right of the card's text
-  // block instead of overlapping the image, since the card has no fixed-height
-  // image box to float over like the horizontal carousels do.
+  // Grid-card variant: sits in-flow in the price row, which itself is pinned to
+  // the bottom of the (flex column) card via marginTop: auto on that row - not
+  // absolutely positioned, so it lines up the same way regardless of how much
+  // name/description text is above it.
   const gridAddStep = (item: GrabbitMenuItem) => {
     const qty = qtyOf(item.id);
     if (qty > 0) {
       return (
-        <div style={{ position: 'absolute', right: 10, bottom: 10, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
           <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
           <span style={{ minWidth: 16, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
           <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
@@ -345,7 +346,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
       <button
         onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
         className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`}
-        style={{ position: 'absolute', right: 10, bottom: 10, background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', padding: '6px 16px', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}
+        style={{ background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', padding: '6px 16px', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--gb-elev-1)', flex: 'none' }}
       >
         Add
       </button>
@@ -597,7 +598,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
               <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
               <div className="gb-menu-grid">
                 {catItems.map(item => (
-                  <div key={item.id} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)' }}>
+                  <div key={item.id} onClick={() => setCustomizeItem(item)} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)', display: 'flex', flexDirection: 'column', height: '100%', cursor: 'pointer' }}>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
                       <Image src={menuImageSrc(item.image_url)} alt={item.name} fill sizes="(max-width: 480px) 50vw, 220px" style={{ objectFit: 'cover' }} />
                       {/* ponytail: grabit_menu_items has no is_veg column at all (items sync
@@ -615,16 +616,18 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
                         </div>
                       )}
                       {isLoggedIn && (
-                        <button onClick={() => toggleFavorite(item.id)} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
+                        <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
                           <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
                         </button>
                       )}
                     </div>
-                    <div style={{ padding: '10px 12px 16px', position: 'relative' }}>
+                    <div style={{ padding: '10px 12px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-text)', lineHeight: 1.3, minHeight: 36, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</div>
                       {item.description && <div style={{ fontSize: 12, color: 'var(--gb-muted)', lineHeight: 1.35, marginTop: 3, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</div>}
-                      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)', marginTop: 8, paddingRight: 60 }}>{inr(item.price)}</div>
-                      {gridAddStep(item)}
+                      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 'auto', paddingTop: 8 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price)}</div>
+                        {gridAddStep(item)}
+                      </div>
                     </div>
                   </div>
                 ))}
