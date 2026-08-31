@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
     title: 'Terms & Conditions · Grabbit | LetsGrabbit',
     description: 'The terms governing your use of the Grabbit cafe pre-ordering platform.',
   },

@@ -99,9 +99,13 @@ export function CustomizeSheet({ item, variations, groups, addons, items, cafeOp
     ? selectedBundlePrices.reduce((s, p) => s + p, 0)
     : null;
 
+  // The real, structured field (set by the cafe owner in Omega) wins over both
+  // fallbacks - itemizedTotal is only a guess when a combo's components can't be
+  // priced, and staticMrp is a legacy workaround for items saved before this
+  // field existed.
   const staticMrp = parseMrp(item.description);
-  const mrp = itemizedTotal ?? staticMrp;
-  const showMrp = mrp !== null && mrp > item.price;
+  const mrp = item.mrp_price ?? itemizedTotal ?? staticMrp;
+  const showMrp = mrp !== null && mrp !== undefined && mrp > item.price;
   const cleanDescription = staticMrp !== null
     ? item.description!.replace(/\s*\(mrp\s*[:.]?\s*\d+\)/i, '').trim()
     : item.description;

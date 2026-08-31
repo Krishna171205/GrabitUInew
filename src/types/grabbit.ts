@@ -24,6 +24,8 @@ export interface GrabbitMenuItem {
   name: string;
   description: string | null;
   price: number;
+  /** List/MRP price, shown crossed out next to price when set and higher than it. */
+  mrp_price?: number | null;
   category: GrabbitMenuCategory;
   image_url: string | null;
   is_available: boolean;

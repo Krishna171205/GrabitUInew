@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
     title: 'Refunds & Cancellations · Grabbit | LetsGrabbit',
     description: 'When Grabbit orders can be refunded, and why a paid pre-order cannot be cancelled.',
   },

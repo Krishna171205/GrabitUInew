@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
     title: 'Privacy Policy · Grabbit | LetsGrabbit',
     description: 'How Grabbit collects, uses, and protects your personal information.',
   },

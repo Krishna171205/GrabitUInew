@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
     title: 'Contact Us · Grabbit | LetsGrabbit',
     description: 'Get in touch with the Grabbit team. Support for orders, payments, refunds, or partnering your cafe.',
   },

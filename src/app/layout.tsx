@@ -98,8 +98,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
-    creator: '@grabbit',
     title: `${SITE_NAME}: Order ahead, skip the queue`,
     description: DESCRIPTION,
   },

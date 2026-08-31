@@ -30,7 +30,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
     title: 'Partner with Grabbit | LetsGrabbit — Cafe Pre-order Platform',
     description: 'Bring your cafe online with Grabbit. Order-ahead POS, keep your margin, never miss an order.',
   },

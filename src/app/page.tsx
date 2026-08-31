@@ -31,8 +31,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
-    creator: '@grabbit',
     title: 'Grabbit | LetsGrabbit — Order Coffee Ahead, Skip the Queue',
     description:
       'LetsGrabbit — order coffee and snacks ahead from cafes near you in Delhi. ' +

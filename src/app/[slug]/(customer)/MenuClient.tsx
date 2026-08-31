@@ -661,7 +661,12 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-text)', lineHeight: 1.3, minHeight: 36, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</div>
                       {item.description && <div style={{ fontSize: 12, color: 'var(--gb-muted)', lineHeight: 1.35, marginTop: 3, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</div>}
                       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 'auto', paddingTop: 8 }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price)}</div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          {item.mrp_price != null && item.mrp_price > item.price && (
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--gb-muted)', textDecoration: 'line-through' }}>{inr(item.mrp_price)}</div>
+                          )}
+                          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price)}</div>
+                        </div>
                         {gridAddStep(item)}
                       </div>
                     </div>
