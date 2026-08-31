@@ -279,7 +279,7 @@ export default function FinalCTA() {
                          </p>
                          
                          {/* Form Inputs (Visual Mockups) */}
-                         <div className="space-y-3 sm:space-y-4 w-full flex-1 flex flex-col justify-center">
+                         <div className="space-y-3 sm:space-y-4 w-full flex-1">
                            <div className="w-full bg-white border border-[#E0DCD3] rounded-[10px] px-4 py-3 sm:py-3.5 flex items-center shadow-sm">
                              <span className="text-[12px] sm:text-[13px] font-medium text-[#A0A2AB]">Email Address</span>
                            </div>
