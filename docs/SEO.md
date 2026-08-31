@@ -107,6 +107,37 @@ happened to move. Every reading needs its site-wide control.
   I order coffee ahead in Delhi", "cafes near DTU that take pre-orders") and
   record whether Grabbit is named and linked.
 
+## Finding what to write next (once Search Console has data)
+
+The highest-value SEO work is not on this list because it cannot start yet: mine
+Search Console for queries Google already shows us for and we have no page about.
+
+1. Search Console, Performance, set the range to **12 months**, Export.
+2. Keep `Queries.csv` and `Pages.csv`.
+3. `python3 scripts/gsc-gap.py Queries.csv Pages.csv`
+
+It sorts every query by the one thing worth doing about it:
+
+| Action | Means | Fix |
+|---|---|---|
+| `gap` | We show up for it, no page of ours is about it | Write the page |
+| `ctr` | We rank on page one, nobody clicks | Rewrite title and description |
+| `rank` | Page two, real demand | Push the page that owns it |
+| `cannibalised` | Two of our pages rank for it | Edit the owner, never write a third |
+
+Queries under 100 impressions are dropped: a bad CTR on 12 impressions is noise,
+and no edit fixes nobody searching. The opportunity score orders the work, it
+does not forecast traffic. Search Console averages position across every query a
+page appears for, so the estimate reads high.
+
+`python3 scripts/gsc-gap.py --self-check` runs the logic against fixed numbers.
+
+Verifying the domain is worth doing today rather than later even though the site
+is new: Search Console holds up to 16 months of history whether or not the
+property was verified at the time, so the export can have real data in it the
+moment the property exists. `grabit365.com` is the property with the longer
+history, so verify that one too and export it as well.
+
 ## Known gaps
 
 - `Organization.sameAs` is empty. The previous values (`instagram.com/grabbit`,
