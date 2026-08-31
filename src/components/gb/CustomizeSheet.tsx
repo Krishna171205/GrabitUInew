@@ -8,6 +8,15 @@ import { inr } from '@/components/gb/format';
 import type { GrabbitMenuAddon, GrabbitMenuItem, GrabbitMenuOptionGroup, GrabbitMenuVariation } from '@gradient365/gradient-commons';
 import { menuImageSrc } from '@/lib/menu-image';
 
+// Combos carry their pre-discount price as "(MRP 220)" at the end of the cafe-authored
+// description - the one place that number actually lives today. There's no per-component
+// price to sum (combo option names don't reliably match a standalone menu item), but this
+// single aggregate figure is real, cafe-entered data, not a guess.
+function parseMrp(description: string | null): number | null {
+  const m = description?.match(/\(mrp\s*[:.]?\s*(\d+)\)/i);
+  return m ? Number(m[1]) : null;
+}
+
 export interface CustomizeSelection {
   variation?: { id: number; name: string; price: number };
   options: { id: number; name: string; price: number }[];
@@ -46,6 +55,12 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
   ));
   const [addonIds, setAddonIds] = useState<Set<number>>(new Set());
   const [quantity, setQuantity] = useState(1);
+
+  const mrp = parseMrp(item.description);
+  const showMrp = mrp !== null && mrp > item.price;
+  const cleanDescription = showMrp
+    ? item.description!.replace(/\s*\(mrp\s*[:.]?\s*\d+\)/i, '').trim()
+    : item.description;
 
   const variation = variations.find(v => v.id === variationId) ?? null;
   const basePrice = variation ? variation.price : item.price;
@@ -105,13 +120,20 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
                 <Veg veg={item.is_veg} />
                 <span style={S.name}>{item.name}</span>
               </div>
+              {showMrp && (
+                <div style={S.mrpRow}>
+                  <span style={S.mrpStrike}>{inr(mrp!)}</span>
+                  <span style={S.mrpNow}>{inr(item.price)}</span>
+                  <span style={S.mrpSaved}>{Math.round((1 - item.price / mrp!) * 100)}% OFF</span>
+                </div>
+              )}
               {item.is_bestseller && (
                 <div style={S.bestseller}>
                   <MS name="local_fire_department" size={12} fill color="#FFD27A" />
                   BESTSELLER
                 </div>
               )}
-              {item.description && <div style={S.description}>{item.description}</div>}
+              {cleanDescription && <div style={S.description}>{cleanDescription}</div>}
             </div>
 
             {variations.length > 0 && (
@@ -319,6 +341,10 @@ const S: Record<string, React.CSSProperties> = {
   contentWrap: { padding: '18px 15px 22px', display: 'flex', flexDirection: 'column', gap: 24 },
   nameRow: { display: 'flex', alignItems: 'center', gap: 8 },
   name: { fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: '-.01em', lineHeight: 1.25 },
+  mrpRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 },
+  mrpStrike: { fontSize: 14, fontWeight: 600, color: C.strike, textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' },
+  mrpNow: { fontSize: 16, fontWeight: 800, color: C.ink, fontVariantNumeric: 'tabular-nums' },
+  mrpSaved: { fontSize: 11.5, fontWeight: 800, color: C.step },
   bestseller: {
     display: 'inline-flex', alignItems: 'center', gap: 3, width: 'fit-content', marginTop: 8,
     background: 'rgba(30,22,14,.86)', color: '#FFD27A', fontSize: 10, fontWeight: 800,
