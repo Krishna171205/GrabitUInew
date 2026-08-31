@@ -117,7 +117,7 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
       )}
 
       <Categories />
-      <CafesNearYou cafes={cafes} cta="View menu" gate />
+      <CafesNearYou cafes={cafes} cta="View menu" />
     </div>
   );
 }
@@ -147,7 +147,7 @@ function SignedInHome({ cafes, me }: { cafes: RealCafe[]; me: Me | null }) {
       </div>
 
       <Categories />
-      <CafesNearYou cafes={cafes} cta="Pre-order" gate={false} />
+      <CafesNearYou cafes={cafes} cta="Pre-order" />
       <NavSpacer />
     </div>
   );
