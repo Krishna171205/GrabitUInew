@@ -35,7 +35,8 @@ export function middleware(req: NextRequest) {
   // so the old domain still resolves and shows the "we've moved" screen before
   // the client-side JS sends the browser to the new domain.
   const host = req.headers.get('host') || '';
-  if (/^(www\.)?grabit365\.com$/i.test(host) && pathname !== '/moved') {
+  const isStaticAsset = /\.[^/]+$/.test(pathname);
+  if (/^(www\.)?grabit365\.com$/i.test(host) && pathname !== '/moved' && !isStaticAsset) {
     const url = req.nextUrl.clone();
     url.pathname = '/moved';
     url.search = '';
