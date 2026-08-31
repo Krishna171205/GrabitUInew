@@ -22,8 +22,16 @@
 export const MENU_IMAGE_FALLBACK =
   'https://d1k5bio7n5wlqi.cloudfront.net/shared/menu-fallback-v3.png';
 
-/** An item's own photo, or the fallback. Blank strings count as absent. */
+// A handful of items still carry an OLD fallback URL directly in image_url - stamped in
+// (by an earlier Omega sync, or manually) back when the fallback wasn't versioned/auto-applied
+// yet. menuImageSrc has no way to tell that apart from a real photo unless it recognizes the
+// pattern itself, so a retired version (the v2 margin bug this comment already describes)
+// keeps rendering forever instead of picking up whichever version is current now.
+const OLD_FALLBACK_URL = /\/shared\/menu-fallback-v\d+\.png$/;
+
+/** An item's own photo, or the fallback. Blank, or a stale fallback URL, counts as absent. */
 export function menuImageSrc(imageUrl: string | null | undefined): string {
   const url = imageUrl?.trim();
-  return url ? url : MENU_IMAGE_FALLBACK;
+  if (!url) return MENU_IMAGE_FALLBACK;
+  return OLD_FALLBACK_URL.test(url) && url !== MENU_IMAGE_FALLBACK ? MENU_IMAGE_FALLBACK : url;
 }
