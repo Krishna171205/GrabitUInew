@@ -295,7 +295,10 @@ const S: Record<string, React.CSSProperties> = {
   },
 
   body: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' },
-  hero: { position: 'relative', width: '100%', aspectRatio: '4 / 3', flex: 'none', background: C.page },
+  // Square, not 4:3: the no-photo fallback illustration (menuImageSrc) is composed for a
+  // square object-fit:cover box - a wider/shorter box crops more off the top and cuts its
+  // "No image" text off. Matches the aspect every menu card already uses for the same asset.
+  hero: { position: 'relative', width: '100%', aspectRatio: '1 / 1', flex: 'none', background: C.page },
   heroClose: {
     position: 'absolute', top: 12, left: 12, width: 32, height: 32, borderRadius: '50%',
     border: 'none', background: 'rgba(0,0,0,.45)', color: '#fff',
