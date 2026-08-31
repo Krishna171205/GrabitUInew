@@ -807,6 +807,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           variations={variationsFor(customizeItem)}
           groups={groupsFor(customizeItem)}
           addons={addonsFor(customizeItem)}
+          items={items}
           onClose={() => setCustomizeItem(null)}
           onAdd={selection => confirmCustomization(customizeItem, selection)}
         />

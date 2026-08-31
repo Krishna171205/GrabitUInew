@@ -8,14 +8,27 @@ import { inr } from '@/components/gb/format';
 import type { GrabbitMenuAddon, GrabbitMenuItem, GrabbitMenuOptionGroup, GrabbitMenuVariation } from '@gradient365/gradient-commons';
 import { menuImageSrc } from '@/lib/menu-image';
 
-// Combos carry their pre-discount price as "(MRP 220)" at the end of the cafe-authored
-// description - the one place that number actually lives today. There's no per-component
-// price to sum (combo option names don't reliably match a standalone menu item), but this
-// single aggregate figure is real, cafe-entered data, not a guess.
+// Fallback for a combo whose per-component prices can't all be resolved: the cafe-authored
+// "(MRP 220)" at the end of the description - a real number, just not one that updates as
+// the guest swaps which drink/side they're taking.
 function parseMrp(description: string | null): number | null {
   const m = description?.match(/\(mrp\s*[:.]?\s*(\d+)\)/i);
   return m ? Number(m[1]) : null;
 }
+
+// A combo option is sometimes typed slightly differently than the standalone item it
+// actually is (confirmed against the printed menu, not guessed) - name-match first, fall
+// back to this short, explicit list rather than fuzzy-matching every combo site-wide.
+const OPTION_NAME_ALIASES: Record<string, string> = {
+  'spicy potato wrap': 'hot spiced potato wrap',
+};
+
+// A combo side sometimes isn't sold as its own menu item at all - "Classic Fries (small)"
+// is a smaller portion than the standalone "French Fries" (₹130), not the same item at a
+// different name, so it can't alias there. Price confirmed directly by the cafe.
+const KNOWN_OPTION_PRICES: Record<string, number> = {
+  'classic fries (small)': 70,
+};
 
 export interface CustomizeSelection {
   variation?: { id: number; name: string; price: number };
@@ -30,6 +43,8 @@ interface Props {
   groups: GrabbitMenuOptionGroup[];
   /** Legacy subcategory add-ons, authored in Grabit rather than pushed from Omega. */
   addons: GrabbitMenuAddon[];
+  /** Full live menu, for looking up what a bundled combo option costs on its own. */
+  items: GrabbitMenuItem[];
   onClose: () => void;
   onAdd: (selection: CustomizeSelection) => void;
 }
@@ -44,7 +59,7 @@ interface Choice {
   onSelect: () => void;
 }
 
-export function CustomizeSheet({ item, variations, groups, addons, onClose, onAdd }: Props) {
+export function CustomizeSheet({ item, variations, groups, addons, items, onClose, onAdd }: Props) {
   // An item with variations has no meaningful "plain" price, so the first one is the
   // opening position - same as every aggregator sheet, and the guest can move off it.
   const [variationId, setVariationId] = useState<number | null>(variations[0]?.id ?? null);
@@ -56,9 +71,34 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
   const [addonIds, setAddonIds] = useState<Set<number>>(new Set());
   const [quantity, setQuantity] = useState(1);
 
-  const mrp = parseMrp(item.description);
+  const priceByName = useMemo(
+    () => new Map(items.filter(i => i.id !== item.id).map(i => [i.name.toLowerCase().trim(), i.price])),
+    [items, item.id],
+  );
+  function standalonePrice(name: string): number | null {
+    const key = name.toLowerCase().trim();
+    return priceByName.get(key) ?? priceByName.get(OPTION_NAME_ALIASES[key] ?? '') ?? KNOWN_OPTION_PRICES[key] ?? null;
+  }
+
+  // A "bundle" group swaps in a whole separate item (this wrap, or that drink) at no extra
+  // charge - every option price_delta is 0, and it's required, unlike a real add-on group
+  // ("extra cheese +20") where price_delta reflects money actually changing hands. Only
+  // bundle groups have a meaningful standalone value to show or sum.
+  const bundleGroups = variations.length === 0
+    ? groups.filter(g => g.min_select > 0 && g.options.every(o => o.price_delta === 0))
+    : [];
+  const selectedBundlePrices = bundleGroups.map(g => {
+    const selected = g.options.find(o => optionIds.has(o.id));
+    return selected ? standalonePrice(selected.name) : null;
+  });
+  const itemizedTotal = bundleGroups.length > 0 && selectedBundlePrices.every((p): p is number => p !== null)
+    ? selectedBundlePrices.reduce((s, p) => s + p, 0)
+    : null;
+
+  const staticMrp = parseMrp(item.description);
+  const mrp = itemizedTotal ?? staticMrp;
   const showMrp = mrp !== null && mrp > item.price;
-  const cleanDescription = showMrp
+  const cleanDescription = staticMrp !== null
     ? item.description!.replace(/\s*\(mrp\s*[:.]?\s*\d+\)/i, '').trim()
     : item.description;
 
@@ -156,30 +196,38 @@ export function CustomizeSheet({ item, variations, groups, addons, onClose, onAd
           )}
 
           {groups.map((g, i) => {
+            const isBundleGroup = bundleGroups.includes(g);
             // A required group with exactly one option has nothing to contrast a price
             // against - "Free" implies a paid alternative that doesn't exist here, so
-            // it's just noise. Show the label only where there is a real choice to make.
-            const soleRequiredChoice = g.options.length === 1 && g.min_select > 0;
+            // it's just noise there. A bundle group's standalone value is worth showing
+            // even with one option, though: "this wrap alone is worth ₹130" is real info.
+            const soleRequiredChoice = !isBundleGroup && g.options.length === 1 && g.min_select > 0;
             return (
               <Section
                 key={g.id}
                 title={g.name}
                 rule={g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`}
               >
-                {g.options.map(o => (
-                  <Row
-                    key={o.id}
-                    choice={{
-                      id: o.id,
-                      name: o.name,
-                      priceLabel: soleRequiredChoice ? '' : (o.price_delta > 0 ? `+ ${inr(o.price_delta)}` : 'Free'),
-                      selected: optionIds.has(o.id),
-                      onSelect: () => toggleOption(g, o.id),
-                    }}
-                    veg={item.is_veg}
-                    single={g.max_select === 1}
-                  />
-                ))}
+                {g.options.map(o => {
+                  const bundlePrice = isBundleGroup ? standalonePrice(o.name) : null;
+                  const priceLabel = isBundleGroup
+                    ? (bundlePrice !== null ? inr(bundlePrice) : '')
+                    : (soleRequiredChoice ? '' : (o.price_delta > 0 ? `+ ${inr(o.price_delta)}` : 'Free'));
+                  return (
+                    <Row
+                      key={o.id}
+                      choice={{
+                        id: o.id,
+                        name: o.name,
+                        priceLabel,
+                        selected: optionIds.has(o.id),
+                        onSelect: () => toggleOption(g, o.id),
+                      }}
+                      veg={item.is_veg}
+                      single={g.max_select === 1}
+                    />
+                  );
+                })}
               </Section>
             );
           })}
