@@ -63,11 +63,21 @@ will appear once processing finishes rather than starting from today.
 
 ### Still to do
 
-1. **Change of address, grabit365.com to letsgrabbit.com.** Set up but *not
-   submitted*: it validates that the old domain 301s, and production still
-   answers `200` because the redirect in this PR is not deployed. Run it at
-   Settings > Change of address on the `grabit365.com` property once this is
-   live. The 301 alone is not the whole migration.
+1. **Change of address, grabit365.com to letsgrabbit.com.** Attempted on
+   2026-08-31 and **rejected by Google**:
+
+   > Validation failed. 301-redirect from homepage ❌ / Verification for both sites ✅
+
+   Worth being precise about why, because the old domain *looks* fine in a
+   browser: `grabit365.com/raydee` shows the "We've moved" screen and then
+   lands on `letsgrabbit.com/raydee`, path intact. That hop is client-side
+   JavaScript. At the HTTP level the old domain answers `200` with no
+   `Location` header, to Googlebot as much as to anyone, so no ranking signal
+   moves and the change-of-address check fails on its one required test.
+
+   Re-run it at Settings > Change of address on the `grabit365.com` property
+   once the 301 in this PR is deployed. Nothing else about the migration works
+   until then.
 2. **Create the GTM container** for `letsgrabbit.com`, copy the `GTM-XXXXXXX`
    id into `NEXT_PUBLIC_GTM_ID` in the Jenkinsfile, and deploy.
 3. **Create the GA4 property**, then add the GA4 Configuration tag *inside GTM*

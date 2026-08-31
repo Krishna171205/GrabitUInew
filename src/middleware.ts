@@ -32,12 +32,18 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // grabit365.com is retired in favor of letsgrabbit.com. This is a permanent
-  // redirect rather than the rewrite it used to be, for two reasons: a 200 that
-  // renders "we've moved" leaves every old link's ranking signal stranded on a
-  // domain we no longer use, and it dropped the path, so an old QR code for a
-  // cafe landed on a generic screen instead of that cafe. The path and query
-  // are carried across; /moved still exists for anything that links to it
-  // directly.
+  // redirect rather than the rewrite it used to be.
+  //
+  // The rewrite worked for people: because it rewrote rather than redirected,
+  // the browser URL still held the original path, and /moved's script carried
+  // that path over to the new domain. What it could not do is tell a crawler
+  // anything. A 200 with a client-side hop passes no ranking signal, and
+  // Search Console's change-of-address check fails on it outright:
+  // "301-redirect from homepage" is a required test and a JS redirect does not
+  // satisfy it. That migration stays blocked until this ships.
+  //
+  // Cost to a human is the 4s interstitial, which the 301 removes.
+  // /moved still exists for anything linking to it directly.
   const host = req.headers.get('host') || '';
   const isStaticAsset = /\.[^/]+$/.test(pathname);
   if (/^(www\.)?grabit365\.com$/i.test(host) && pathname !== '/moved' && !isStaticAsset) {
