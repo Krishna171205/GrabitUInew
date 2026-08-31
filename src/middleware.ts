@@ -31,6 +31,17 @@ function isTokenExpired(token: string): boolean {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // grabit365.com is retired in favor of letsgrabbit.com. Rewrite (not redirect)
+  // so the old domain still resolves and shows the "we've moved" screen before
+  // the client-side JS sends the browser to the new domain.
+  const host = req.headers.get('host') || '';
+  if (/^(www\.)?grabit365\.com$/i.test(host) && pathname !== '/moved') {
+    const url = req.nextUrl.clone();
+    url.pathname = '/moved';
+    url.search = '';
+    return NextResponse.rewrite(url);
+  }
+
   // Wallet/referral has no deployed backend yet, orphan the routes so a direct
   // URL visit lands on the cafe home instead of a dead recharge flow.
   if (/^\/[^/]+\/wallet/.test(pathname)) {
