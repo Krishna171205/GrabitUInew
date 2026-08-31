@@ -133,11 +133,11 @@ function SignedInHome({ cafes, me }: { cafes: RealCafe[]; me: Me | null }) {
             <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>{greeting()}</div>
             <div className="gb-serif" style={{ fontSize: 29, fontWeight: 500, letterSpacing: '-.01em', marginTop: 3 }}>{firstName}</div>
           </div>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff' }}>
+          <Link href="/profile" style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff', flex: 'none' }}>
             {me?.avatar_url
-              ? <Image src={me.avatar_url} alt="You" width={44} height={44} sizes="44px" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              ? <Image src={me.avatar_url} alt="You" width={44} height={44} sizes="44px" priority style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={44} />}
-          </div>
+          </Link>
         </div>
         <LocationPill />
         <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 270 }}>
