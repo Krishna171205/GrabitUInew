@@ -45,6 +45,10 @@ interface Props {
   addons: GrabbitMenuAddon[];
   /** Full live menu, for looking up what a bundled combo option costs on its own. */
   items: GrabbitMenuItem[];
+  /** Grid pages grey out under `filter: grayscale(1)` while the cafe is closed; this sheet
+      renders outside that filtered subtree (filter breaks position:fixed descendants), so
+      it needs the same treatment applied directly or it's the one thing left in colour. */
+  cafeOpen: boolean;
   onClose: () => void;
   onAdd: (selection: CustomizeSelection) => void;
 }
@@ -59,7 +63,7 @@ interface Choice {
   onSelect: () => void;
 }
 
-export function CustomizeSheet({ item, variations, groups, addons, items, onClose, onAdd }: Props) {
+export function CustomizeSheet({ item, variations, groups, addons, items, cafeOpen, onClose, onAdd }: Props) {
   // An item with variations has no meaningful "plain" price, so the first one is the
   // opening position - same as every aggregator sheet, and the guest can move off it.
   const [variationId, setVariationId] = useState<number | null>(variations[0]?.id ?? null);
@@ -139,7 +143,7 @@ export function CustomizeSheet({ item, variations, groups, addons, items, onClos
 
   return (
     <div className="gb-scrim-in" style={S.scrim} onClick={onClose}>
-      <div className="gb-sheet-in" style={S.sheet} onClick={e => e.stopPropagation()}>
+      <div className="gb-sheet-in" style={{ ...S.sheet, filter: cafeOpen ? 'none' : 'grayscale(1)' }} onClick={e => e.stopPropagation()}>
         <div style={S.body}>
           <div style={S.hero}>
             <Image

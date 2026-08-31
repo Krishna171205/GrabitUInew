@@ -289,20 +289,25 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   }
 
   function confirmCustomization(item: GrabbitMenuItem, selection: CustomizeSelection) {
-    addItem({
-      menu_item_id: item.id,
-      name: item.name,
-      // The chosen variation is what the customer is buying, so it is what the line costs.
-      price: selection.variation ? selection.variation.price : item.price,
-      quantity: selection.quantity,
-      image_url: item.image_url,
-      is_veg: item.is_veg,
-      category: item.category,
-      addons: selection.addons,
-      variation: selection.variation ? { id: selection.variation.id, name: selection.variation.name } : undefined,
-      options: selection.options,
-    }, slug);
-    setCustomizeItem(null);
+    // Card-tap now opens this sheet for every item, closed cafe included (browsing stays
+    // open), but the actual cart write still has to go through the same closed-cafe gate
+    // every other Add path uses - only close the sheet once the add actually went through.
+    guardedAdd(item.id, () => {
+      addItem({
+        menu_item_id: item.id,
+        name: item.name,
+        // The chosen variation is what the customer is buying, so it is what the line costs.
+        price: selection.variation ? selection.variation.price : item.price,
+        quantity: selection.quantity,
+        image_url: item.image_url,
+        is_veg: item.is_veg,
+        category: item.category,
+        addons: selection.addons,
+        variation: selection.variation ? { id: selection.variation.id, name: selection.variation.name } : undefined,
+        options: selection.options,
+      }, slug);
+      setCustomizeItem(null);
+    });
   }
 
   const addStep = (item: GrabbitMenuItem) => {
@@ -808,6 +813,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           groups={groupsFor(customizeItem)}
           addons={addonsFor(customizeItem)}
           items={items}
+          cafeOpen={open}
           onClose={() => setCustomizeItem(null)}
           onAdd={selection => confirmCustomization(customizeItem, selection)}
         />
