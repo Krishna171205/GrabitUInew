@@ -177,8 +177,8 @@ export default function FinalCTA() {
             transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
             className="self-start"
           >
-            <Link 
-              href="/home" 
+            <Link
+              href="/login?mode=signup"
               className="group relative inline-flex items-center justify-center bg-[#0055D4] text-white px-8 sm:px-12 h-[52px] sm:h-[58px] rounded-[10px] sm:rounded-[12px] font-normal uppercase text-[15px] sm:text-[17px] tracking-[0.1em] transition-transform duration-300 active:scale-95 z-20"
               style={{ fontFamily: 'var(--font-anton)' }}
             >
@@ -266,8 +266,8 @@ export default function FinalCTA() {
                          </div>
                          
                          {/* Headline inside Phone */}
-                         <h3 
-                           className="text-[20px] sm:text-[24px] font-black text-center leading-[1.05] text-[#111317] tracking-tight mb-2 uppercase" 
+                         <h3
+                           className="text-[20px] sm:text-[24px] font-normal text-center leading-[1.2] text-[#111317] tracking-[0.01em] mb-2 uppercase"
                            style={{ fontFamily: 'var(--font-anton)' }}
                          >
                             Skip the line,<br />
