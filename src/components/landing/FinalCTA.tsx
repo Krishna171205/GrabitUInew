@@ -267,7 +267,7 @@ export default function FinalCTA() {
                          
                          {/* Headline inside Phone */}
                          <h3
-                           className="text-[20px] sm:text-[24px] font-normal text-center leading-[1.2] text-[#111317] tracking-[0.01em] mb-2 uppercase"
+                           className="text-[20px] sm:text-[24px] font-semibold text-center leading-[1.2] text-[#111317] tracking-normal mb-2 uppercase"
                            style={{ fontFamily: 'var(--font-anton)' }}
                          >
                             Skip the line,<br />
@@ -279,7 +279,7 @@ export default function FinalCTA() {
                          </p>
                          
                          {/* Form Inputs (Visual Mockups) */}
-                         <div className="space-y-3 sm:space-y-4 w-full flex-1">
+                         <div className="space-y-3 sm:space-y-4 w-full flex-1 flex flex-col justify-center">
                            <div className="w-full bg-white border border-[#E0DCD3] rounded-[10px] px-4 py-3 sm:py-3.5 flex items-center shadow-sm">
                              <span className="text-[12px] sm:text-[13px] font-medium text-[#A0A2AB]">Email Address</span>
                            </div>
