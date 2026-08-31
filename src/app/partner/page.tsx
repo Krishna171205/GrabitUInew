@@ -68,9 +68,6 @@ export default function PartnerLandingPage() {
           >
             Get started<MS name="arrow_forward" size={20} />
           </Link>
-          <div style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 14 }}>
-            Already onboarding? <Link href="/partner/signup" style={{ color: 'var(--gb-primary)', fontWeight: 700 }}>Continue where you left off</Link>
-          </div>
         </div>
       </div>
       <LandingFooter />

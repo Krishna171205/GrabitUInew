@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1121.0",
     "@gradient365/gradient-commons": "file:../types",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
