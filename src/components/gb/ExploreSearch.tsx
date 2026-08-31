@@ -33,7 +33,34 @@ export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
   const [q, setQ] = useState('');
   const [cafeResults, setCafeResults] = useState(cafes);
   const [dishResults, setDishResults] = useState<DishResult[]>([]);
+  const [nearby, setNearby] = useState<RealCafe[]>([]);
   const query = q.trim();
+
+  // Cafes within 5km of the customer, when the browser will say where that is. A cafe
+  // with no pin set can't be measured and never comes back. No fix, no permission or no
+  // pins at all just means no section: no skeleton, no error, same as it never existed.
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        fetch(`/api/proxy/grabit/cafes/nearby?lat=${latitude}&lng=${longitude}&radiusKm=5`)
+          .then((res) => (res.ok ? res.json() : []))
+          .then(setNearby)
+          .catch(() => {});
+      },
+      () => {},
+      { timeout: 8000 },
+    );
+  }, []);
+
+  // Near you comes first, so the full list below is everything else. Showing a cafe in
+  // both sections was the same two cards twice on a screen that only has a handful.
+  // While searching there is one list of matches and no split: a search is about the
+  // query, not about where the customer is standing.
+  const nearbyShown = query ? [] : nearby;
+  const nearbyIds = new Set(nearbyShown.map((c) => c.id));
+  const restResults = cafeResults.filter((c) => !nearbyIds.has(c.id));
 
   // debounced server search — cafés matched by name/city, dishes matched by name/category
   useEffect(() => {
@@ -72,22 +99,35 @@ export function ExploreSearch({ cafes }: { cafes: RealCafe[] }) {
         </div>
       )}
 
-      <div style={{ padding: '24px 0 8px' }}>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>
-          {query ? 'Cafés' : 'Cafés on Grabbit'}
-        </div>
-        {cafeResults.length === 0 ? (
-          <div style={{ padding: '16px 0 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>
-            {query
-              ? (dishResults.length > 0 ? 'No cafés directly match — see dishes above.' : 'No cafés or dishes match your search.')
-              : 'No cafés live yet. Check back soon.'}
-          </div>
-        ) : (
+      {nearbyShown.length > 0 && (
+        <div style={{ padding: '24px 0 8px' }}>
+          <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>Cafés near you</div>
           <div className="gb-cafe-grid">
-            {cafeResults.map((c) => <RealCafeCard key={c.slug} cafe={c} cta="View menu" coverHeight={150} />)}
+            {nearbyShown.map((c) => <RealCafeCard key={c.slug} cafe={c} cta="View menu" coverHeight={150} />)}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* With every cafe already in the section above, a second heading over nothing is
+          worse than no heading at all. */}
+      {(restResults.length > 0 || nearbyShown.length === 0) && (
+        <div style={{ padding: '24px 0 8px' }}>
+          <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>
+            {query ? 'Cafés' : nearbyShown.length > 0 ? 'More cafés on Grabbit' : 'Cafés on Grabbit'}
+          </div>
+          {restResults.length === 0 ? (
+            <div style={{ padding: '16px 0 4px', color: 'var(--gb-muted)', fontSize: 13.5, fontWeight: 600 }}>
+              {query
+                ? (dishResults.length > 0 ? 'No cafés directly match — see dishes above.' : 'No cafés or dishes match your search.')
+                : 'No cafés live yet. Check back soon.'}
+            </div>
+          ) : (
+            <div className="gb-cafe-grid">
+              {restResults.map((c) => <RealCafeCard key={c.slug} cafe={c} cta="View menu" coverHeight={150} />)}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }

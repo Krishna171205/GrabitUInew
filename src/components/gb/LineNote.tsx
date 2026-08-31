@@ -23,7 +23,7 @@ const GLASS = 'saturate(160%) blur(28px)';
  * Quick notes, by what the dish is. A coffee cannot lose its cabbage and a wrap cannot be
  * brewed strong, so offering the wrong list is worse than offering none.
  */
-const DRINK_CHIPS = ['Extra strong', 'Less sugar', 'No sugar', 'No ice', 'Extra hot'];
+const DRINK_CHIPS = ['Extra strong', 'Less sugar', 'No sugar', 'Less ice', 'Extra ice'];
 const FOOD_CHIPS = ['No onion', 'No cabbage', 'Less spicy', 'Extra spicy', 'No mayo'];
 
 export function LineNote({ note, dish, category, onChange }: {
