@@ -206,7 +206,9 @@ export function CustomizeSheet({ item, variations, groups, addons, items, onClos
               <Section
                 key={g.id}
                 title={g.name}
-                rule={g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`}
+                // A single option is nothing to "select any 1" of - there's no choice
+                // being offered, so the instruction has no real referent.
+                rule={g.options.length === 1 ? '' : (g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`)}
               >
                 {g.options.map(o => {
                   const bundlePrice = isBundleGroup ? standalonePrice(o.name) : null;
@@ -309,7 +311,7 @@ function Section({ title, rule, children }: {
     <section>
       <div style={S.sectionHead}>
         <div style={S.sectionTitle}>{title}</div>
-        <div style={S.rule}>{rule}</div>
+        {rule && <div style={S.rule}>{rule}</div>}
       </div>
       <div style={S.card}>{children}</div>
     </section>
