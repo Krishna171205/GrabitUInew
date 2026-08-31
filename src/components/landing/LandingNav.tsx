@@ -15,8 +15,8 @@ export default function LandingNav() {
 
   const navLinks = [
     { href: '/', targetId: '#hero', label: 'HOME' },
-    { href: '#preview', targetId: '#preview', label: 'CAFÉS' },
-    { href: '#how-it-works', targetId: '#how-it-works', label: 'ABOUT' },
+    { href: '/cafes', label: 'CAFÉS' },
+    { href: '/about', label: 'ABOUT' },
     { href: '/partner', label: 'PARTNER WITH US' },
     { href: '/faq', label: 'FAQ' },
   ];

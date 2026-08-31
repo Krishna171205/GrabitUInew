@@ -2,10 +2,11 @@
 /**
  * Mandatory location gate (Swiggy/Zomato-style). Blocks the consumer app until
  * the user either grants location access (auto-detected, reverse-geocoded) or
- * manually picks an area. There is no dismiss — a saved location is required to
+ * manually picks an area. There is no dismiss, a saved location is required to
  * browse. Location acquisition lives here, and only here.
  */
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { MS } from './kit';
 import { reverseGeocode, searchLocations, setSavedLocation, setSavedCoords, clearSavedCoords, SUGGESTED_LOCATIONS, type LocationResult } from './location';
 
@@ -47,17 +48,21 @@ export function LocationGate() {
     setDenied(false);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        // The browser already granted access and handed over real coords by this
+        // point, so a Nominatim hiccup (it has no SLA and rate-limits client-side
+        // callers) is not a "couldn't access your location" failure - fall back to
+        // a plain coordinate label rather than discarding a fix we actually have.
+        let label = `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
+        let city: string | undefined;
         try {
-          const { label, city } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-          setSavedLocation(label, city);
-          // Kept so a cafe's distance can be measured rather than guessed.
-          setSavedCoords(pos.coords.latitude, pos.coords.longitude);
-          setPhase('done');
+          ({ label, city } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude));
         } catch {
-          setDenied(true);
-        } finally {
-          setLocating(false);
+          // no-op: keep the coordinate fallback above
         }
+        setSavedLocation(label, city);
+        setSavedCoords(pos.coords.latitude, pos.coords.longitude);
+        setPhase('done');
+        setLocating(false);
       },
       () => { setDenied(true); setLocating(false); },
       { timeout: 10000 },
@@ -79,15 +84,14 @@ export function LocationGate() {
       <div className="gb-locgate-card">
       {/* faint brand mark */}
       <div style={{ padding: 'calc(40px + env(safe-area-inset-top)) 26px 0', textAlign: 'center' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.22)', backdropFilter: 'blur(4px)', padding: '7px 14px', borderRadius: 999 }}>
-          <MS name="bolt" size={16} fill color="#FFD98E" />
-          <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: '.02em' }}>GrabBit</span>
+        <div style={{ display: 'inline-flex', alignItems: 'center', background: '#fff', padding: '8px 16px', borderRadius: 999, boxShadow: '0 4px 14px rgba(0,0,0,.18)' }}>
+          <Image src="/new-logo.svg" alt="Grabbit" width={90} height={28} className="object-contain" style={{ width: 78, height: 'auto' }} />
         </div>
         <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.15, marginTop: 26, letterSpacing: '-.01em' }}>
           Where should we<br />find your cafés?
         </div>
         <div style={{ fontSize: 14.5, fontWeight: 500, color: 'rgba(255,255,255,.82)', marginTop: 10, maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }}>
-          Enable location access to see cafés near you — or pick an area below.
+          Enable location access to see cafés near you, or pick an area below.
         </div>
 
         {/* primary: grant access */}
@@ -102,7 +106,7 @@ export function LocationGate() {
         {denied && (
           <div style={{ marginTop: 12, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.25)', borderRadius: 12, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>
             <MS name="info" size={17} fill color="#FFD98E" />
-            <span>We couldn’t access your location. Pick an area below to continue — you can change it anytime.</span>
+            <span>We couldn’t access your location. Pick an area below to continue, you can change it anytime.</span>
           </div>
         )}
 

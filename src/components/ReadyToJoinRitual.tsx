@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import GrabbitCup3D from "@/components/cup3d/GrabbitCup3D";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -53,28 +54,6 @@ const STYLES = `
     linear-gradient(to bottom, rgba(43,25,10,0.022) 1px, transparent 1px);
   mask-image: linear-gradient(to bottom, transparent, black 34%, black 72%, transparent);
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 34%, black 72%, transparent);
-}
-
-/* GRABBIT letterpressed into the paper — cream on cream, lit from above.
-   Sits above the footer bars, which are taller on small screens. */
-.ritual-giant-bg {
-  position: absolute;
-  bottom: 16vh;
-  left: 50%;
-  white-space: nowrap;
-  font-size: 27vw;
-  line-height: 0.72;
-  font-weight: 800;
-  letter-spacing: -0.055em;
-  color: rgba(43, 25, 10, 0.07);
-  text-shadow: 0 1.5px 0 rgba(255, 255, 255, 0.95);
-  user-select: none;
-  pointer-events: none;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 34%, black 74%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 34%, black 74%, transparent 100%);
-}
-@media (max-width: 640px) {
-  .ritual-giant-bg { bottom: 30vh; font-size: 32vw; }
 }
 
 /* Signup: two stacked pills on phones, one nested capsule from sm up */
@@ -263,7 +242,6 @@ const FOOTER_LINKS = [
 // ─────────────────────────────────────────────────────────────────────────────
 export function ReadyToJoinRitual() {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const giantTextRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [phone, setPhone] = useState("");
@@ -274,13 +252,6 @@ export function ReadyToJoinRitual() {
     const ctx = gsap.context(() => {
       // Everything is visible by default; the scroll trigger only adds a one-shot
       // rise-in. A gated reveal here once left the CTA + policy links hidden.
-      gsap.from(giantTextRef.current, {
-        yPercent: 10, opacity: 0,
-        duration: 0.9, ease: "power2.out",
-        immediateRender: false,
-        scrollTrigger: { trigger: wrapperRef.current, start: "top 88%", toggleActions: "play none none none", once: true },
-      });
-
       gsap.from([headingRef.current, contentRef.current], {
         y: 34, opacity: 0,
         duration: 0.75, stagger: 0.12, ease: "power3.out",
@@ -321,33 +292,28 @@ export function ReadyToJoinRitual() {
           {/* Paper tooth */}
           <div className="ritual-bg-grid absolute inset-0 z-0 pointer-events-none" />
 
-          {/* GRABBIT, letterpressed */}
-          <div
-            ref={giantTextRef}
-            className="ritual-giant-bg z-0 select-none"
-            style={{ transform: "translateX(-50%)" }}
-            aria-hidden="true"
-          >
-            GRABBIT
-          </div>
-
           {/* ── Center content ─────────────────────────────────────────────── */}
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 w-full max-w-3xl mx-auto text-center">
+            <div style={{ width: 108, height: 108, marginBottom: 8 }}>
+              <GrabbitCup3D variant="spot" />
+            </div>
+
             <h2
               ref={headingRef}
-              className="gb-serif"
               style={{
+                fontFamily: "var(--font-anton)",
                 fontSize: "clamp(38px, 7vw, 76px)",
-                fontWeight: 600,
+                fontWeight: 400,
                 lineHeight: 1.04,
-                letterSpacing: "-0.02em",
+                letterSpacing: "0.01em",
+                textTransform: "uppercase",
                 margin: 0,
                 color: "var(--gb-text-strong)",
               }}
             >
               Ready to join
               <br />
-              <span style={{ fontStyle: "italic", color: "var(--gb-gold)" }}>the ritual?</span>
+              <span style={{ color: "var(--gb-gold)" }}>the ritual?</span>
             </h2>
 
             <p
@@ -385,7 +351,7 @@ export function ReadyToJoinRitual() {
                   />
                 </div>
                 <MagneticButton as="button" type="submit" className="ritual-signup-cta">
-                  Get early access
+                  Sign up
                 </MagneticButton>
               </form>
 

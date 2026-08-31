@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-const EMAIL = 'gradient365.team@gmail.com';
+const EMAIL = 'hello@unifiednexgrade.com';
 
 export default function TermsPage() {
   return (

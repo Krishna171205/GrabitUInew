@@ -49,9 +49,9 @@ export const VARIANTS: Record<CupVariant, CupConfig> = {
   },
   // Inline accent (empty cart, confirmations): smaller, faster, decorative only.
   spot: {
-    camera: 5.6,
+    camera: 6.4,
     scale: 1.3,
-    yOffset: 0,
+    yOffset: 0.08,
     tilt: 0.09,
     secondsPerTurn: 18,
     shadowY: -1.33,

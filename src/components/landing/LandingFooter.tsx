@@ -20,9 +20,13 @@ export default function LandingFooter() {
           {/* Column 1: Connect with us */}
           <div className="col-span-1 lg:col-span-3 flex flex-col gap-3">
             <h4 className="font-bold text-[#1A1311] text-[14px] mb-2">Connect with us</h4>
-            {['Call', 'Text (WhatsApp)', 'Instagram', 'YouTube', 'LinkedIn'].map((item) => (
-              <Link key={item} href="#" className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
-                {item}
+            {[
+              { label: 'Call', href: 'tel:+917496064936' },
+              { label: 'WhatsApp', href: `https://wa.me/917496064936?text=${encodeURIComponent("Hi Grabbit, I'd like some help with")}` },
+              { label: 'Email', href: `mailto:hello@unifiednexgrade.com?subject=${encodeURIComponent('Grabbit support')}` },
+            ].map(({ label, href }) => (
+              <Link key={label} href={href} className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
+                {label}
               </Link>
             ))}
           </div>
@@ -31,10 +35,8 @@ export default function LandingFooter() {
           <div className="col-span-1 lg:col-span-3 flex flex-col gap-3">
             <h4 className="font-bold text-[#1A1311] text-[14px] mb-2">Order Support</h4>
             {[
-              { label: 'Make a return/Exchange', href: '#' },
+              { label: 'Track your order', href: '/orders' },
               { label: 'Refund/Exchange policy', href: '/refunds' },
-              { label: 'Track your order', href: '#' },
-              { label: 'Shipping policy', href: '#' },
               { label: "FAQ's", href: '/faq' },
               { label: 'Terms', href: '/terms' },
               { label: 'Privacy', href: '/privacy' },
@@ -49,9 +51,13 @@ export default function LandingFooter() {
           {/* Column 3: We are GRABBIT */}
           <div className="col-span-1 lg:col-span-3 flex flex-col gap-3">
             <h4 className="font-bold text-[#1A1311] text-[14px] mb-2">We are GRABBIT</h4>
-            {['Our story', 'Walk-in Stores', 'Collaborations', 'Careers', 'Media', 'Blogs'].map((item) => (
-              <Link key={item} href="#" className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
-                {item}
+            {[
+              { label: 'Our story', href: '/about' },
+              { label: 'Walk-in cafes', href: '/cafes' },
+              { label: 'Partner with us', href: '/partner' },
+            ].map(({ label, href }) => (
+              <Link key={label} href={href} className="text-[13px] text-gray-500 hover:text-[#1A1311] transition-colors font-medium w-fit">
+                {label}
               </Link>
             ))}
           </div>
