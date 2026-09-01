@@ -16,6 +16,7 @@ interface Me { name: string | null; phone: string | null; avatar_url: string | n
 
 async function getCafeStatus(slug: string): Promise<boolean | undefined> {
   try {
+    if (!process.env.NEXT_PUBLIC_API_URL) return undefined;
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, { cache: 'no-store', signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return undefined;
     const d = await res.json();
@@ -26,10 +27,10 @@ async function getCafeStatus(slug: string): Promise<boolean | undefined> {
 // Real, live cafés — honest data, no fabricated marketplace stats.
 async function getCafes(): Promise<RealCafe[]> {
   try {
-    // Next executes every page function once during `next build` to learn whether it can
-    // be static, even pages that end up server-rendered - so an unbounded fetch here can
-    // hang the build itself, not just a slow page load. 10s is generous for a healthy API
-    // and well under Next's 60s-per-attempt build budget.
+    // See the matching guard + comment in src/app/cafes/page.tsx: a missing
+    // NEXT_PUBLIC_API_URL produces a malformed URL that Next's build-time fetch
+    // instrumentation hangs on indefinitely rather than rejecting, signal or not.
+    if (!process.env.NEXT_PUBLIC_API_URL) return [];
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, {
       next: { revalidate: 300 },
       signal: AbortSignal.timeout(10_000),
