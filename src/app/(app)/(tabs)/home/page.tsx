@@ -5,7 +5,8 @@ import { MS, NavSpacer } from '@/components/gb/kit';
 import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
 import { greeting } from '@/components/gb/format';
 import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
-import { LocationPill } from '@/components/gb/LocationPill';
+import { LocationHeader } from '@/components/gb/LocationHeader';
+import { HeroCupWatermark } from '@/components/gb/HeroCupWatermark';
 import { CafesNearYou } from '@/components/gb/CafesNearYou';
 import { POPULAR, CATEGORIES } from '@/components/gb/data';
 
@@ -52,9 +53,32 @@ async function getMe(token: string): Promise<Me | null> {
   } catch { return null; }
 }
 
+/**
+ * The hero's location line should say what Swiggy's does: a saved address,
+ * typed once, not a live GPS-to-Nominatim guess redone on every visit. The
+ * address book already exists (delivery.ts, built for checkout) - this reads
+ * the same list the checkout does, default-first per the endpoint's own
+ * contract, and just takes whichever address that puts first.
+ */
+async function getDefaultAddress(token: string): Promise<{ label: string; shortText: string } | null> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/addresses`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    if (!res.ok) return null;
+    const rows: { label: string; line1: string; line2: string | null; formatted_address: string | null }[] = await res.json();
+    const a = rows[0];
+    if (!a) return null;
+    return { label: a.label, shortText: [a.line1, a.line2].filter(Boolean).join(', ') || a.formatted_address || a.label };
+  } catch { return null; }
+}
+
 // Hero: design uses 60px top to clear the status bar; we clear the real notch instead.
 const heroStyle = {
   background: 'var(--gb-hero)', color: '#fff',
+  // relative + a real zIndex (not just relative) is what makes this div its own
+  // stacking context, so HeroCupWatermark's absolutely-positioned layer sits
+  // behind the hero's other children instead of behind the hero's own
+  // background - position:relative alone does not create a stacking context.
+  position: 'relative', zIndex: 0, overflow: 'hidden',
   paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 'var(--gb-hero-pad-bottom, 66px)',
 } as const;
 
@@ -83,16 +107,13 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
   return (
     <div className="gb-shell gb-shell-wide">
       <div style={heroStyle} className="gb-hero">
+        <HeroCupWatermark />
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>Welcome to</div>
-            <div className="gb-serif" style={{ fontSize: 34, fontWeight: 600, letterSpacing: '-.01em', marginTop: 2 }}>Grabbit</div>
-          </div>
-          <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: '#2E2019', padding: '9px 15px', borderRadius: 999, fontSize: 13.5, fontWeight: 800, boxShadow: 'var(--gb-elev-2)' }}>
+          <LocationHeader secondary="Welcome to Grabbit" />
+          <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: '#2E2019', padding: '9px 15px', borderRadius: 999, fontSize: 13.5, fontWeight: 800, boxShadow: 'var(--gb-elev-2)', flex: 'none' }}>
             <MS name="login" size={18} color="var(--gb-primary)" />Sign in
           </Link>
         </div>
-        <LocationPill />
         <div className="gb-serif gb-hero-lede" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 280 }}>
           Browse cafés & menus freely. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Sign in when you&apos;re ready to order.</span>
         </div>
@@ -130,24 +151,21 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
   );
 }
 
-function SignedInHome({ cafes, me }: { cafes: RealCafe[]; me: Me | null }) {
+function SignedInHome({ cafes, me, address }: { cafes: RealCafe[]; me: Me | null; address: { label: string; shortText: string } | null }) {
   const firstName = me?.name?.trim()?.split(' ')[0] || 'there';
   const initial = (me?.name?.trim()?.[0] || me?.phone?.slice(-1) || '?').toUpperCase();
   return (
     <div className="gb-shell gb-shell-wide">
       <div style={heroStyle} className="gb-hero">
+        <HeroCupWatermark />
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' }}>{greeting()}</div>
-            <div className="gb-serif" style={{ fontSize: 29, fontWeight: 500, letterSpacing: '-.01em', marginTop: 3 }}>{firstName}</div>
-          </div>
+          <LocationHeader secondary={`${greeting()}, ${firstName}`} address={address} />
           <Link href="/profile" style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff', flex: 'none' }}>
             {me?.avatar_url
               ? <Image src={me.avatar_url} alt="You" width={44} height={44} sizes="44px" priority style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={44} />}
           </Link>
         </div>
-        <LocationPill />
         <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 270 }}>
           Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue</span>, it&apos;s ready when you are.
         </div>
@@ -167,6 +185,6 @@ export default async function HomePage() {
     getCafes(),
   ]);
   if (!token) return <GuestHome cafes={cafes} />;
-  const me = await getMe(token);
-  return <SignedInHome cafes={cafes} me={me} />;
+  const [me, address] = await Promise.all([getMe(token), getDefaultAddress(token)]);
+  return <SignedInHome cafes={cafes} me={me} address={address} />;
 }
