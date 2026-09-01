@@ -141,7 +141,11 @@ function LoginForm() {
         <div className="gb-serif" style={{ position: 'relative', fontSize: 28, fontWeight: 500, color: '#fff', lineHeight: 1.1 }}>
           Welcome to Grabbit
         </div>
-        <div className="gb-serif" style={{ position: 'relative', fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.85)', marginTop: 8, textAlign: 'center', maxWidth: 260 }}>
+        {/* Sentence-length copy, not a label - stays in the sans body face rather
+            than the display font used for real headlines, same split the landing
+            page itself draws between its Anton headlines and its plain-sans
+            supporting lines. */}
+        <div style={{ position: 'relative', fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.85)', marginTop: 8, textAlign: 'center', maxWidth: 260 }}>
           Order ahead from cafés near you. Skip the queue.
         </div>
 
