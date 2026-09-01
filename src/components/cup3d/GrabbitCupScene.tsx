@@ -48,10 +48,16 @@ function Cup({
 
   const spin = (2 * Math.PI) / cfg.secondsPerTurn;
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const g = group.current;
     if (!g) return;
-    if (!still) g.rotation.y += spin * delta;
+    if (!still) {
+      // A swinging variant is driven off absolute time rather than accumulated
+      // delta so it stays anchored to the front face; a spinning one just keeps
+      // going. Either way rotation 0 is the wordmark facing the camera.
+      if (cfg.sway) g.rotation.y = cfg.sway * Math.sin(state.clock.elapsedTime * spin);
+      else g.rotation.y += spin * delta;
+    }
     // Pointer parallax, capped at cfg.tilt radians so the cup never swings far
     // enough to show the unmapped underside of the lid.
     const targetX = pointer.current.y * cfg.tilt;

@@ -16,7 +16,17 @@ interface CupConfig {
   yOffset: number;
   /** Max pointer tilt in radians. */
   tilt: number;
+  /** Seconds for a full turn, or for one back-and-forth swing when `sway` is set. */
   secondsPerTurn: number;
+  /**
+   * Swing this far either side of the front face instead of turning all the way
+   * round. The sleeve's wordmark only spans about 100 degrees of the cup, so a
+   * full turn spends most of it edge-on or facing away, which reads as a cropped
+   * logo. Rotation 0 puts a wordmark square to the camera (the lathe maps u=0.75
+   * of the texture, one of the two wordmark centres, to +Z), so a small swing
+   * keeps it readable the whole time.
+   */
+  sway?: number;
   shadowY: number;
   shadowOpacity: number;
   /** CSS min-height for the reserved box, so layout never jumps on load. */
@@ -53,7 +63,8 @@ export const VARIANTS: Record<CupVariant, CupConfig> = {
     scale: 1.3,
     yOffset: 0.08,
     tilt: 0.09,
-    secondsPerTurn: 18,
+    secondsPerTurn: 8,
+    sway: 0.35,
     shadowY: -1.33,
     shadowOpacity: 0.16,
     minHeight: 132,

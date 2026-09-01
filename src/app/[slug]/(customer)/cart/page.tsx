@@ -550,6 +550,8 @@ export default function CartPage() {
   const [recs, setRecs] = useState<GrabbitMenuItem[]>([]);
   /** menu_item_id -> minutes the counter needs for one of them, from the menu row. */
   const [prepByItem, setPrepByItem] = useState<Map<number, number>>(new Map());
+  /** menu_item_id -> the item's menu category, for the quick notes offered on that line. */
+  const [categoryByItem, setCategoryByItem] = useState<Map<number, string>>(new Map());
   const [recCat, setRecCat] = useState<GrabbitMenuCategory | 'all'>('all');
   useEffect(() => {
     setDineInTable(sessionStorage.getItem('grabbit_table'));
@@ -701,6 +703,14 @@ export default function CartPage() {
         setPrepByItem(new Map(menu
           .filter(i => i.prep_time_minutes != null)
           .map(i => [i.id, i.prep_time_minutes as number])));
+        // Read off the live menu rather than off the line: only some of the ways into
+        // the cart (the menu grid, the customization sheet) know an item's category,
+        // so a coffee added from a reorder, a pairing or the recommendation strip had
+        // none and fell back to the food notes. The menu knows for every line, and for
+        // lines that were already sitting in a saved cart.
+        setCategoryByItem(new Map(menu
+          .filter(i => i.category != null)
+          .map(i => [i.id, i.category as string])));
         const inCart = new Set(items.map(i => i.menu_item_id));
         setRecs(menu.filter(i => i.is_available && !inCart.has(i.id)));
       })
@@ -1255,7 +1265,7 @@ export default function CartPage() {
                   <LineNote
                     note={item.notes}
                     dish={item.name}
-                    category={item.category}
+                    category={categoryByItem.get(item.menu_item_id) ?? item.category}
                     onChange={(note) => setLineNote(lineKey, note)}
                   />
                 )}
