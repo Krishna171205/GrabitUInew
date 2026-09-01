@@ -73,7 +73,10 @@ export function DesktopTopNav({ signedIn = true }: { signedIn?: boolean }) {
   const tabs = signedIn ? TABS : TABS.filter((t) => t.href === '/home' || t.href === '/explore');
   return (
     <nav className="gb-topnav">
-      <Link href="/home" style={{ display: 'flex', alignItems: 'center' }}>
+      {/* The wordmark goes to the marketing site, the way a brand mark does everywhere
+          else. It used to point at /home, which is where a laptop visitor already is
+          most of the time, so it read as a dead logo. Home is one tab along. */}
+      <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
         <img src="/new-logo.svg" alt="Grabbit" style={{ height: 48, width: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }} />
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
