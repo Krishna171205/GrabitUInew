@@ -16,7 +16,8 @@ interface Me { name: string | null; phone: string | null; avatar_url: string | n
 
 async function getCafeStatus(slug: string): Promise<boolean | undefined> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, { cache: 'no-store' });
+    if (!process.env.NEXT_PUBLIC_API_URL) return undefined;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, { cache: 'no-store', signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return undefined;
     const d = await res.json();
     return d.acceptingOrders !== false;
@@ -26,7 +27,14 @@ async function getCafeStatus(slug: string): Promise<boolean | undefined> {
 // Real, live cafés — honest data, no fabricated marketplace stats.
 async function getCafes(): Promise<RealCafe[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
+    // See the matching guard + comment in src/app/cafes/page.tsx: a missing
+    // NEXT_PUBLIC_API_URL produces a malformed URL that Next's build-time fetch
+    // instrumentation hangs on indefinitely rather than rejecting, signal or not.
+    if (!process.env.NEXT_PUBLIC_API_URL) return [];
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) return [];
     const cafes: RealCafe[] = await res.json();
     // Status is fetched fresh per cafe (not cached with the list) so the "Open now"/"Closed"

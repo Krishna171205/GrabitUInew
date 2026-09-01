@@ -4,8 +4,15 @@ import { type RealCafe } from '@/components/gb/cards';
 import { ExploreSearch } from '@/components/gb/ExploreSearch';
 
 async function getCafes(): Promise<RealCafe[]> {
+  // See the matching guard + comment in src/app/cafes/page.tsx: a missing
+  // NEXT_PUBLIC_API_URL produces a malformed URL that Next's build-time fetch
+  // instrumentation hangs on indefinitely rather than rejecting, signal or not.
+  if (!process.env.NEXT_PUBLIC_API_URL) return [];
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) return [];
     return res.json();
   } catch { return []; }

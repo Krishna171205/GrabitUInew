@@ -31,16 +31,23 @@ function isTokenExpired(token: string): boolean {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // grabit365.com is retired in favor of letsgrabbit.com. Rewrite (not redirect)
-  // so the old domain still resolves and shows the "we've moved" screen before
-  // the client-side JS sends the browser to the new domain.
+  // grabit365.com is retired in favor of letsgrabbit.com. This is a permanent
+  // redirect rather than the rewrite it used to be.
+  //
+  // The rewrite worked for people: because it rewrote rather than redirected,
+  // the browser URL still held the original path, and /moved's script carried
+  // that path over to the new domain. What it could not do is tell a crawler
+  // anything. A 200 with a client-side hop passes no ranking signal, and
+  // Search Console's change-of-address check fails on it outright:
+  // "301-redirect from homepage" is a required test and a JS redirect does not
+  // satisfy it. That migration stays blocked until this ships.
+  //
+  // Cost to a human is the 4s interstitial, which the 301 removes.
+  // /moved still exists for anything linking to it directly.
   const host = req.headers.get('host') || '';
   const isStaticAsset = /\.[^/]+$/.test(pathname);
   if (/^(www\.)?grabit365\.com$/i.test(host) && pathname !== '/moved' && !isStaticAsset) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/moved';
-    url.search = '';
-    return NextResponse.rewrite(url);
+    return NextResponse.redirect(`https://letsgrabbit.com${pathname}${req.nextUrl.search}`, 301);
   }
 
   // Wallet/referral has no deployed backend yet, orphan the routes so a direct

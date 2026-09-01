@@ -19,7 +19,8 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // 'unsafe-eval' needed in dev: Next.js wraps HMR/dynamic chunks in eval() for source maps
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://sdk.cashfree.com`,
+      // googletagmanager/google-analytics: GTM container + the GA4 tag it injects.
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://sdk.cashfree.com https://www.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://fonts.gstatic.com",
@@ -31,13 +32,13 @@ const securityHeaders = [
       // embedded in the .glb into blob: URLs and fetches them back, which counts as
       // connect-src - without this the model still renders but arrives untextured
       // (a blank white cup), and the only trace is a console warning.
-      `connect-src 'self' blob: https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com https://gradient-cafe-assets-676591241313.s3.ap-south-1.amazonaws.com${isDev ? ` ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8083'}` : ''}`,
+      `connect-src 'self' blob: https://api.cashfree.com https://sandbox.cashfree.com https://nominatim.openstreetmap.org https://api.grabit365.com https://gradient-cafe-assets-676591241313.s3.ap-south-1.amazonaws.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net${isDev ? ` ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8083'}` : ''}`,
       // sdk.cashfree.com only hosts the loader/ping atoms. The v3 Drop-in renders the actual
       // checkout by POSTing a form into a modal iframe at api.cashfree.com/pg/view/sessions/checkout
       // (sandbox.cashfree.com in sandbox), so both frame-src AND form-action must allow it -
       // confirmed via securitypolicyviolation events, which is the only place this surfaced:
       // the blocked iframe just left the customer on a blank full-screen overlay with no error.
-      "frame-src https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com",
+      "frame-src https://sdk.cashfree.com https://api.cashfree.com https://sandbox.cashfree.com https://www.googletagmanager.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self' https://api.cashfree.com https://sandbox.cashfree.com",
@@ -89,7 +90,7 @@ const nextConfig: NextConfig = {
       // Defense-in-depth: prevent Google from indexing auth gates and app routes
       // even if a robots.txt entry is missed. Matches NOINDEX_ROUTES in src/lib/seo.ts
       {
-        source: '/(login|complete-profile|brand-type|partner/signup|home|explore|orders|profile|settings|notifications|support|location)(/.*)?',
+        source: '/(login|complete-profile|brand-type|partner/signup|home|explore|orders|profile|settings|notifications|support|location|moved)(/.*)?',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ];

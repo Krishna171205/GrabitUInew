@@ -3,6 +3,7 @@ import { Baloo_2, Mukta, Anton, Caveat } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SeoScripts } from '@/components/SEOScripts';
+import { Analytics } from '@/components/Analytics';
 import { UpdateOnResume } from '@/components/gb/UpdateOnResume';
 import AnimatedFavicon from '@/components/cup3d/AnimatedFavicon';
 import { SITE_URL, SITE_NAME, DESCRIPTION } from '@/lib/seo';
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: `${SITE_NAME}: Order ahead, skip the queue`,
-    template: `%s | ${SITE_NAME} — Order Coffee Ahead`,
+    template: `%s | ${SITE_NAME}`,
   },
   description: DESCRIPTION,
   keywords: [
@@ -84,12 +85,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: SITE_URL,
-    languages: {
-      'en-IN': `${SITE_URL}/`,
-    },
-  },
+  // Single-locale site: an hreflang set with one entry pointing at itself tells
+  // Google nothing it can't already see, so there isn't one.
+  alternates: { canonical: SITE_URL },
   openGraph: {
     type: 'website',
     locale: 'en_IN',
@@ -97,26 +95,23 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME}: Order ahead, skip the queue`,
     description: DESCRIPTION,
-    images: [
-      {
-        url: `${SITE_URL}/og-image.svg`,
-        width: 1200,
-        height: 630,
-        alt: 'Grabbit — Order coffee ahead, skip the queue',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@grabbit',
-    creator: '@grabbit',
     title: `${SITE_NAME}: Order ahead, skip the queue`,
     description: DESCRIPTION,
-    images: [`${SITE_URL}/og-image.svg`],
   },
   icons: {
     icon: [{ url: '/favicon-icon.png', sizes: '315x315', type: 'image/png' }],
     apple: [{ url: '/favicon-icon.png', sizes: '315x315' }],
+  },
+  verification: {
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { other: { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } }
+      : {}),
   },
   category: 'Food & Dining',
 };
@@ -145,10 +140,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* JSON-LD structured data: Organization + Website */}
-        <SeoScripts names={['organization', 'website', 'breadcrumb']} />
+        <SeoScripts names={['organization', 'website']} />
       </head>
       <body>
         {children}
+        <Analytics />
         <UpdateOnResume />
         <AnimatedFavicon />
       </body>
