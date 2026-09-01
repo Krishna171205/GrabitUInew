@@ -114,10 +114,7 @@ function GuestHome({ cafes }: { cafes: RealCafe[] }) {
             <MS name="login" size={18} color="var(--gb-primary)" />Sign in
           </Link>
         </div>
-        {/* Sentence-length copy, not a label - stays in the sans body face, same
-            split the landing page draws between its Anton headlines and its
-            plain-sans supporting lines. */}
-        <div className="gb-hero-lede" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 280 }}>
+        <div className="gb-serif gb-hero-lede" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 280 }}>
           Browse cafés & menus freely. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Sign in when you&apos;re ready to order.</span>
         </div>
         <SearchBar />
@@ -169,8 +166,7 @@ function SignedInHome({ cafes, me, address }: { cafes: RealCafe[]; me: Me | null
               : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={44} />}
           </Link>
         </div>
-        {/* Sentence-length copy, not a label - see the guest hero above for why. */}
-        <div style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 270 }}>
+        <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 270 }}>
           Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue</span>, it&apos;s ready when you are.
         </div>
         <SearchBar />

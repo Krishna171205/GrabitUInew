@@ -416,14 +416,7 @@ html.lenis, html.lenis body {
   --gb-ease-out: cubic-bezier(.23, 1, .32, 1);
   --gb-ease-drawer: cubic-bezier(.32, .72, 0, 1);
 
-  /* Anton, not the rounded Baloo 2 this used to be: the landing page's headline
-     font, one face across the whole product now instead of two competing
-     identities. Anton has no lowercase worth using (drawn for all-caps display
-     type, the same way every landing headline already sets it) - the class
-     below forces uppercase so ".gb-serif" text in the app matches how Anton
-     is styled everywhere it already ships, rather than rendering in its
-     unusual native lowercase. */
-  --gb-serif: var(--font-anton), var(--font-deva), system-ui, sans-serif;
+  --gb-serif: var(--font-display), var(--font-deva), system-ui, sans-serif;
   --gb-sans: var(--font-ui), var(--font-deva), system-ui, -apple-system, sans-serif;
 
   min-height: 100dvh;
@@ -432,7 +425,7 @@ html.lenis, html.lenis body {
   font-family: var(--gb-sans);
   -webkit-font-smoothing: antialiased;
 }
-.gb-app .gb-serif { font-family: var(--gb-serif); text-transform: uppercase; }
+.gb-app .gb-serif { font-family: var(--gb-serif); }
 
 /* Material Symbols Rounded glyph */
 .gb-ms {
