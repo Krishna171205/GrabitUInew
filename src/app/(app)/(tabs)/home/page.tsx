@@ -82,10 +82,12 @@ const heroStyle = {
   paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 'var(--gb-hero-pad-bottom, 66px)',
 } as const;
 
-function SearchBar() {
+function SearchBar({ marginTop = 18 }: { marginTop?: number }) {
   return (
-    <Link href="/explore" className="gb-hero-search" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-2)' }}>
-      <MS name="search" size={21} color="#9A8C7B" />
+    <Link href="/explore" className="gb-hero-search" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop, background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-2)' }}>
+      {/* The Material Symbols glyph doesn't sit centered in its own line box - nudged
+          down a couple px to align with the placeholder text's optical center. */}
+      <MS name="search" size={21} color="#9A8C7B" style={{ position: 'relative', top: 2 }} />
       <span style={{ fontSize: 14.5, color: '#9A8C7B', fontWeight: 500 }}>Search cafés, dishes, drinks</span>
     </Link>
   );
@@ -156,8 +158,13 @@ function SignedInHome({ cafes, me, address }: { cafes: RealCafe[]; me: Me | null
   const initial = (me?.name?.trim()?.[0] || me?.phone?.slice(-1) || '?').toUpperCase();
   return (
     <div className="gb-shell gb-shell-wide">
-      <div style={heroStyle} className="gb-hero">
-        <HeroCupWatermark />
+      {/* Unlike the guest hero, nothing overlaps into this one from below (no sign-in
+          nudge card pulling itself up), so the shared 66px bottom pad just reads as
+          dead space here - tightened for this variant only. */}
+      <div style={{ ...heroStyle, paddingBottom: 'var(--gb-hero-pad-bottom, 36px)' }} className="gb-hero">
+        {/* Lower than the guest hero's: this one has a real avatar sitting right above,
+            not just a thin pill, and it was covering the cup's rim and steam. */}
+        <HeroCupWatermark top="22%" maxWidth={115} />
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <LocationHeader secondary={`${greeting()}, ${firstName}`} address={address} />
           <Link href="/profile" style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff', flex: 'none' }}>
@@ -166,10 +173,13 @@ function SignedInHome({ cafes, me, address }: { cafes: RealCafe[]; me: Me | null
               : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={44} />}
           </Link>
         </div>
-        <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 270 }}>
-          Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue</span>, it&apos;s ready when you are.
+        {/* Shorter than the guest hero's lede on purpose: this hero already carries an
+            address row and a greeting above it, so the tagline has less room to breathe
+            before it reads as cramped. */}
+        <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 18, fontWeight: 400, maxWidth: 270 }}>
+          Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
         </div>
-        <SearchBar />
+        <SearchBar marginTop={30} />
       </div>
 
       <Categories />

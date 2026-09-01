@@ -11,7 +11,7 @@ import Image from 'next/image';
  * on the app's highest-traffic screen makes that worth having over a plain
  * <img>.
  */
-export function HeroCupWatermark() {
+export function HeroCupWatermark({ top = '17%', maxWidth = 160 }: { top?: string; maxWidth?: number }) {
   return (
     <Image
       src="/hero/cup-watermark.png"
@@ -20,7 +20,7 @@ export function HeroCupWatermark() {
       width={700}
       height={822}
       sizes="(max-width: 480px) 35vw, 160px"
-      style={{ position: 'absolute', top: '9%', right: '-4%', width: '35%', maxWidth: 160, height: 'auto', opacity: 0.14 }}
+      style={{ position: 'absolute', top, right: '-4%', width: '35%', maxWidth, height: 'auto', opacity: 0.14 }}
     />
   );
 }
