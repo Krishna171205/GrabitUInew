@@ -13,18 +13,23 @@ export const metadata: Metadata = {
 };
 
 async function getCafes(): Promise<RealCafe[]> {
+  const t0 = Date.now();
+  // TEMP DIAGNOSTIC - remove before merge. CI is timing out past 60s even with a 10s
+  // AbortSignal on this fetch; this logs exactly what happens and when, so the CI log
+  // says what's actually hanging instead of guessing from outside it.
+  console.error(`[diag cafes] start url=${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes at t=0`);
   try {
-    // Next executes every page function once during `next build` to learn whether it can
-    // be static, even pages that end up server-rendered - so an unbounded fetch here can
-    // hang the build itself, not just a slow page load. 10s is generous for a healthy API
-    // and well under Next's 60s-per-attempt build budget.
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, {
       next: { revalidate: 300 },
       signal: AbortSignal.timeout(10_000),
     });
+    console.error(`[diag cafes] fetch resolved ok=${res.ok} status=${res.status} at t=${Date.now() - t0}ms`);
     if (!res.ok) return [];
-    return res.json();
-  } catch {
+    const json = await res.json();
+    console.error(`[diag cafes] json parsed at t=${Date.now() - t0}ms`);
+    return json;
+  } catch (e) {
+    console.error(`[diag cafes] caught at t=${Date.now() - t0}ms:`, e instanceof Error ? `${e.name}: ${e.message}` : e);
     return [];
   }
 }
