@@ -756,10 +756,10 @@ export default function CartPage() {
   // from the coordinates, so a stale number here can misdisplay but never mischarge.
   const deliveryFee = delivering && quote?.serviceable ? Number(quote.charge ?? 0) : 0;
 
-  // FIRST_ORDER offers depend on eligibility (has this customer ever ordered
-  // here?) that only the server knows - never auto-apply one here, since a
-  // discount the checkout silently declines is worse than showing none.
-  const applicableOffers = offers.filter((o) => o.offer_type !== 'FIRST_ORDER');
+  // FIRST_ORDER eligibility (has this customer ever ordered here?) is decided
+  // server-side: GET /api/grabit/offers already drops a FIRST_ORDER offer unless
+  // the caller is a logged-in customer who has never ordered at this cafe.
+  const applicableOffers = offers;
   // What the customer actually spent, which is what earns an offer: a giveaway line
   // sitting in the cart never counts toward any min_order_value. For the FREE_ITEM
   // offer that granted it this mirrors OfferService.applyToOrder (dropping real items
