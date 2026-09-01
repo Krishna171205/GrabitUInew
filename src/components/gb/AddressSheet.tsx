@@ -466,7 +466,12 @@ function MapStep({
                 : 'This cafe is not delivering right now.'}
             </span>
           )}
-          {!untouched && quote === null && point && <span style={{ color: 'var(--gb-muted)' }}>Could not check delivery. Try again in a moment.</span>}
+          {/* pricing gates this the same way settle() gates ever calling quoteDelivery:
+              without it (the address book, opened with no cafeId/cartValue) a quote is
+              never attempted, so quote === null here means "not applicable", not
+              "failed" - showing this message on every pin drop on that screen was the
+              bug, not a transient one. */}
+          {!untouched && pricing && quote === null && point && <span style={{ color: 'var(--gb-muted)' }}>Could not check delivery. Try again in a moment.</span>}
         </div>
 
         <button
