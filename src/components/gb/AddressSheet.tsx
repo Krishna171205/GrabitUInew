@@ -415,20 +415,25 @@ function MapStep({
       </div>
 
       <div style={{ position: 'relative', flex: 1, minHeight: 220 }}>
-        <div ref={holder} style={{ position: 'absolute', inset: 0 }} />
+        <div ref={holder} className="gb-map-tint" style={{ position: 'absolute', inset: 0 }} />
+        <div className="gb-map-tint-overlay" />
         {/* The pin sits still and the map moves under it: the centre IS the address. */}
         <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -100%)', pointerEvents: 'none', zIndex: 400, textAlign: 'center' }}>
-          <MS name="location_on" size={40} fill color="var(--gb-primary)" />
+          <MS name="location_on" size={40} fill color="var(--gb-primary)" style={{ filter: 'drop-shadow(0 6px 8px rgba(0,85,212,.35))' }} />
+          <div className="gb-map-pin-shadow" style={{ margin: '-6px auto 0' }} />
         </div>
         <button
           onClick={() => locate()}
-          style={{ position: 'absolute', right: 14, bottom: 14, zIndex: 400, display: 'flex', alignItems: 'center', gap: 6, border: '1px solid var(--gb-line-2)', background: '#fff', borderRadius: 11, padding: '8px 11px', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-primary)', cursor: 'pointer', boxShadow: '0 10px 24px -18px rgba(0,0,0,.6)' }}
+          style={{ position: 'absolute', right: 14, bottom: 14, zIndex: 400, display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '9px 13px', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-primary)', cursor: 'pointer', boxShadow: 'var(--gb-elev-2)' }}
         >
           <MS name="my_location" size={16} />{locating ? 'Locating…' : 'Use my location'}
         </button>
       </div>
 
-      <div style={{ padding: '13px 16px calc(16px + env(safe-area-inset-bottom))', borderTop: '1px solid var(--gb-line)', background: 'var(--gb-surface)' }}>
+      {/* Docked over the map rather than flush against it - a hairline border read
+          as an afterthought where every other floating panel in the app (bottom
+          nav, sheets) gets a rounded top and an upward glow instead. */}
+      <div style={{ position: 'relative', zIndex: 2, marginTop: -20, borderTopLeftRadius: 20, borderTopRightRadius: 20, boxShadow: 'inset 0 1px 0 rgba(255,255,255,.75), 0 -20px 40px -24px rgba(15,23,42,.35)', padding: '16px 16px calc(16px + env(safe-area-inset-bottom))', background: 'var(--gb-surface)' }}>
         {denied && (
           <div style={{ fontSize: 12, color: 'var(--gb-muted)', fontWeight: 600, marginBottom: 8 }}>
             We could not read your location. Search for your area above, or drag the map.

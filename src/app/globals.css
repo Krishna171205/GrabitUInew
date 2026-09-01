@@ -952,3 +952,29 @@ html.lenis, html.lenis body {
   }
 
 }
+
+/* ============================================================
+   Address map picker (AddressSheet). Raw OpenStreetMap tiles read as
+   generic - warm beige buildings, nothing tying them to the brand. One
+   filter on the tile layer's own container pushes the palette toward
+   Grabbit's cool blue without a paid tile provider or an API key.
+   ============================================================ */
+.gb-app .gb-map-tint {
+  /* Desaturate rather than hue-rotate: rotating hue shifts every colour on the
+     tiles by the same angle, so pushing OSM's beige toward blue took its green
+     park fills to pink along with it. Flattening toward grey first and tinting
+     with a separate translucent layer (below) keeps control of exactly one
+     colour instead of all of them. */
+  filter: grayscale(.7) brightness(1.08) contrast(.96);
+}
+.gb-app .gb-map-tint-overlay {
+  position: absolute; inset: 0; pointer-events: none;
+  background: rgba(0, 85, 212, .10); mix-blend-mode: multiply;
+}
+/* A small blurred ellipse fixed under the pin - the same "floating above
+   the ground" cue map pickers usually get from a real shadow, which a flat
+   Material Symbols glyph has none of on its own. */
+.gb-app .gb-map-pin-shadow {
+  width: 16px; height: 6px; border-radius: 50%;
+  background: rgba(15, 23, 42, .32); filter: blur(2px);
+}
