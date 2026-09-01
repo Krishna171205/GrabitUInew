@@ -485,6 +485,17 @@ html.lenis, html.lenis body {
 }
 .gb-app .gb-review-sheet { max-width: 480px; margin: 0 auto; }
 
+/* Explore's way back to Home for a guest, who has no bottom nav to tap instead
+   (TabsLayout only renders it signed in). Hidden ≥860px - see the media query
+   below - where DesktopTopNav already covers this. Bare selector, matching
+   .gb-bottomnav just below: the override there is bare too, so source order
+   settles it. A .gb-app-prefixed base here would out-specify that override
+   and win regardless of the media query. */
+.gb-explore-back {
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--gb-line-2);
+  background: var(--gb-card); display: flex; align-items: center; justify-content: center; flex: none;
+}
+
 /* Pressable chrome answers the finger. Transform only, so it stays on the GPU. */
 .gb-app .gb-press {
   transition: transform 160ms var(--gb-ease-out);
@@ -640,6 +651,12 @@ html.lenis, html.lenis body {
   .gb-bottomnav { display: none; }
   .gb-nav-spacer { height: 0; }
   .gb-topnav { display: flex; }
+  /* Same reason: DesktopTopNav already gets a guest back to Home here.
+     display:none here, not the inline style on the element - an inline
+     style always wins over a class regardless of media query, so the
+     layout (flex/size/etc) has to live in .gb-explore-back for this
+     override to ever take effect. */
+  .gb-explore-back { display: none; }
 
   /* /location, the standalone picker: full page on a phone, centred modal here. */
   .gb-location-backdrop {
