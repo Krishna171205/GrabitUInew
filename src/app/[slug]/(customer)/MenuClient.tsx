@@ -117,6 +117,10 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   }, [table]);
   const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
   const [activeSub, setActiveSub] = useState<string>('all');
+  // Which menu sections are collapsed (Zomato-style), keyed by section key (see
+  // `sections` below) - a set of the collapsed ones, not the open ones, so every section
+  // starts expanded without having to know the full list up front.
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [showSubSheet, setShowSubSheet] = useState(false);
   const VISIBLE_SUBS = 3;
   const [sortMode, setSortMode] = useState<SortModeId>('recommended');
@@ -247,7 +251,6 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
     return list; // recommended: keep backend order
   }
   const categoriesPresent = CATEGORIES.filter(c => available.some(i => i.category === c));
-  const shownCats = activeCat === 'all' ? categoriesPresent : categoriesPresent.filter(c => c === activeCat);
   // Subcategories are scoped to the selected category (or all categories, when none picked yet).
   const subsPresent = Array.from(new Set(
     available
@@ -255,6 +258,25 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
       .map(i => i.subcategory_name)
       .filter((s): s is string => !!s)
   ));
+  // Sections group by the cafe's own subcategory ("Chaap", "Starters", "Cold Coffee"),
+  // which is the granularity a real menu is actually organized at - the 5-value category
+  // enum is too coarse to make a useful collapsible section on its own (most cafes would
+  // only ever produce two: "Drinks" and "Food"). An item with no subcategory on file falls
+  // back to its category label so it still lands somewhere instead of going unlisted.
+  // Section order follows first appearance in the menu, i.e. the cafe's own sort_order.
+  const sections = (() => {
+    const filtered = available.filter(i =>
+      (activeCat === 'all' || i.category === activeCat) &&
+      (activeSub === 'all' || i.subcategory_name === activeSub));
+    const order: string[] = [];
+    const byKey = new Map<string, GrabbitMenuItem[]>();
+    for (const item of filtered) {
+      const key = item.subcategory_name || CATEGORY_LABELS[item.category];
+      if (!byKey.has(key)) { byKey.set(key, []); order.push(key); }
+      byKey.get(key)!.push(item);
+    }
+    return order.map(key => ({ key, items: sorted(byKey.get(key)!) }));
+  })();
   // The cafe's own storefront photo when it has supplied one, then whatever the menu
   // payload already carried, then the stock fallback.
   const cover = (cafe as { cover_url?: string | null }).cover_url
@@ -411,6 +433,10 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <Image src={cover} alt={cafe.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
+        {/* A second back button lives in the sticky filter row below (see its comment) -
+            this one only covers the hero itself, since a fixed copy here used to float
+            over whatever scrolled underneath it, at one point overlapping the filter
+            row closely enough to read as one confused control. */}
         <button onClick={() => router.push('/home')} aria-label="Back" className="gb-glass gb-press" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <MS name="arrow_back" size={22} color="var(--gb-ink)" />
         </button>
@@ -594,8 +620,17 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
 
       {/* filter chips — sticky so switching category/subcategory is always one tap away.
           Subcategories share the same row as categories (Zomato-style), with a "+More"
-          chip opening a sheet once there are more than fit on one line. */}
-      <div className="gb-scroll" style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(15,23,42,.35)', display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', padding: '14px 16px' }}>
+          chip opening a sheet once there are more than fit on one line.
+          A back button rides along at the start of this same sticky row, outside the
+          scrolling chip strip so it can't scroll off sideways with them. Once this row
+          has stuck to the top, it's the only back affordance on screen - the cover
+          photo's own back button (above) has long since scrolled away by then, the
+          reason for having this one at all. */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(15,23,42,.35)', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}>
+        <button onClick={() => router.push('/home')} aria-label="Back" style={{ flex: 'none', width: 34, height: 34, borderRadius: '50%', border: '1px solid var(--gb-line-2)', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <MS name="arrow_back" size={19} color="var(--gb-ink)" />
+        </button>
+        <div className="gb-scroll" style={{ display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', flex: 1, minWidth: 0 }}>
         <button style={chip(sortMode !== 'recommended')} onClick={() => setShowSortSheet(true)} aria-label="Sort and filter menu">
           <MS name="tune" size={17} color={sortMode !== 'recommended' ? '#fff' : 'var(--gb-primary)'} />Filters
         </button>
@@ -621,19 +656,36 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           </>
         )}
         </div>
+        </div>
       </div>
 
       {/* menu */}
       <div style={{ padding: '6px 16px 0' }}>
-        {shownCats.every(cat => !available.some(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub))) && (
+        {sections.length === 0 && (
           <p style={{ textAlign: 'center', color: 'var(--gb-muted)', fontSize: 14, padding: '48px 0', fontWeight: 500 }}>No items match your search</p>
         )}
-        {shownCats.map(cat => {
-          const catItems = sorted(available.filter(i => i.category === cat && (activeSub === 'all' || i.subcategory_name === activeSub)));
-          if (!catItems.length) return null;
+        {sections.map(({ key, items: catItems }) => {
+          const collapsed = collapsedSections.has(key);
           return (
-            <div key={cat}>
-              <div className="gb-serif" style={{ fontSize: 18, fontWeight: 500, margin: '20px 4px 8px', color: '#3A302A' }}>{CATEGORY_LABELS[cat]}</div>
+            <div key={key}>
+              {/* Bigger and its own row now, not a small label that blended into the
+                  page - and tappable to collapse (Zomato-style), for a menu long enough
+                  that scrolling past sections you don't want is its own kind of work. */}
+              <button
+                onClick={() => setCollapsedSections(prev => {
+                  const next = new Set(prev);
+                  next.has(key) ? next.delete(key) : next.add(key);
+                  return next;
+                })}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', margin: '22px 0 4px', padding: '0 4px 10px', border: 'none', borderBottom: '1px solid var(--gb-line-2)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+              >
+                <span className="gb-serif" style={{ fontSize: 21, fontWeight: 700, color: 'var(--gb-text)' }}>{key}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 12.5, fontWeight: 700, color: 'var(--gb-muted)' }}>
+                  {catItems.length}
+                  <MS name={collapsed ? 'expand_more' : 'expand_less'} size={22} color="var(--gb-muted-2)" />
+                </span>
+              </button>
+              {!collapsed && (
               <div className="gb-menu-grid">
                 {catItems.map(item => (
                   <div key={item.id} onClick={() => setCustomizeItem(item)} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)', display: 'flex', flexDirection: 'column', height: '100%', cursor: 'pointer' }}>
@@ -670,6 +722,7 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
                   </div>
                 ))}
               </div>
+              )}
             </div>
           );
         })}
