@@ -308,11 +308,11 @@ const OFFER_ROW_H = 34;
 // offers were invisible from here otherwise. The action belongs to whichever offer
 // is showing; rotation pauses while a finger or cursor is on the card so the button
 // can't change under a tap.
-function OfferBanner({ rows, appliedId, onChoose, onUnclaim, onOpenPicker }: {
+function OfferBanner({ rows, appliedId, onChoose, onRemove, onOpenPicker }: {
   rows: { offer: GrabbitOffer; discount: number; shortfall: number; unclaimed: boolean }[];
   appliedId: number | undefined;
   onChoose: (offer: GrabbitOffer) => void;
-  onUnclaim: () => void;
+  onRemove: () => void;
   onOpenPicker: () => void;
 }) {
   const [paused, setPaused] = useState(false);
@@ -354,13 +354,15 @@ function OfferBanner({ rows, appliedId, onChoose, onUnclaim, onOpenPicker }: {
       {shown.discount === 0 ? (
         <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--gb-muted-2)', flex: 'none' }}>LOCKED</span>
       ) : applied && isFreeItem && !shown.unclaimed ? (
-        <button onClick={onUnclaim} aria-label="Remove free item" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}>
+        <button onClick={onRemove} aria-label="Remove free item" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}>
           ADDED<MS name="close" size={13} color="#fff" />
         </button>
       ) : applied && isFreeItem ? (
         <button onClick={() => onChoose(shown.offer)} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Add</button>
       ) : applied ? (
-        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--gb-primary)', flex: 'none' }}>APPLIED</span>
+        <button onClick={onRemove} aria-label="Remove offer" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 800, color: '#fff', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '4px 8px 4px 9px', flex: 'none', cursor: 'pointer' }}>
+          APPLIED<MS name="close" size={13} color="#fff" />
+        </button>
       ) : (
         <button onClick={() => onChoose(shown.offer)} style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--gb-on-primary)', background: 'var(--gb-primary)', border: 'none', borderRadius: 8, padding: '7px 12px', flex: 'none', cursor: 'pointer' }}>Apply</button>
       )}
@@ -649,8 +651,8 @@ export default function CartPage() {
   // Offers for this cafe, client-side preview only - see discountFor's comment.
   const [offers, setOffers] = useState<GrabbitOffer[]>([]);
   const [offersLoading, setOffersLoading] = useState(true);
-  // Which offer the customer picked, when more than one fits the cart. null = let
-  // the best-saving one lead.
+  // Which offer the customer explicitly applied (OfferBanner's Apply, a picker row).
+  // null = nothing applied yet, even if one is eligible - see chosenOffer.
   const [chosenOfferId, setChosenOfferId] = useState<number | null>(null);
   const [showOfferPicker, setShowOfferPicker] = useState(false);
   useEffect(() => {
@@ -792,9 +794,9 @@ export default function CartPage() {
       unclaimed: x.offer.offer_type === 'FREE_ITEM'
         && !items.some((i) => i.menu_item_id === x.offer.free_item_menu_item_id),
     }));
-  // A choice that stops being eligible (cart shrank below its min) falls back to
-  // the best one rather than silently applying nothing; it comes back if the cart
-  // grows again, since chosenOfferId is left alone.
+  // Best-saving eligible offer, purely for preview: what the picker highlights first
+  // and what "N offers apply to this cart" counts. Never reaches the bill on its own -
+  // an offer is unlocked, not applied, until the customer taps it (see appliedOffer).
   const bestOffer = eligibleOffers.find((x) => x.offer.id === chosenOfferId) ?? eligibleOffers[0];
   // Nearest offer the cart just misses, so we can nudge "add ₹X more" instead
   // of saying nothing.
@@ -804,16 +806,21 @@ export default function CartPage() {
         .sort((a, b) => a.min_order_value! - b.min_order_value!)[0]
     : undefined;
 
+  // What the customer actually chose (OfferBanner's Apply / OfferPicker's row), and
+  // only while it's still eligible - a choice that stops qualifying (cart shrank
+  // below its min) drops rather than silently sliding onto whatever's best now, since
+  // that would apply a discount the customer never picked.
+  const chosenOffer = eligibleOffers.find((x) => x.offer.id === chosenOfferId);
   // A FREE_ITEM discount only nets out once the item is actually claimed into the
-  // cart (see claimFreeItem) - it's opt-in now, so "eligible" and "in the cart"
-  // are different things. Showing the discount before the item is added
+  // cart (see claimFreeItem) - it's opt-in, so "chosen" and "in the cart" are
+  // different things for one render. Showing the discount before the item lands
   // undercharges the display relative to what's actually in the cart.
-  const freeItemClaimed = bestOffer?.offer.offer_type !== 'FREE_ITEM'
-    || items.some(i => i.menu_item_id === bestOffer.offer.free_item_menu_item_id);
-  // The only offer this order actually gets: eligibility alone (bestOffer) must
-  // never reach the bill or the create-order payload, or an unclaimed FREE_ITEM
-  // reads as auto-applied and the server grants it.
-  const appliedOffer = bestOffer && freeItemClaimed ? bestOffer : undefined;
+  const freeItemClaimed = chosenOffer?.offer.offer_type !== 'FREE_ITEM'
+    || items.some(i => i.menu_item_id === chosenOffer.offer.free_item_menu_item_id);
+  // The only offer this order actually gets: an offer merely being eligible
+  // (bestOffer) must never reach the bill or the create-order payload on its own,
+  // or every visitor gets a discount they never asked for.
+  const appliedOffer = chosenOffer && freeItemClaimed ? chosenOffer : undefined;
   // What the items come to after any offer, before delivery. The server prices the
   // ride from exactly this number (OrderService: delivery is quoted from `payable`),
   // and measures the cafe's minimum against it, so quoting from anything else here
@@ -890,7 +897,7 @@ export default function CartPage() {
   // one unit *we* added on their behalf, so a line the customer already had is never
   // touched, and we only ever remove the unit we ourselves added.
   useEffect(() => {
-    const freeOffer = bestOffer?.offer.offer_type === 'FREE_ITEM' ? bestOffer.offer : null;
+    const freeOffer = chosenOffer?.offer.offer_type === 'FREE_ITEM' ? chosenOffer.offer : null;
     const targetId = freeOffer?.free_item_menu_item_id ?? null;
 
     if (ownedFreeItemRef.current != null && ownedFreeItemRef.current !== targetId) {
@@ -902,7 +909,7 @@ export default function CartPage() {
       }
       ownedFreeItemRef.current = null;
     }
-  }, [bestOffer, items, removeItem, updateQty]);
+  }, [chosenOffer, items, removeItem, updateQty]);
 
   function claimFreeItem(offer: GrabbitOffer) {
     const freeOffer = offer.offer_type === 'FREE_ITEM' ? offer : null;
@@ -931,6 +938,13 @@ export default function CartPage() {
   function chooseOffer(offer: GrabbitOffer) {
     setChosenOfferId(offer.id);
     if (offer.offer_type === 'FREE_ITEM') claimFreeItem(offer);
+  }
+
+  // Drops whichever offer is applied, back to full price. A FREE_ITEM's giveaway
+  // unwinds on its own: the ineligibility-cleanup effect above watches chosenOffer,
+  // so clearing it here is enough - no separate removeFreeItem call needed.
+  function removeAppliedOffer() {
+    setChosenOfferId(null);
   }
 
   // Lets the customer decline the free item after claiming it - only ever touches
@@ -1035,8 +1049,8 @@ export default function CartPage() {
 
   // Order creation + payment (moved from the deleted /checkout page).
   // dropOffer: pass null to force a full-price retry after the server rejects
-  // the offer this render's bestOffer picked (claimed by someone else, cap
-  // hit, window closed since the customer opened the cart).
+  // the offer the customer applied (claimed by someone else, cap hit, window
+  // closed since the customer opened the cart).
   async function createOrder(dropOffer?: null) {
     if (!cafeId) { setError('Could not load the café. Please try again.'); return; }
     if (submitting.current) return;
@@ -1180,14 +1194,14 @@ export default function CartPage() {
       {showOfferPicker && (
         <OfferPicker
           rows={offerRows}
-          appliedId={bestOffer?.offer.id}
+          appliedId={appliedOffer?.offer.id}
           onChoose={chooseOffer}
           onClose={() => setShowOfferPicker(false)}
         />
       )}
 
-      {showFreeItemCelebration && bestOffer?.offer.offer_type === 'FREE_ITEM' && (
-        <FreeItemCelebration offer={bestOffer.offer} onDismiss={() => setShowFreeItemCelebration(false)} />
+      {showFreeItemCelebration && chosenOffer?.offer.offer_type === 'FREE_ITEM' && (
+        <FreeItemCelebration offer={chosenOffer.offer} onDismiss={() => setShowFreeItemCelebration(false)} />
       )}
 
       {/* header */}
@@ -1217,9 +1231,9 @@ export default function CartPage() {
       {!offersLoading && offerRows.length > 0 && (
         <OfferBanner
           rows={offerRows}
-          appliedId={bestOffer?.offer.id}
+          appliedId={appliedOffer?.offer.id}
           onChoose={chooseOffer}
-          onUnclaim={removeFreeItem}
+          onRemove={removeAppliedOffer}
           onOpenPicker={() => setShowOfferPicker(true)}
         />
       )}
@@ -1233,8 +1247,8 @@ export default function CartPage() {
           const lineKey = cartLineKey(item);
           // The one unit of a FREE_ITEM giveaway we auto-added - system-controlled like
           // Zomato/Swiggy's free items, so no stepper: it comes and goes with the offer.
-          const isFreeGift = bestOffer?.offer.offer_type === 'FREE_ITEM'
-            && item.menu_item_id === bestOffer.offer.free_item_menu_item_id;
+          const isFreeGift = chosenOffer?.offer.offer_type === 'FREE_ITEM'
+            && item.menu_item_id === chosenOffer.offer.free_item_menu_item_id;
           return (
             <div key={lineKey} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--gb-line)' }}>
               <Veg veg={item.is_veg} />
@@ -1564,19 +1578,34 @@ export default function CartPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--gb-muted)', fontWeight: 600, padding: '4px 0' }}><span>Checking for offers…</span></div>
         )}
         {appliedOffer && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 12.5, color: 'var(--gb-primary)', fontWeight: 700, padding: '4px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, fontSize: 12.5, color: 'var(--gb-primary)', fontWeight: 700, padding: '4px 0' }}>
             <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{appliedOffer.offer.title}</span>
-            <span style={{ flex: 'none' }}>-{inr(appliedOffer.discount)}</span>
+            <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              -{inr(appliedOffer.discount)}
+              <button onClick={removeAppliedOffer} aria-label="Remove offer" style={{ display: 'flex', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                <MS name="close" size={14} color="var(--gb-primary)" />
+              </button>
+            </span>
           </div>
         )}
-        {!offersLoading && offerRows.length > 1 && (
+        {/* Was gated on more than one row, which hid this entirely for the single most
+            common case - one eligible, unapplied offer - leaving nothing in the bill to
+            say a discount was even available. But a single row that's already applied
+            has nothing left to switch to, so that case stays hidden. */}
+        {!offersLoading && (offerRows.length > 1 || (offerRows.length === 1 && !appliedOffer)) && (
           <button
             onClick={() => setShowOfferPicker(true)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', background: 'transparent', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left' }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: '#6E6155' }}>
               <MS name="local_offer" size={15} color="var(--gb-primary)" />
-              {eligibleOffers.length > 1 ? `${eligibleOffers.length} offers apply to this cart` : 'More offers at this cafe'}
+              {eligibleOffers.length > 1
+                ? `${eligibleOffers.length} offers apply to this cart`
+                : appliedOffer
+                  ? 'More offers at this cafe'
+                  : bestOffer
+                    ? 'Offer unlocked'
+                    : 'More offers at this cafe'}
             </span>
             <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-primary)' }}>
               {appliedOffer ? 'Change' : 'View'}<MS name="chevron_right" size={16} color="var(--gb-primary)" />
