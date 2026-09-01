@@ -235,7 +235,9 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   }, [slug, cafe?.id]);
 
   const q = query.trim().toLowerCase();
-  const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q)));
+  // Matches the item name or its cafe-authored subcategory (e.g. "Mocktails"), not just
+  // the category enum - that's coarse (drinks/food/specials/...) and wouldn't match at all.
+  const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q) || i.subcategory_name?.toLowerCase().includes(q)));
   // Sort applies within the current category/subcategory view — Recommended keeps the
   // cafe's own menu order (sort_order from the backend).
   function sorted(list: GrabbitMenuItem[]): GrabbitMenuItem[] {
