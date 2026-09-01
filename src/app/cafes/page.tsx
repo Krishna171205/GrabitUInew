@@ -14,7 +14,14 @@ export const metadata: Metadata = {
 
 async function getCafes(): Promise<RealCafe[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, { next: { revalidate: 300 } });
+    // Next executes every page function once during `next build` to learn whether it can
+    // be static, even pages that end up server-rendered - so an unbounded fetch here can
+    // hang the build itself, not just a slow page load. 10s is generous for a healthy API
+    // and well under Next's 60s-per-attempt build budget.
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) return [];
     return res.json();
   } catch {
