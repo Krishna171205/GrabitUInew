@@ -57,6 +57,8 @@ interface Props {
 interface Choice {
   id: number;
   name: string;
+  /** "x2" for a collapsed multi-unit row - rendered bigger/bolder than name, not inline text. */
+  qtyLabel?: string;
   /** What the row costs: absolute for a variation, a delta for an extra. */
   priceLabel: string;
   selected: boolean;
@@ -67,10 +69,13 @@ export function CustomizeSheet({ item, variations, groups, addons, items, cafeOp
   // An item with variations has no meaningful "plain" price, so the first one is the
   // opening position - same as every aggregator sheet, and the guest can move off it.
   const [variationId, setVariationId] = useState<number | null>(variations[0]?.id ?? null);
-  // A required group with exactly one option isn't a real decision - pre-pick it so the
-  // guest doesn't have to tap through a "choice" that was never actually optional.
+  // A group whose minimum equals its whole option count isn't a real decision - every
+  // option in it is mandatory (one item required with one option to fill it, or a combo
+  // that always includes two of the same drink as two option rows), so pre-pick all of
+  // them instead of making the guest tap through a "choice" that was never optional.
   const [optionIds, setOptionIds] = useState<Set<number>>(() => new Set(
-    groups.filter(g => g.min_select > 0 && g.options.length === 1).map(g => g.options[0].id),
+    groups.filter(g => g.min_select > 0 && g.min_select === g.options.length)
+      .flatMap(g => g.options.map(o => o.id)),
   ));
   const [addonIds, setAddonIds] = useState<Set<number>>(new Set());
   const [quantity, setQuantity] = useState(1);
@@ -91,9 +96,14 @@ export function CustomizeSheet({ item, variations, groups, addons, items, cafeOp
   const bundleGroups = variations.length === 0
     ? groups.filter(g => g.min_select > 0 && g.options.every(o => o.price_delta === 0))
     : [];
+  // Sums every selected option in the group, not just one: a combo that bundles two of
+  // the same drink as two option rows (both selected, both mandatory) needs both drinks'
+  // standalone prices counted toward the crossed-out total, not only the first.
   const selectedBundlePrices = bundleGroups.map(g => {
-    const selected = g.options.find(o => optionIds.has(o.id));
-    return selected ? standalonePrice(selected.name) : null;
+    const selected = g.options.filter(o => optionIds.has(o.id));
+    if (selected.length === 0) return null;
+    const prices = selected.map(o => standalonePrice(o.name));
+    return prices.every((p): p is number => p !== null) ? prices.reduce((s, p) => s + p, 0) : null;
   });
   const itemizedTotal = bundleGroups.length > 0 && selectedBundlePrices.every((p): p is number => p !== null)
     ? selectedBundlePrices.reduce((s, p) => s + p, 0)
@@ -201,36 +211,65 @@ export function CustomizeSheet({ item, variations, groups, addons, items, cafeOp
 
           {groups.map((g, i) => {
             const isBundleGroup = bundleGroups.includes(g);
-            // A required group with exactly one option has nothing to contrast a price
-            // against - "Free" implies a paid alternative that doesn't exist here, so
-            // it's just noise there. A bundle group's standalone value is worth showing
-            // even with one option, though: "this wrap alone is worth ₹130" is real info.
-            const soleRequiredChoice = !isBundleGroup && g.options.length === 1 && g.min_select > 0;
+            // Every option in the group is mandatory when the minimum equals the option
+            // count - one option to fill one required slot, or a combo bundling two of the
+            // same drink as two option rows, both always included. Nothing to contrast a
+            // non-bundle price against either ("Free" implies a paid alternative that
+            // doesn't exist here). A bundle group's standalone value is still worth showing
+            // even when fully mandatory, though: "this wrap alone is worth ₹130" is real
+            // info the crossed-out total is built from.
+            const allRequired = g.min_select > 0 && g.min_select === g.options.length;
+            // A fully-mandatory group bundling 2+ of the identically-named option (the
+            // only way to represent "2x the same drink" - see optionIds above) reads as
+            // one line with a count, not the same name repeated once per unit.
+            // Non-mandatory groups never collapse this way: a real choice between two
+            // options that happen to share a name must stay two tappable rows.
+            const displayOptions = allRequired
+              ? Object.values(
+                  g.options.reduce((byName, o) => {
+                    (byName[o.name] ??= []).push(o);
+                    return byName;
+                  }, {} as Record<string, typeof g.options>),
+                )
+              : g.options.map(o => [o]);
             return (
               <Section
                 key={g.id}
                 title={g.name}
-                // A single option is nothing to "select any 1" of - there's no choice
-                // being offered, so the instruction has no real referent.
-                rule={g.options.length === 1 ? '' : (g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`)}
+                // Nothing to "select any N" of when every option is mandatory - there's no
+                // choice being offered, so the instruction has no real referent.
+                rule={allRequired ? '' : (g.min_select > 0 ? `Select any ${g.min_select}` : `Select upto ${g.max_select}`)}
               >
-                {g.options.map(o => {
-                  const bundlePrice = isBundleGroup ? standalonePrice(o.name) : null;
+                {displayOptions.map(units => {
+                  const [o] = units;
+                  const bundlePrice = isBundleGroup
+                    ? units.reduce((s, u) => s + (standalonePrice(u.name) ?? 0), 0)
+                    : null;
                   const priceLabel = isBundleGroup
-                    ? (bundlePrice !== null ? inr(bundlePrice) : '')
-                    : (soleRequiredChoice ? '' : (o.price_delta > 0 ? `+ ${inr(o.price_delta)}` : 'Free'));
+                    ? (bundlePrice !== null && units.every(u => standalonePrice(u.name) !== null) ? inr(bundlePrice) : '')
+                    : (allRequired ? '' : (o.price_delta > 0 ? `+ ${inr(o.price_delta)}` : 'Free'));
                   return (
                     <Row
-                      key={o.id}
+                      key={units.map(u => u.id).join('-')}
                       choice={{
                         id: o.id,
                         name: o.name,
+                        qtyLabel: units.length > 1 ? `×${units.length}` : undefined,
                         priceLabel,
-                        selected: optionIds.has(o.id),
+                        selected: units.every(u => optionIds.has(u.id)),
                         onSelect: () => toggleOption(g, o.id),
                       }}
                       veg={item.is_veg}
-                      single={g.max_select === 1}
+                      // A locked row reads as "settled, not a toggle" - the same
+                      // ring-and-dot every other included-by-default choice already
+                      // uses (a bundle group's sole option), not the pick-some-of-many
+                      // checkbox square, regardless of how many mandatory options the
+                      // group actually has.
+                      single={g.max_select === 1 || allRequired}
+                      // Nothing to decide, so nothing to untick: the pre-pick above is
+                      // permanent, not a starting position a tap can undo into an unmet
+                      // group with no visible way back in.
+                      locked={allRequired}
                     />
                   );
                 })}
@@ -325,27 +364,35 @@ function Section({ title, rule, children }: {
 /**
  * Native input kept for keyboard and screen readers, visually replaced by a marigold
  * control - the browser default was the one piece of stock chrome in a custom app.
+ *
+ * `locked` renders the same row with the control permanently on and no way to tap it -
+ * for a group that is really just "this is what's included," not a decision, ticking it
+ * off should never be possible in the first place.
  */
-function Row({ choice, veg, single }: { choice: Choice; veg?: boolean | null; single?: boolean }) {
-  const { name, priceLabel, selected, onSelect } = choice;
+function Row({ choice, veg, single, locked }: { choice: Choice; veg?: boolean | null; single?: boolean; locked?: boolean }) {
+  const { name, qtyLabel, priceLabel, selected, onSelect } = choice;
+  const Tag = locked ? 'div' : 'label';
   return (
-    <label style={S.row}>
-      <input type={single ? 'radio' : 'checkbox'} checked={selected} onChange={onSelect} style={S.srOnly} />
+    <Tag style={locked ? { ...S.row, cursor: 'default' } : S.row}>
+      {!locked && <input type={single ? 'radio' : 'checkbox'} checked={selected} onChange={onSelect} style={S.srOnly} />}
       <Veg veg={veg} />
-      <span style={S.rowName}>{name}</span>
+      <span style={S.rowName}>
+        {name}
+        {qtyLabel && <span style={S.rowQty}>{qtyLabel}</span>}
+      </span>
       {priceLabel && (
         <span style={{ ...S.rowPrice, ...(priceLabel === 'Free' ? S.rowFree : null) }}>{priceLabel}</span>
       )}
       {/* Thumb reaches the control last, so it sits on the edge it is tapped from. */}
       <span
         aria-hidden
-        style={{ ...S.control, borderRadius: single ? 999 : 6, ...(selected ? S.controlOn : null) }}
+        style={{ ...S.control, borderRadius: single ? 999 : 6, ...((locked || selected) ? S.controlOn : null) }}
       >
-        {selected && (single
+        {(locked || selected) && (single
           ? <span style={S.dot} />
           : <MS name="check" size={13} color="var(--gb-on-primary)" />)}
       </span>
-    </label>
+    </Tag>
   );
 }
 
@@ -396,9 +443,9 @@ const S: Record<string, React.CSSProperties> = {
   nameRow: { display: 'flex', alignItems: 'center', gap: 8 },
   name: { fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: '-.01em', lineHeight: 1.25 },
   mrpRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 },
-  mrpStrike: { fontSize: 14, fontWeight: 600, color: C.strike, textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' },
-  mrpNow: { fontSize: 16, fontWeight: 800, color: C.ink, fontVariantNumeric: 'tabular-nums' },
-  mrpSaved: { fontSize: 11.5, fontWeight: 800, color: C.step },
+  mrpStrike: { fontSize: 16, fontWeight: 600, color: C.strike, textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' },
+  mrpNow: { fontSize: 19, fontWeight: 800, color: C.ink, fontVariantNumeric: 'tabular-nums' },
+  mrpSaved: { fontSize: 14, fontWeight: 800, color: C.step },
   bestseller: {
     display: 'inline-flex', alignItems: 'center', gap: 3, width: 'fit-content', marginTop: 8,
     background: 'rgba(30,22,14,.86)', color: '#FFD27A', fontSize: 10, fontWeight: 800,
@@ -412,6 +459,9 @@ const S: Record<string, React.CSSProperties> = {
 
   row: { display: 'flex', alignItems: 'center', gap: 13, minHeight: 54, padding: '9px 0', cursor: 'pointer' },
   rowName: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 500, color: C.ink, lineHeight: 1.35 },
+  // Bigger and bolder than the name it follows - a unit count is the one number on
+  // this row that changes what the guest is actually getting, not decoration.
+  rowQty: { fontSize: 17, fontWeight: 800, color: C.ink, marginLeft: 6 },
   rowPrice: { fontSize: 14.5, fontWeight: 700, color: C.ink, flex: 'none', fontVariantNumeric: 'tabular-nums' },
   rowFree: { color: C.sub, fontWeight: 500 },
   // Ring, not a filled dot: the reference keeps a white gap between rim and centre.
