@@ -1488,9 +1488,7 @@ export default function CartPage() {
                   cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.6 : 1,
                 }}
               >
-                {asap
-                  ? <>ASAP<span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, opacity: 0.75, marginTop: 2 }}>{full ? 'Full' : time}</span></>
-                  : full ? `${time} · Full` : time}
+                {asap ? 'ASAP' : full ? `${time} · Full` : time}
               </button>
             );
           })}
