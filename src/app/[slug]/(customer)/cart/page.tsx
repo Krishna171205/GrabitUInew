@@ -568,7 +568,16 @@ export default function CartPage() {
   // the picker must not offer a time that is. Times are per item on the menu row
   // (prep_time_minutes); the counter works items in parallel, so the cart is
   // ready when its slowest item is, not when the sum of them would be.
-  const DEFAULT_PREP_MINUTES = 10;
+  //
+  // 0, not some flat guess, when an item has no prep_time_minutes set: a made-up
+  // number reads as a promise the cafe never made (a launch cafe's whole menu can
+  // be bulk-loaded with every item null - see V54__menu_prep_times_backfill.sql's
+  // own history of getting this exact default wrong the other way, quoting a
+  // customer 5-10 min on food that took 2). At 0, asapSlot below skips its
+  // synthetic ready-in-N-minutes slot entirely and "ASAP" just means the cafe's
+  // own next real slot - no claim this code isn't in a position to back up. Once
+  // a cafe's items carry real numbers, this stops being reached for them.
+  const DEFAULT_PREP_MINUTES = 0;
   const prepMinutes = prepByItem.size === 0 || items.length === 0
     ? 0
     : Math.max(...items.map(i => prepByItem.get(i.menu_item_id) ?? DEFAULT_PREP_MINUTES));
