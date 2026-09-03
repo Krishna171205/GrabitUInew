@@ -1,20 +1,18 @@
 'use client';
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { GrabbitCafe, GrabbitMenuItem, GrabbitMenuCategory, GrabbitMenuAddon, GrabbitMenuVariation, GrabbitMenuOptionGroup } from '@gradient365/gradient-commons';
 import { useCart, cartLineKey } from '@/store/cart';
 import { MS, Veg } from '@/components/gb/kit';
-import { VoiceSearch } from '@/components/gb/VoiceSearch';
+import LandingNav from '@/components/landing/LandingNav';
+import LandingFooter from '@/components/landing/LandingFooter';
 import { inr, fmtTime12, todayHours, type DayHours } from '@/components/gb/format';
 import { ph } from '@/components/gb/data';
-import { OfferStrip } from '@/components/gb/OfferStrip';
 import type { GrabbitOffer } from '@/components/gb/offers';
-import { PairingSheet } from '@/components/gb/PairingSheet';
-import { pairingsFor } from '@/components/gb/pairings';
 import { CustomizeSheet, type CustomizeSelection } from '@/components/gb/CustomizeSheet';
-import { useBackTo } from '@/lib/useBackTo';
 import { directionsUrl, distanceLabel } from '@/components/gb/maps';
 import { getSavedCoords } from '@/components/gb/location';
 import { menuImageSrc } from '@/lib/menu-image';
@@ -23,17 +21,6 @@ const CATEGORIES: GrabbitMenuCategory[] = ['drinks', 'food', 'specials', 'desser
 const CATEGORY_LABELS: Record<GrabbitMenuCategory, string> = {
   drinks: 'Drinks', food: 'Food', specials: 'Specials', desserts: 'Desserts', addons: 'Add-ons',
 };
-
-// Sort modes for the menu list (Zomato-style). Only real signals — price is the
-// one universal field; ratings/popularity aren't in the backend yet.
-const SORT_MODES = [
-  { id: 'recommended', label: 'Recommended', icon: 'auto_awesome' },
-  { id: 'price_asc', label: 'Price: Low to High', icon: 'north' },
-  { id: 'price_desc', label: 'Price: High to Low', icon: 'south' },
-  { id: 'name_az', label: 'Name: A to Z', icon: 'sort_by_alpha' },
-] as const;
-type SortModeId = typeof SORT_MODES[number]['id'];
-
 
 interface TopItem {
   menu_item_id: number;
@@ -68,12 +55,26 @@ interface Props {
 }
 
 export default function MenuClient({ slug, cafe, items, addons, variations = [], optionGroups = [], customerName, topItems = [], favorites = [], offers = [], isLoggedIn = false, table = null, initialQuery = null, initialAcceptingOrders }: Props) {
-  const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
+  const router = useRouter();
 
-  // Omega's store-status toggle, on top of the scheduled hours below. Seeded server-side
-  // (initialAcceptingOrders) so the page renders open/closed correct on first paint; only
-  // re-fetch client-side if the server didn't know. Defaults true (fail-open) otherwise.
+  const [favIds, setFavIds] = useState<Set<number>>(new Set(favorites.map(f => f.menu_item_id)));
   const [acceptingOrders, setAcceptingOrders] = useState(initialAcceptingOrders !== false);
+  const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
+  const [query, setQuery] = useState(initialQuery ?? '');
+  const [customizeItem, setCustomizeItem] = useState<GrabbitMenuItem | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [shakeId, setShakeId] = useState<number | null>(null);
+  
+  const { addItem, updateQty, clearCart, items: heldItems, total, cafeSlug: cartCafe } = useCart();
+  
+  const cartIsThisCafe = cartCafe === null || cartCafe === slug;
+  const cartItems = cartIsThisCafe ? heldItems : [];
+  const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
+  const cartTotal = () => (cartIsThisCafe ? total() : 0);
+
+  const plainLineKey = (id: number) => cartLineKey({ menu_item_id: id, addons: undefined });
+  const qtyOf = (id: number) => cartItems.find(i => cartLineKey(i) === plainLineKey(id))?.quantity ?? 0;
+
   useEffect(() => {
     if (initialAcceptingOrders !== undefined) return;
     fetch(`/api/proxy/grabit/cafes/${slug}/status`)
@@ -82,89 +83,17 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
       .catch(() => {});
   }, [slug, initialAcceptingOrders]);
 
-  async function toggleFavorite(menuItemId: number) {
-    const wasFav = favIds.has(menuItemId);
-    setFavIds(prev => {
-      const next = new Set(prev);
-      wasFav ? next.delete(menuItemId) : next.add(menuItemId);
-      return next;
-    });
-    try {
-      // The API runs Jackson SNAKE_CASE: a camelCase body binds to nulls and 400s,
-      // which is how favourites silently stopped saving. Check the status too.
-      const res = await fetch('/api/proxy/grabit/favorites/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cafe_id: cafe.id, menu_item_id: menuItemId }),
-      });
-      if (!res.ok) throw new Error(`favorite toggle failed: ${res.status}`);
-    } catch {
-      setFavIds(prev => {
-        const next = new Set(prev);
-        wasFav ? next.add(menuItemId) : next.delete(menuItemId);
-        return next;
-      });
-    }
-  }
-  const router = useRouter();
-  useBackTo('/home'); // browser back matches the hero back arrow
-
-  // Dine-in QR entry (/{slug}?table=N): remember the table for this session so cart/checkout become
-  // dine-in (no pickup slot); a plain visit (no ?table) clears it back to pickup.
-  useEffect(() => {
-    if (table) sessionStorage.setItem('grabbit_table', table);
-    else sessionStorage.removeItem('grabbit_table');
-  }, [table]);
-  const [activeCat, setActiveCat] = useState<GrabbitMenuCategory | 'all'>('all');
-  const [activeSub, setActiveSub] = useState<string>('all');
-  // Which menu sections are collapsed (Zomato-style), keyed by section key (see
-  // `sections` below) - a set of the collapsed ones, not the open ones, so every section
-  // starts expanded without having to know the full list up front.
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
-  const [showSubSheet, setShowSubSheet] = useState(false);
-  const VISIBLE_SUBS = 3;
-  const [sortMode, setSortMode] = useState<SortModeId>('recommended');
-  const [showSortSheet, setShowSortSheet] = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [query, setQuery] = useState(initialQuery ?? '');
-  const [customizeItem, setCustomizeItem] = useState<GrabbitMenuItem | null>(null);
-  const { addItem, updateQty, clearCart, items: heldItems, total, cafeSlug: cartCafe } = useCart();
-  // The cart survives moving between cafes, but it belongs to exactly one: adding
-  // anything here replaces it wholesale (see the store's addItem). Until that happens
-  // another cafe's basket is not this page's, so nothing here counts it - the rail
-  // would otherwise list food this kitchen doesn't make, and the pill would offer a
-  // checkout for it under this cafe's slug.
-  const cartIsThisCafe = cartCafe === null || cartCafe === slug;
-  const cartItems = cartIsThisCafe ? heldItems : [];
-  const cartTotal = () => (cartIsThisCafe ? total() : 0);
-  const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
-  // Inline steppers (menu grid + carousels) have no addon context, so they only ever
-  // adjust the plain (no-addon) line. Addon-variant quantities are adjusted on the cart page.
-  const plainLineKey = (id: number) => cartLineKey({ menu_item_id: id, addons: undefined });
-  // Scoped to that same plain line: counting addon variants here showed a stepper whose
-  // -/+ couldn't move it (cart holds only "burger + cheese"), and whose "-" deleted the
-  // whole untouched plain line when both existed.
-  const qtyOf = (id: number) => cartItems.find(i => cartLineKey(i) === plainLineKey(id))?.quantity ?? 0;
-
-  // Closed cafe: block adding, shake the tapped button, show a self-dismissing toast.
-  const [shakeId, setShakeId] = useState<number | null>(null);
-  const [closedToast, setClosedToast] = useState(false);
   function guardedAdd(id: number, fn: () => void) {
-    if (!open) {
+    if (!acceptingOrders) {
       setShakeId(id);
       setTimeout(() => setShakeId(null), 500);
-      setClosedToast(true);
-      setTimeout(() => setClosedToast(false), 3000);
       return;
     }
     fn();
   }
 
-  // topItems/favorites are stale snapshots (order history, favorite toggles) that can
-  // outlive the item being pulled off the menu or repriced — cross-check against the
-  // live menu (`items`) before letting either carousel add to cart.
   const itemById = new Map(items.map(i => [i.id, i]));
-  const liveTopItems = topItems.filter(t => itemById.get(t.menu_item_id)?.is_available);
+  const liveTopItems = topItems.filter(t => itemById.get(t.menu_item_id)?.is_available).slice(0, 6);
 
   const addonsBySubcategory = new Map<number, GrabbitMenuAddon[]>();
   for (const a of addons) {
@@ -173,169 +102,17 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
     list.push(a);
     addonsBySubcategory.set(a.subcategory_id, list);
   }
-  function addonsFor(item: GrabbitMenuItem): GrabbitMenuAddon[] {
-    return item.subcategory_id ? (addonsBySubcategory.get(item.subcategory_id) ?? []) : [];
-  }
-
-  // Variations and option groups are per item and pushed from Omega, unlike the legacy
-  // add-ons above which the cafe authors against a whole subcategory.
+  const addonsFor = (item: GrabbitMenuItem) => item.subcategory_id ? (addonsBySubcategory.get(item.subcategory_id) ?? []) : [];
+  
   const variationsByItem = new Map<number, GrabbitMenuVariation[]>();
-  for (const v of variations) {
-    const list = variationsByItem.get(v.menu_item_id) ?? [];
-    list.push(v);
-    variationsByItem.set(v.menu_item_id, list);
-  }
+  variations.forEach(v => { const list = variationsByItem.get(v.menu_item_id) ?? []; list.push(v); variationsByItem.set(v.menu_item_id, list); });
   const groupsByItem = new Map<number, GrabbitMenuOptionGroup[]>();
-  for (const g of optionGroups) {
-    const list = groupsByItem.get(g.menu_item_id) ?? [];
-    list.push(g);
-    groupsByItem.set(g.menu_item_id, list);
-  }
+  optionGroups.forEach(g => { const list = groupsByItem.get(g.menu_item_id) ?? []; list.push(g); groupsByItem.set(g.menu_item_id, list); });
   const variationsFor = (item: GrabbitMenuItem) => variationsByItem.get(item.id) ?? [];
   const groupsFor = (item: GrabbitMenuItem) => groupsByItem.get(item.id) ?? [];
 
-  function addTop(item: TopItem) {
-    const live = itemById.get(item.menu_item_id);
-    if (!live?.is_available) return;
-    addItem({ menu_item_id: item.menu_item_id, name: live.name, price: live.price, quantity: 1, image_url: item.image_url, category: live.category }, slug);
-  }
-
-  const favoriteItems = items.filter(i => favIds.has(i.id) && i.is_available);
-
-  // The favourites strip is a fixed-height single row, so a 2nd/3rd favourite added while
-  // it's already showing doesn't change the page's height at all - the only disruptive
-  // change is the strip mounting or unmounting (0 <-> 1 favourites), which inserts/removes
-  // a whole section above everything else on the page. Compensate scroll by exactly that
-  // height each way so a user scrolled down doesn't see the page silently shift under
-  // them; skip it if they're already at the top, where the change is just normal, visible
-  // content moving in the direction they'd expect. Native CSS scroll anchoring would
-  // otherwise try to do this too on Chrome/Firefox (doubling up with this) while doing
-  // nothing on Safari, so it's turned off globally (globals.css) in favour of this one
-  // explicit, cross-browser implementation.
-  const favSectionRef = useRef<HTMLDivElement>(null);
-  const favSectionHeightRef = useRef(0);
-  const hadFavoritesRef = useRef(favoriteItems.length > 0);
-  useLayoutEffect(() => {
-    if (favSectionRef.current) favSectionHeightRef.current = favSectionRef.current.offsetHeight;
-  });
-  useLayoutEffect(() => {
-    const hasFavorites = favoriteItems.length > 0;
-    if (window.scrollY > 0) {
-      // behavior: 'instant' matters - html has scroll-smooth (Tailwind), so an
-      // unqualified scrollBy here would itself glide over ~300ms and read as exactly
-      // the jump this is meant to prevent.
-      if (!hadFavoritesRef.current && hasFavorites && favSectionRef.current) {
-        window.scrollBy({ top: favSectionRef.current.offsetHeight, behavior: 'instant' });
-      } else if (hadFavoritesRef.current && !hasFavorites) {
-        window.scrollBy({ top: -favSectionHeightRef.current, behavior: 'instant' });
-      }
-    }
-    hadFavoritesRef.current = hasFavorites;
-  }, [favoriteItems.length]);
-
-
-  useEffect(() => {
-    if (cafe?.id) sessionStorage.setItem(`grabbit_cafe_id_${slug}`, String(cafe.id));
-  }, [slug, cafe?.id]);
-
-  const q = query.trim().toLowerCase();
-  // Matches the item name or its cafe-authored subcategory (e.g. "Mocktails"), not just
-  // the category enum - that's coarse (drinks/food/specials/...) and wouldn't match at all.
-  const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q) || i.subcategory_name?.toLowerCase().includes(q)));
-  // Sort applies within the current category/subcategory view — Recommended keeps the
-  // cafe's own menu order (sort_order from the backend).
-  function sorted(list: GrabbitMenuItem[]): GrabbitMenuItem[] {
-    if (sortMode === 'price_asc') return [...list].sort((a, b) => a.price - b.price);
-    if (sortMode === 'price_desc') return [...list].sort((a, b) => b.price - a.price);
-    if (sortMode === 'name_az') return [...list].sort((a, b) => a.name.localeCompare(b.name));
-    return list; // recommended: keep backend order
-  }
-  const categoriesPresent = CATEGORIES.filter(c => available.some(i => i.category === c));
-  // Subcategories are scoped to the selected category (or all categories, when none picked yet).
-  const subsPresent = Array.from(new Set(
-    available
-      .filter(i => activeCat === 'all' || i.category === activeCat)
-      .map(i => i.subcategory_name)
-      .filter((s): s is string => !!s)
-  ));
-  // Sections group by the cafe's own subcategory ("Chaap", "Starters", "Cold Coffee"),
-  // which is the granularity a real menu is actually organized at - the 5-value category
-  // enum is too coarse to make a useful collapsible section on its own (most cafes would
-  // only ever produce two: "Drinks" and "Food"). An item with no subcategory on file falls
-  // back to its category label so it still lands somewhere instead of going unlisted.
-  // Section order follows first appearance in the menu, i.e. the cafe's own sort_order.
-  const sections = (() => {
-    const filtered = available.filter(i =>
-      (activeCat === 'all' || i.category === activeCat) &&
-      (activeSub === 'all' || i.subcategory_name === activeSub));
-    const order: string[] = [];
-    const byKey = new Map<string, GrabbitMenuItem[]>();
-    for (const item of filtered) {
-      const key = item.subcategory_name || CATEGORY_LABELS[item.category];
-      if (!byKey.has(key)) { byKey.set(key, []); order.push(key); }
-      byKey.get(key)!.push(item);
-    }
-    return order.map(key => ({ key, items: sorted(byKey.get(key)!) }));
-  })();
-  // The cafe's own storefront photo when it has supplied one, then whatever the menu
-  // payload already carried, then the stock fallback.
-  const cover = (cafe as { cover_url?: string | null }).cover_url
-    || cafe.image_url
-    || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
-
-  // Real signals only — no fabricated ratings/distance (GrabbitCafe has no such fields).
-  // Open or closed is the cafe's toggle in Omega and nothing else: staff close early or
-  // stay open late, and the schedule below is what the customer plans around, not a
-  // second opinion on whether orders are being taken right now.
-  const mapCafe = {
-    name: cafe.name,
-    address: cafe.address,
-    city: cafe.city,
-    ...(cafe as { latitude?: number | string | null; longitude?: number | string | null }),
-  };
-  const [myCoords, setMyCoords] = useState<{ lat: number; lng: number } | null>(null);
-  useEffect(() => { setMyCoords(getSavedCoords()); }, []);
-  const myDistance = distanceLabel(mapCafe, myCoords);
-
-  const open = acceptingOrders;
-  const weekly = (cafe as { hours?: DayHours[] | null }).hours ?? null;
-  const today = todayHours(weekly);
-  const hours = today
-    ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}`
-    : cafe.opening_time && cafe.closing_time
-      ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}`
-      : 'Hours vary';
-
-  // What goes with what is already in the cart. Suppressed while the cafe is closed,
-  // since nothing here can be added anyway.
-  const pairings = open ? pairingsFor(items, cartItems.map(i => i.menu_item_id)) : [];
-
-  // Desktop category rail rows. Same two states as the chips, laid out as a list:
-  // the active row is inked and carries the marigold marker on its leading edge.
-  const railItem = (active: boolean) => ({
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-    width: '100%', textAlign: 'left' as const, cursor: 'pointer',
-    border: 'none', borderLeft: `3px solid ${active ? 'var(--gb-primary)' : 'transparent'}`,
-    background: active ? 'var(--gb-primary-pale)' : 'transparent',
-    color: active ? 'var(--gb-text-strong)' : '#5A4E42',
-    fontSize: 14, fontWeight: active ? 800 : 600, padding: '10px 12px',
-    borderRadius: '0 var(--gb-r-xs) var(--gb-r-xs) 0',
-  });
-  const railSub = (active: boolean) => ({
-    ...railItem(active), fontSize: 12.5, padding: '7px 10px', borderLeft: 'none',
-    borderRadius: 'var(--gb-r-xs)',
-  });
-
-  const chip = (active: boolean) => ({
-    flex: 'none' as const, display: 'inline-flex', alignItems: 'center', gap: 5,
-    border: `1px solid ${active ? 'var(--gb-ink)' : 'var(--gb-line-3)'}`,
-    background: active ? 'var(--gb-ink)' : '#fff', color: active ? '#fff' : '#5A4E42',
-    fontSize: 13, fontWeight: 700, padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
-  });
-
   function handleAddClick(item: GrabbitMenuItem) {
-    const customizable =
-      variationsFor(item).length > 0 || groupsFor(item).length > 0 || addonsFor(item).length > 0;
+    const customizable = variationsFor(item).length > 0 || groupsFor(item).length > 0 || addonsFor(item).length > 0;
     if (!customizable) {
       addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg, category: item.category }, slug);
       return;
@@ -344,14 +121,10 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
   }
 
   function confirmCustomization(item: GrabbitMenuItem, selection: CustomizeSelection) {
-    // Card-tap now opens this sheet for every item, closed cafe included (browsing stays
-    // open), but the actual cart write still has to go through the same closed-cafe gate
-    // every other Add path uses - only close the sheet once the add actually went through.
     guardedAdd(item.id, () => {
       addItem({
         menu_item_id: item.id,
         name: item.name,
-        // The chosen variation is what the customer is buying, so it is what the line costs.
         price: selection.variation ? selection.variation.price : item.price,
         quantity: selection.quantity,
         image_url: item.image_url,
@@ -365,533 +138,413 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
     });
   }
 
-  const addStep = (item: GrabbitMenuItem) => {
-    const qty = qtyOf(item.id);
-    if (qty > 0) {
-      return (
-        <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
-          <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={20} /></button>
-          <span style={{ minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
-          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 32, height: 34, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={20} /></button>
-        </div>
-      );
-    }
-    return (
-      <button
-        onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
-        className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`}
-        style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fff', border: '1.5px solid #E7DCCC', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', padding: '8px 18px', color: 'var(--gb-primary)', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
-      >
-        Add<MS name="add" size={16} />
-      </button>
-    );
-  };
+  const q = query.trim().toLowerCase();
+  const available = items.filter(i => i.is_available && (!q || i.name.toLowerCase().includes(q) || i.subcategory_name?.toLowerCase().includes(q)));
+  const categoriesPresent = CATEGORIES.filter(c => available.some(i => i.category === c));
 
-  // Grid-card variant: sits in-flow in the price row, which itself is pinned to
-  // the bottom of the (flex column) card via marginTop: auto on that row - not
-  // absolutely positioned, so it lines up the same way regardless of how much
-  // name/description text is above it.
-  const gridAddStep = (item: GrabbitMenuItem) => {
-    const qty = qtyOf(item.id);
-    if (qty > 0) {
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
-          <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
-          <span style={{ minWidth: 16, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qty}</span>
-          <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
-        </div>
-      );
+  const sections = useMemo(() => {
+    const filtered = available.filter(i => activeCat === 'all' || i.category === activeCat);
+    const order: string[] = [];
+    const byKey = new Map<string, GrabbitMenuItem[]>();
+    for (const item of filtered) {
+      const key = item.subcategory_name || CATEGORY_LABELS[item.category];
+      if (!byKey.has(key)) { byKey.set(key, []); order.push(key); }
+      byKey.get(key)!.push(item);
     }
-    return (
-      <button
-        onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
-        className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`}
-        style={{ background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', padding: '6px 16px', color: 'var(--gb-primary)', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--gb-elev-1)', flex: 'none' }}
-      >
-        Add
-      </button>
-    );
-  };
+    return order.map(key => ({ key, items: byKey.get(key)! }));
+  }, [available, activeCat]);
+
+  const cover = (cafe as { cover_url?: string | null }).cover_url || cafe.image_url || ph('photo-1495474472287-4d71bcdd2085', 900, 560);
+  
+  const weekly = (cafe as { hours?: DayHours[] | null }).hours ?? null;
+  const today = todayHours(weekly);
+  const hours = today ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}` : cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : 'Hours vary';
+
+  const mapCafe = { name: cafe.name, address: cafe.address, city: cafe.city, ...(cafe as { latitude?: number | string | null; longitude?: number | string | null }) };
+  const [myCoords, setMyCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => { setMyCoords(getSavedCoords()); }, []);
+  const myDistance = distanceLabel(mapCafe, myCoords);
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        document.getElementById('gb-search-input')?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
-    <div className="gb-menu-root gb-wide" style={{ minHeight: '100dvh', background: 'var(--gb-surface)', paddingBottom: cartCount > 0 ? (pairings.length > 0 ? 166 : 110) : 24 }}>
-      {closedToast && (
-        <div className="gb-glass-ink" style={{ position: 'fixed', top: 'calc(16px + env(safe-area-inset-top))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 60, borderRadius: 'var(--gb-r-sm)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, boxShadow: 'var(--gb-shadow-bar)', animation: 'fade-in .2s ease' }}>
-          <MS name="storefront" size={18} color="#fff" />
-          This cafe is closed now, please try again later
+    <>
+    <LandingNav />
+    <div className="gb-wide bg-[#FAFAF9] min-h-screen text-slate-900 font-sans pt-24 sm:pt-32 pb-32 selection:bg-blue-100 relative">
+      
+      {/* ========================================================= */}
+      {/* 1. EDITORIAL CAFE HERO (FROSTED BANNER STYLE)             */}
+      {/* ========================================================= */}
+      <div className="relative flex flex-col items-center justify-center text-center mb-8 sm:mb-12 w-full max-w-[1340px] mx-auto min-h-[220px] sm:min-h-[280px]">
+        
+        {/* Banner Behind Heading */}
+        <div className="absolute inset-0 z-0 mx-0 sm:mx-4 lg:mx-8 rounded-none sm:rounded-[32px] overflow-hidden shadow-sm">
+          <Image 
+            src={cover} 
+            alt={`${cafe.name} cover`}
+            fill 
+            className="object-cover"
+            priority
+          />
+          {/* Frosted glass overlay for high text contrast */}
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[3px]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/60" />
         </div>
-      )}
-      {/* Everything the page owns sits in one measured column on a laptop; on a phone
-          this div is inert. */}
-      <div className="gb-wide-body">
-      {/* CSS filter greys a subtree, not individual children, so ordering is split into two
-          filtered blocks around the login nudge below — that stays full colour even when
-          closed, since logging in to see past orders/profile doesn't need the cafe to be open. */}
-      <div style={{ filter: open ? 'none' : 'grayscale(1)' }}>
-      {/* cover */}
-      <div style={{ position: 'relative', height: 250 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <Image src={cover} alt={cafe.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,12,6,.5) 0%,rgba(20,12,6,0) 34%,rgba(20,12,6,.35) 74%,rgba(20,12,6,.7) 100%)' }} />
-        {/* A second back button lives in the sticky filter row below (see its comment) -
-            this one only covers the hero itself, since a fixed copy here used to float
-            over whatever scrolled underneath it, at one point overlapping the filter
-            row closely enough to read as one confused control. */}
-        <button onClick={() => router.push('/home')} aria-label="Back" className="gb-glass gb-press" style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: 18, width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <MS name="arrow_back" size={22} color="var(--gb-ink)" />
-        </button>
-        <div style={{ position: 'absolute', bottom: 18, left: 20, right: 20, color: '#fff' }}>
-          <div className="gb-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.05 }}>{cafe.name}</div>
-          <div style={{ fontSize: 13.5, fontWeight: 500, color: 'rgba(255,255,255,.85)', marginTop: 4 }}>Order ahead · Skip the queue</div>
-        </div>
-      </div>
 
-      {/* info strip — real signals only */}
-      <div style={{ background: '#fff', margin: '-14px 16px 0', position: 'relative', borderRadius: 'var(--gb-r-md)', border: '1px solid var(--gb-line-2)', boxShadow: 'var(--gb-elev-2)', display: 'flex', padding: '14px 6px' }}>
-        <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--gb-line-2)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14.5, fontWeight: 800, color: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)', flex: 'none' }} />{open ? 'Open now' : 'Closed'}
-          </div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>{today ? `Today ${hours}` : hours}</div>
-        </div>
-        <div style={{ flex: 1, textAlign: 'center', ...(cafe.city ? { borderRight: '1px solid var(--gb-line-2)' } : {}) }}>
-          <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--gb-ink)' }}>Order ahead</div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>skip the queue</div>
-        </div>
-        {/* The third cell used to be the city as a dead label. A customer looking at a
-            cafe they have never been to is asking where it is, so it hands off to
-            Google Maps, which already knows where they are standing. */}
-        <a
-          href={directionsUrl(mapCafe)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="gb-press"
-          style={{ flex: 1, textAlign: 'center', display: 'block' }}
-        >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 14.5, fontWeight: 800, color: 'var(--gb-primary)' }}>
-            <MS name="directions" size={17} color="var(--gb-primary)" />Directions
-          </div>
-          <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', fontWeight: 600, marginTop: 2 }}>
-            {myDistance ?? cafe.city ?? 'open in maps'}
-          </div>
-        </a>
-      </div>
-      {/* offers, right under the info strip like the rest of the cafe's headline facts */}
-      <OfferStrip offers={offers} />
-
-      </div>
-
-      {/* login nudge (guest) — full colour even when closed: logging in to see past
-          orders/profile doesn't need the cafe to be open. */}
-      {!isLoggedIn && (
-        <div style={{ padding: '16px 16px 0' }}>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'var(--gb-primary-soft)', border: '1px solid #EAD6C4', borderRadius: 'var(--gb-r-md)', padding: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--gb-r-sm)', background: '#fff', display: 'grid', placeItems: 'center', color: 'var(--gb-primary)', flex: 'none' }}>
-              <MS name="schedule" size={24} color="var(--gb-primary)" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--gb-primary)' }}>Skip the queue</div>
-              <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', marginTop: 1 }}>Order now, pick a 15-min slot, walk past the line.</div>
-            </div>
-            <Link href={`/login?next=/${slug}`} style={{ color: 'var(--gb-primary)', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>Log in →</Link>
-          </div>
-        </div>
-      )}
-
-      <div style={{ filter: open ? 'none' : 'grayscale(1)' }}>
-      {/* greeting + your usuals (returning users) */}
-      {isLoggedIn && customerName && (
-        <div style={{ padding: '18px 16px 0' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-primary)' }}>Welcome back</div>
-          <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, marginTop: 2 }}>Hey {customerName}, the usual?</div>
-        </div>
-      )}
-      {isLoggedIn && liveTopItems.length > 0 && (
-        <div style={{ padding: '14px 0 4px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
-            <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Your usuals</span>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--gb-primary)' }}>Tap to re-add</span>
-          </div>
-          <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
-            {liveTopItems.map(item => (
-              <div key={item.menu_item_id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
-                <div style={{ position: 'relative', height: 96 }}>
-                  <Image src={menuImageSrc(item.image_url)} alt={item.menu_item_name} fill sizes="132px" style={{ objectFit: 'cover' }} />
-                  {qtyOf(item.menu_item_id) > 0 ? (
-                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
-                      <button onClick={() => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
-                      <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.menu_item_id)}</span>
-                      <button onClick={() => guardedAdd(item.menu_item_id, () => updateQty(plainLineKey(item.menu_item_id), qtyOf(item.menu_item_id) + 1))} aria-label="Add one" className={`gb-press ${shakeId === item.menu_item_id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
-                    </div>
-                  ) : (
-                    <button onClick={() => guardedAdd(item.menu_item_id, () => addTop(item))} aria-label="Add" className={`gb-press ${shakeId === item.menu_item_id ? 'gb-shake' : ''}`} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
-                      <MS name="add" size={17} />
-                    </button>
-                  )}
-                </div>
-                <div style={{ padding: '8px 10px 10px' }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.menu_item_name}</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(itemById.get(item.menu_item_id)!.price)}</div>
-                  <div style={{ fontSize: 10.5, color: 'var(--gb-muted-2)', marginTop: 2 }}>Ordered {item.total_ordered}×</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      {isLoggedIn && favoriteItems.length > 0 && (
-        <div ref={favSectionRef} style={{ padding: '14px 0 4px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
-            <span className="gb-serif" style={{ fontSize: 16, fontWeight: 500 }}>Your favourites</span>
-          </div>
-          <div className="gb-scroll" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px' }}>
-            {favoriteItems.map(item => (
-              <div key={item.id} style={{ flex: 'none', width: 132, background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-2)' }}>
-                <div style={{ position: 'relative', height: 96 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <Image src={menuImageSrc(item.image_url)} alt={item.name} fill sizes="132px" style={{ objectFit: 'cover' }} />
-                  <button onClick={() => toggleFavorite(item.id)} aria-label="Remove favourite" style={{ position: 'absolute', left: 6, top: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
-                    <MS name="favorite" size={15} fill color="#C0392B" />
-                  </button>
-                  {qtyOf(item.id) > 0 ? (
-                    <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', alignItems: 'center', background: '#fff', border: '1.5px solid var(--gb-primary)', borderRadius: 999, boxShadow: 'var(--gb-elev-1)', overflow: 'hidden' }}>
-                      <button onClick={() => updateQty(plainLineKey(item.id), qtyOf(item.id) - 1)} aria-label="Remove one" style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="remove" size={16} /></button>
-                      <span style={{ minWidth: 14, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--gb-primary)' }}>{qtyOf(item.id)}</span>
-                      <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qtyOf(item.id) + 1))} aria-label="Add one" className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ width: 26, height: 28, color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }}><MS name="add" size={16} /></button>
-                    </div>
-                  ) : (
-                    <button onClick={() => guardedAdd(item.id, () => handleAddClick(item))} aria-label="Add" className={`gb-press ${shakeId === item.id ? 'gb-shake' : ''}`} style={{ position: 'absolute', right: 8, bottom: 8, width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 3px 10px rgba(255,177,0,.45)' }}>
-
-                      <MS name="add" size={17} />
-                    </button>
-                  )}
-                </div>
-                <div style={{ padding: '8px 10px 10px' }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gb-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)', marginTop: 4 }}>{inr(item.price)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Menu proper. One column on a phone; on a laptop the categories move into a
-          rail and the cart out of the pill, so the middle is only ever the food. */}
-      <div className="gb-menu-cols">
-
-      <aside className="gb-cat-rail">
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gb-muted-2)', padding: '0 12px 10px' }}>Menu</div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <button style={railItem(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>
-            All items<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gb-muted-2)' }}>{available.length}</span>
+        {/* Back Button */}
+        <div className="absolute top-4 sm:top-8 left-4 sm:left-10 lg:left-16 z-30">
+          <button 
+            onClick={() => router.push('/cafes')}
+            className="w-[40px] h-[40px] sm:w-[46px] sm:h-[46px] rounded-full bg-white/90 backdrop-blur-md border border-slate-200/60 shadow-sm flex items-center justify-center text-[#020617] hover:bg-white transition-all hover:scale-[1.03] active:scale-[0.97]"
+            aria-label="Back to cafes"
+          >
+            <MS name="arrow_back" size={22} />
           </button>
-          {categoriesPresent.map(c => (
-            <div key={c}>
-              <button style={railItem(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>
-                {CATEGORY_LABELS[c]}
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gb-muted-2)' }}>{available.filter(i => i.category === c).length}</span>
-              </button>
-              {/* Subcategories belong to the open category, so they only show under it. */}
-              {activeCat === c && subsPresent.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, margin: '3px 0 8px 14px', paddingLeft: 8, borderLeft: '1px solid var(--gb-line-3)' }}>
-                  <button style={railSub(activeSub === 'all')} onClick={() => setActiveSub('all')}>Everything</button>
-                  {subsPresent.map(sc => (
-                    <button key={sc} style={railSub(activeSub === sc)} onClick={() => setActiveSub(sc)}>{sc}</button>
-                  ))}
-                </div>
-              )}
+        </div>
+
+        {/* Hero Title */}
+        <div className="relative inline-flex flex-col items-center z-30 pt-4 sm:pt-0 px-4">
+          <h1 
+            className="text-[44px] sm:text-[76px] lg:text-[92px] font-normal tracking-normal leading-[0.9] uppercase text-[#0055D4] drop-shadow-sm flex flex-wrap justify-center"
+            style={{ fontFamily: 'var(--font-anton)' }}
+          >
+            {cafe.name}
+          </h1>
+
+          {/* Cursive Annotation */}
+          <motion.div 
+            className="absolute -bottom-8 sm:-bottom-10 right-4 sm:-right-8 text-[#0F172A] -rotate-[5deg] pointer-events-none select-none"
+            style={{ fontFamily: 'var(--font-caveat)', fontSize: 'clamp(20px, 3.6vw, 26px)' }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring' }}
+          >
+            order ahead &middot; skip the queue
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 2. CAFÉ STATUS RAIL & SKIP THE QUEUE BANNER               */}
+      {/* ========================================================= */}
+      <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {/* Status Rail (Desktop 3-col, Mobile flex-wrap) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-6 pb-6 border-b border-slate-200/60 mb-6">
+          
+          {/* OPEN NOW */}
+          <div className="flex flex-col border-l-[3px] border-[#0055D4] pl-3">
+            <div className="text-[13px] sm:text-[14px] font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 mb-0.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${acceptingOrders ? 'bg-[#0055D4] animate-pulse' : 'bg-rose-500'}`} />
+              {acceptingOrders ? 'OPEN NOW' : 'CLOSED'}
             </div>
-          ))}
-        </nav>
-      </aside>
-
-      <div>
-      {/* menu search */}
-      <div style={{ padding: '18px 16px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #ECE2D4', borderRadius: 'var(--gb-r-sm)', padding: '12px 14px', boxShadow: 'var(--gb-elev-1)' }}>
-          <MS name="search" size={20} color="#B0A08C" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this menu, flat white, croissant…" style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 16, color: 'var(--gb-text)', background: 'transparent', fontFamily: 'var(--gb-sans)', fontWeight: 500 }} />
-          {query
-            ? <button type="button" onClick={() => setQuery('')} aria-label="Clear search" style={{ display: 'flex', border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}><MS name="close" size={20} color="#B0A08C" /></button>
-            : <VoiceSearch onResult={setQuery} />}
-        </div>
-      </div>
-
-      {/* filter chips — sticky so switching category/subcategory is always one tap away.
-          Subcategories share the same row as categories (Zomato-style), with a "+More"
-          chip opening a sheet once there are more than fit on one line.
-          A back button rides along at the start of this same sticky row, outside the
-          scrolling chip strip so it can't scroll off sideways with them. Once this row
-          has stuck to the top, it's the only back affordance on screen - the cover
-          photo's own back button (above) has long since scrolled away by then, the
-          reason for having this one at all. */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--gb-surface)', boxShadow: '0 6px 10px -8px rgba(15,23,42,.35)', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}>
-        <button onClick={() => router.push('/home')} aria-label="Back" style={{ flex: 'none', width: 34, height: 34, borderRadius: '50%', border: '1px solid var(--gb-line-2)', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <MS name="arrow_back" size={19} color="var(--gb-ink)" />
-        </button>
-        <div className="gb-scroll" style={{ display: 'flex', alignItems: 'center', gap: 9, overflowX: 'auto', flex: 1, minWidth: 0 }}>
-        <button style={chip(sortMode !== 'recommended')} onClick={() => setShowSortSheet(true)} aria-label="Sort and filter menu">
-          <MS name="tune" size={17} color={sortMode !== 'recommended' ? '#fff' : 'var(--gb-primary)'} />Filters
-        </button>
-        <div className="gb-cat-chips">
-        <button style={chip(activeCat === 'all')} onClick={() => { setActiveCat('all'); setActiveSub('all'); }}>All</button>
-        {categoriesPresent.map(c => (
-          <button key={c} style={chip(activeCat === c)} onClick={() => { setActiveCat(c); setActiveSub('all'); }}>{CATEGORY_LABELS[c]}</button>
-        ))}
-        {subsPresent.length > 0 && (
-          <>
-            <span style={{ width: 1, height: 22, background: 'var(--gb-line-3)', flex: 'none' }} />
-            {activeSub !== 'all' && (
-              <button style={chip(true)} onClick={() => setActiveSub('all')}>{activeSub}<MS name="close" size={15} /></button>
-            )}
-            {subsPresent.filter(s => s !== activeSub).slice(0, VISIBLE_SUBS).map(s => (
-              <button key={s} style={chip(false)} onClick={() => setActiveSub(s)}>{s}</button>
-            ))}
-            {subsPresent.filter(s => s !== activeSub).length > VISIBLE_SUBS && (
-              <button style={chip(false)} onClick={() => setShowSubSheet(true)}>
-                +{subsPresent.filter(s => s !== activeSub).length - VISIBLE_SUBS} more<MS name="expand_more" size={16} />
-              </button>
-            )}
-          </>
-        )}
-        </div>
-        </div>
-      </div>
-
-      {/* menu */}
-      <div style={{ padding: '6px 16px 0' }}>
-        {sections.length === 0 && (
-          <p style={{ textAlign: 'center', color: 'var(--gb-muted)', fontSize: 14, padding: '48px 0', fontWeight: 500 }}>No items match your search</p>
-        )}
-        {sections.map(({ key, items: catItems }) => {
-          const collapsed = collapsedSections.has(key);
-          return (
-            <div key={key}>
-              {/* Bigger and its own row now, not a small label that blended into the
-                  page - and tappable to collapse (Zomato-style), for a menu long enough
-                  that scrolling past sections you don't want is its own kind of work. */}
-              <button
-                onClick={() => setCollapsedSections(prev => {
-                  const next = new Set(prev);
-                  next.has(key) ? next.delete(key) : next.add(key);
-                  return next;
-                })}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', margin: '22px 0 4px', padding: '0 4px 10px', border: 'none', borderBottom: '1px solid var(--gb-line-2)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
-              >
-                <span className="gb-serif" style={{ fontSize: 21, fontWeight: 700, color: 'var(--gb-text)' }}>{key}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 12.5, fontWeight: 700, color: 'var(--gb-muted)' }}>
-                  {catItems.length}
-                  <MS name={collapsed ? 'expand_more' : 'expand_less'} size={22} color="var(--gb-muted-2)" />
-                </span>
-              </button>
-              {!collapsed && (
-              <div className="gb-menu-grid">
-                {catItems.map(item => (
-                  <div key={item.id} onClick={() => setCustomizeItem(item)} style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', overflow: 'hidden', boxShadow: 'var(--gb-elev-1)', display: 'flex', flexDirection: 'column', height: '100%', cursor: 'pointer' }}>
-                    <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
-                      <Image src={menuImageSrc(item.image_url)} alt={item.name} fill sizes="(max-width: 480px) 50vw, 220px" style={{ objectFit: 'cover' }} />
-                      {/* ponytail: grabit_menu_items has no is_veg column at all (items sync
-                          from Omega POS, whose own veg flag isn't mapped over) - item.is_veg
-                          is always null. Every current item genuinely is veg, so hardcoding
-                          the mark is accurate today; add the real column + Omega sync mapping
-                          before this cafe's menu ever adds a non-veg item, or this mark lies. */}
-                      <div style={{ position: 'absolute', top: 8, left: 8 }}><Veg veg={true} /></div>
-                      {item.is_bestseller && (
-                        <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', alignItems: 'center', gap: 3, // Opaque, not blurred: this badge repeats once per card, and a backdrop-filter
-                            // inside a scrolling list forces a GPU repaint per frame on every one of them.
-                            background: 'rgba(30,22,14,.86)', color: '#FFD27A', fontSize: 10, fontWeight: 800, padding: '4px 8px 4px 6px', borderRadius: 999, letterSpacing: 0.3 }}>
-                          <MS name="local_fire_department" size={12} fill color="#FFD27A" />
-                          BESTSELLER
-                        </div>
-                      )}
-                      {isLoggedIn && (
-                        <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }} aria-label={favIds.has(item.id) ? 'Remove favourite' : 'Add favourite'} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.92)', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'var(--gb-elev-1)' }}>
-                          <MS name={favIds.has(item.id) ? 'favorite' : 'favorite_border'} size={15} fill={favIds.has(item.id)} color={favIds.has(item.id) ? '#C0392B' : 'var(--gb-muted-2)'} />
-                        </button>
-                      )}
-                    </div>
-                    <div style={{ padding: '10px 12px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--gb-text)', lineHeight: 1.3, minHeight: 36, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</div>
-                      {item.description && <div style={{ fontSize: 12, color: 'var(--gb-muted)', lineHeight: 1.35, marginTop: 3, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</div>}
-                      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 'auto', paddingTop: 8 }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(item.price)}</div>
-                        {gridAddStep(item)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      </div>
-
-      {/* The cart the phone can only afford to show as a pill. Same store and the same
-          steppers as the grid; checkout still happens on the cart page. */}
-      <aside className="gb-cart-rail">
-        <div style={{ background: '#fff', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-md)', boxShadow: 'var(--gb-elev-2)', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px', borderBottom: '1px solid var(--gb-line)' }}>
-            <MS name="shopping_bag" size={18} fill color="var(--gb-primary)" />
-            <span className="gb-serif" style={{ flex: 1, fontSize: 16, fontWeight: 500 }}>Your order</span>
-            {cartCount > 0 && (
-              <button onClick={() => setShowClearConfirm(true)} style={{ border: 'none', background: 'transparent', color: 'var(--gb-muted)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Clear</button>
-            )}
+            <div className="text-[11.5px] font-medium text-slate-500">Today &middot; {hours}</div>
           </div>
 
-          {cartCount === 0 ? (
-            <div style={{ padding: '28px 20px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: 'var(--gb-muted)', lineHeight: 1.5 }}>
-              Nothing here yet.<br />Add something from the menu.
+          {/* ORDER AHEAD */}
+          <div className="flex flex-col sm:border-l border-slate-200 sm:pl-6">
+            <div className="text-[13px] sm:text-[14px] font-extrabold text-slate-900 uppercase tracking-wider mb-0.5">
+              ORDER AHEAD
             </div>
-          ) : (
-            <>
-              <div className="gb-scroll" style={{ maxHeight: '46vh', overflowY: 'auto', padding: '4px 0' }}>
-                {cartItems.map(line => {
-                  const key = cartLineKey(line);
-                  const extras = [
-                    ...(line.variation ? [line.variation.name] : []),
-                    ...(line.options ?? []).map(o => o.name),
-                    ...(line.addons ?? []).map(a => a.name),
-                  ];
-                  const unit = line.price
-                    + (line.addons ?? []).reduce((sum, a) => sum + a.price, 0)
-                    + (line.options ?? []).reduce((sum, o) => sum + o.price, 0);
-                  return (
-                    <div key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 16px' }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)', lineHeight: 1.3 }}>{line.name}</div>
-                        {extras.length > 0 && (
-                          <div className="clamp2" style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 2 }}>{extras.join(' · ')}</div>
-                        )}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 7 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', overflow: 'hidden' }}>
-                            <button onClick={() => updateQty(key, line.quantity - 1)} aria-label={`Remove one ${line.name}`} style={{ width: 24, height: 26, border: 'none', background: 'transparent', color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}><MS name="remove" size={15} /></button>
-                            <span style={{ minWidth: 16, textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--gb-primary)' }}>{line.quantity}</span>
-                            <button onClick={() => guardedAdd(line.menu_item_id, () => updateQty(key, line.quantity + 1))} aria-label={`Add one ${line.name}`} style={{ width: 24, height: 26, border: 'none', background: 'transparent', color: 'var(--gb-primary)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}><MS name="add" size={15} /></button>
-                          </div>
-                          <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--gb-text)' }}>{inr(unit * line.quantity)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="text-[11.5px] font-medium text-slate-500">Ready in 5–8 min</div>
+          </div>
 
-              <div style={{ borderTop: '1px solid var(--gb-line)', padding: '12px 16px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700, color: 'var(--gb-text)' }}>
-                  <span>Item total</span><span>{inr(cartTotal())}</span>
-                </div>
-                <div style={{ fontSize: 11.5, color: 'var(--gb-muted)', fontWeight: 600, marginTop: 3 }}>Offers and the pickup slot come next.</div>
-                <Link href={`/${slug}/cart`} className="gb-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, borderRadius: 'var(--gb-r-sm)', padding: '12px 0', background: 'var(--gb-primary)', color: 'var(--gb-on-primary)', fontSize: 14.5, fontWeight: 800, boxShadow: '0 12px 24px -14px rgba(177,90,50,.6)' }}>
-                  Checkout<MS name="arrow_forward" size={18} />
-                </Link>
-              </div>
-            </>
+          {/* DIRECTIONS */}
+          <a href={directionsUrl(mapCafe)} target="_blank" rel="noopener noreferrer" className="flex flex-col sm:border-l border-slate-200 sm:pl-6 group hover:cursor-pointer">
+            <div className="text-[13px] sm:text-[14px] font-extrabold text-[#0055D4] uppercase tracking-wider mb-0.5 group-hover:underline flex items-center gap-1">
+              DIRECTIONS <MS name="north_east" size={14} />
+            </div>
+            <div className="text-[11.5px] font-medium text-slate-500 truncate">{cafe.address ?? cafe.city ?? 'Campus'}</div>
+          </a>
+        </div>
+
+        {/* Skip the Queue Product Banner */}
+        <div className="w-full bg-[#EFF6FF] rounded-[16px] px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[#DBEAFE]">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="text-[#0055D4] shrink-0 mt-0.5 sm:mt-0"><MS name="schedule" size={22} /></div>
+            <div>
+              <div className="text-[14px] font-extrabold text-slate-900 tracking-tight">SKIP THE QUEUE</div>
+              <div className="text-[12px] font-medium text-slate-600 mt-0.5">Order now &middot; choose your pickup slot &middot; walk straight to the counter.</div>
+            </div>
+          </div>
+          {!isLoggedIn && (
+            <Link href={`/login?next=/${slug}`} className="shrink-0 text-[#0055D4] text-[13px] font-extrabold hover:underline flex items-center gap-1 uppercase tracking-wide">
+              LOGIN <MS name="arrow_forward" size={16} />
+            </Link>
           )}
         </div>
-      </aside>
-
       </div>
 
-      {/* floating cart bar */}
-      {cartCount > 0 && (
-        <div className="gb-glass gb-press gb-cart-pill" style={{ position: 'fixed', bottom: 'calc(24px + env(safe-area-inset-bottom))', left: 16, right: 16, maxWidth: 448, margin: '0 auto', zIndex: 35, borderRadius: 'var(--gb-r-md)', padding: '12px 12px 12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link href={`/${slug}/cart`} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, color: 'var(--gb-text)', minWidth: 0 }}>
-            <span style={{ background: 'var(--gb-primary-soft)', color: 'var(--gb-primary)', borderRadius: 'var(--gb-r-xs)', padding: '6px 9px', fontSize: 13, fontWeight: 800 }}>{cartCount}</span>
-            <span style={{ flex: 1, fontSize: 15, fontWeight: 700 }}>View cart · {inr(cartTotal())}</span>
-            {/* The arrow gets its own well rather than floating beside the label: the
-                CTA reads as one machined part instead of text with an icon after it. */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: 'var(--gb-primary)' }}>
-              Next
-              <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--gb-primary-soft)', display: 'grid', placeItems: 'center', flex: 'none' }}>
-                <MS name="arrow_forward" size={18} color="var(--gb-primary)" />
-              </span>
-            </span>
-          </Link>
-          <button onClick={() => setShowClearConfirm(true)} aria-label="Clear cart" style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(15,23,42,.06)', color: 'var(--gb-icon)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
-            <MS name="close" size={16} />
-          </button>
-        </div>
-      )}
-
-      </div>
-      </div>
-
-      {/* Rendered outside the grayscale-filtered block above: CSS `filter` on an ancestor
-          becomes the containing block for descendant `position: fixed` elements (same as
-          `transform`), so a sheet/dialog nested inside it pins to that div's box instead of
-          the real viewport - it'd render off past the bottom of the screen once the cafe
-          closes and the filter kicks in. */}
-      {/* Same reason as the sheets below: rendered outside the filtered block so the
-          strip and its sheet pin to the viewport, not to that div's box. */}
-      {cartCount > 0 && (
-        <PairingSheet
-          pairings={pairings}
-          qtyOf={qtyOf}
-          onAdd={(item) => guardedAdd(item.id, () => addItem({ menu_item_id: item.id, name: item.name, price: item.price, quantity: 1, image_url: item.image_url, is_veg: item.is_veg }, slug))}
-          onQty={(id, qty) => guardedAdd(id, () => updateQty(plainLineKey(id), qty))}
-        />
-      )}
-
-      {showSubSheet && (
-        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSubSheet(false)}>
-          <div className="gb-glass-sheet gb-sheet-in" style={{ borderRadius: '22px 22px 0 0', padding: '14px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxHeight: '70vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            <div className="gb-sheet-handle" />
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Filter by</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
-              <button style={chip(activeSub === 'all')} onClick={() => { setActiveSub('all'); setShowSubSheet(false); }}>All</button>
-              {subsPresent.map(s => (
-                <button key={s} style={chip(activeSub === s)} onClick={() => { setActiveSub(s); setShowSubSheet(false); }}>{s}</button>
+      {/* ========================================================= */}
+      {/* 3. THREE-COLUMN DESKTOP WORKSPACE                         */}
+      {/* ========================================================= */}
+      <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 mt-8 lg:mt-12 flex flex-col lg:flex-row gap-8 lg:gap-10 items-start">
+        
+        {/* --- LEFT COLUMN: CATEGORIES --- */}
+        <aside className="hidden lg:flex w-[200px] shrink-0 sticky top-12 flex-col gap-6">
+          <div>
+            <h2 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-400 mb-4 ml-4">Menu</h2>
+            <nav className="flex flex-col gap-0.5">
+              <button 
+                onClick={() => setActiveCat('all')}
+                className={`flex items-center justify-between px-4 py-2.5 text-[14.5px] transition-all relative ${activeCat === 'all' ? 'text-[#0055D4] font-extrabold bg-[#F8FAFC]/50' : 'text-slate-600 font-bold hover:text-slate-900'}`}
+              >
+                {activeCat === 'all' && <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#0055D4] rounded-r-full" />}
+                <span className="uppercase tracking-wide text-[12.5px]">All Items</span>
+                <span className={`text-[11px] font-bold ${activeCat === 'all' ? 'text-[#0055D4]/60' : 'text-slate-400'}`}>{available.length}</span>
+              </button>
+              
+              {categoriesPresent.map(c => (
+                <button 
+                  key={c}
+                  onClick={() => setActiveCat(c)}
+                  className={`flex items-center justify-between px-4 py-2.5 text-[14.5px] transition-all relative ${activeCat === c ? 'text-[#0055D4] font-extrabold bg-[#F8FAFC]/50' : 'text-slate-600 font-bold hover:text-slate-900'}`}
+                >
+                  {activeCat === c && <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#0055D4] rounded-r-full" />}
+                  <span className="uppercase tracking-wide text-[12.5px]">
+                    {CATEGORY_LABELS[c]}
+                  </span>
+                  <span className={`text-[11px] font-bold ${activeCat === c ? 'text-[#0055D4]/60' : 'text-slate-400'}`}>
+                    {available.filter(i => i.category === c).length}
+                  </span>
+                </button>
               ))}
-            </div>
+            </nav>
           </div>
+        </aside>
+
+        {/* --- MOBILE CATEGORY RAIL --- */}
+        <div className="lg:hidden w-full overflow-x-auto no-scrollbar border-b border-slate-200 sticky top-0 z-40 bg-[#FAFAF9]/95 backdrop-blur-md pt-2 mb-4 -mt-2">
+          <div className="flex items-center px-4 gap-6">
+            <button onClick={() => setActiveCat('all')} className={`shrink-0 py-3 text-[13px] font-extrabold uppercase tracking-wide transition-all relative ${activeCat === 'all' ? 'text-[#0055D4]' : 'text-slate-500'}`}>
+              All
+              {activeCat === 'all' && <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#0055D4] rounded-t-full" />}
+            </button>
+            {categoriesPresent.map(c => (
+              <button key={c} onClick={() => setActiveCat(c)} className={`shrink-0 py-3 text-[13px] font-extrabold uppercase tracking-wide transition-all relative ${activeCat === c ? 'text-[#0055D4]' : 'text-slate-500'}`}>
+                {CATEGORY_LABELS[c]}
+                {activeCat === c && <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#0055D4] rounded-t-full" />}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* --- CENTER COLUMN: SEARCH, POPULAR, MENU --- */}
+        <main className="flex-1 min-w-0 w-full flex flex-col gap-8 pb-10">
+          
+          {/* Search Bar */}
+          <div className="relative group w-full lg:max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#0055D4] transition-colors">
+              <MS name="search" size={20} />
+            </div>
+            <input 
+              id="gb-search-input"
+              type="text" 
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search coffee, croissants..."
+              className="w-full bg-white border border-slate-200 text-slate-800 rounded-[14px] py-3.5 pl-11 pr-11 shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus:ring-2 focus:ring-[#0055D4]/20 focus:border-[#0055D4] transition-all text-[14.5px] font-medium placeholder:text-slate-400"
+            />
+            {query ? (
+              <button onClick={() => setQuery('')} className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600">
+                <MS name="close" size={18} />
+              </button>
+            ) : (
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <kbd className="hidden lg:inline-block px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[10px] font-bold text-slate-400">/</kbd>
+              </div>
+            )}
+          </div>
+
+          {/* Menu Sections */}
+          <div className="flex flex-col gap-12">
+            {sections.length === 0 && (
+              <div className="text-center py-20 text-slate-400 font-medium text-[15px]">
+                Nothing for that craving yet.
+              </div>
+            )}
+            {sections.map(({ key, items: catItems }) => (
+              <section key={key} className="scroll-mt-24">
+                <div className="mb-6 border-b border-slate-200/60 pb-3 flex items-baseline justify-between">
+                  <h3 className="text-[24px] sm:text-[28px] font-normal text-[#020617] uppercase tracking-wide" style={{ fontFamily: 'var(--font-anton)' }}>
+                    {key}
+                  </h3>
+                  <div className="text-[14px] font-bold text-slate-400">{catItems.length} ITEMS</div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-8">
+                  {catItems.map(item => {
+                    const qty = qtyOf(item.id);
+                    return (
+                      <div 
+                        key={item.id} 
+                        onClick={() => setCustomizeItem(item)}
+                        className="bg-white hover:bg-slate-50/50 transition-colors duration-300 rounded-[16px] p-2 flex flex-col h-full cursor-pointer group"
+                      >
+                        <div className="h-[180px] w-full relative bg-slate-100 rounded-[12px] overflow-hidden mb-3">
+                          <Image src={menuImageSrc(item.image_url)} alt={item.name} fill sizes="(max-width: 640px) 100vw, 300px" style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-700" />
+                          {item.is_veg && <div className="absolute top-3 left-3 bg-white/90 backdrop-blur rounded p-0.5 shadow-sm"><Veg veg={true} /></div>}
+                        </div>
+                        <div className="px-1 flex flex-col flex-1">
+                          <div className="flex justify-between items-start gap-4 mb-1">
+                            <h4 className="text-[16px] sm:text-[17px] font-bold text-[#020617] leading-tight">{item.name}</h4>
+                          </div>
+                          {item.description && <p className="text-[12.5px] text-slate-500 font-medium leading-relaxed line-clamp-2 mb-3">{item.description}</p>}
+                          {!item.description && <div className="mb-2" />}
+                          
+                          <div className="mt-auto flex items-center justify-between" onClick={e => e.stopPropagation()}>
+                            <span className="text-[15px] sm:text-[16px] font-extrabold text-[#020617] tracking-tight">{inr(item.price)}</span>
+                            
+                            <AnimatePresence mode="wait">
+                              {qty > 0 ? (
+                                <motion.div 
+                                  key="stepper"
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.95 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="flex items-center bg-[#EFF6FF] border border-[#0055D4]/20 rounded-lg overflow-hidden shadow-sm"
+                                >
+                                  <button onClick={() => updateQty(plainLineKey(item.id), qty - 1)} className="w-8 h-8 flex items-center justify-center text-[#0055D4] hover:bg-[#0055D4]/10 transition-colors active:scale-90">
+                                    <MS name="remove" size={16} />
+                                  </button>
+                                  <span className="w-6 text-center text-[14px] font-bold text-[#0055D4]">{qty}</span>
+                                  <button onClick={() => guardedAdd(item.id, () => updateQty(plainLineKey(item.id), qty + 1))} className={`w-8 h-8 flex items-center justify-center text-[#0055D4] hover:bg-[#0055D4]/10 transition-colors active:scale-90 ${shakeId === item.id ? 'animate-[shake_0.4s_ease-in-out]' : ''}`}>
+                                    <MS name="add" size={16} />
+                                  </button>
+                                </motion.div>
+                              ) : (
+                                <motion.button
+                                  key="add"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  exit={{ opacity: 0 }}
+                                  transition={{ duration: 0.15 }}
+                                  onClick={() => guardedAdd(item.id, () => handleAddClick(item))}
+                                  className={`flex items-center gap-1 px-4 py-2 bg-white border border-[#0055D4]/30 hover:bg-[#0055D4] text-[#0055D4] hover:text-white text-[13.5px] font-bold rounded-lg shadow-sm transition-all active:scale-95 ${shakeId === item.id ? 'animate-[shake_0.4s_ease-in-out]' : ''}`}
+                                >
+                                  <MS name="add" size={16} /> Add
+                                </motion.button>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </main>
+
+        {/* --- RIGHT COLUMN: ORDER TICKET / CART --- */}
+        <aside className="hidden lg:flex w-[320px] shrink-0 sticky top-12 flex-col">
+          <div className="bg-white rounded-[24px] border border-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col max-h-[calc(100vh-100px)]">
+            <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MS name="local_mall" size={20} color="#0F172A" />
+                <h3 className="text-[17px] font-extrabold text-slate-800 tracking-tight uppercase">Your Order</h3>
+              </div>
+              {cartCount > 0 && (
+                <button onClick={() => setShowClearConfirm(true)} className="text-[12px] font-bold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-wider">Clear</button>
+              )}
+            </div>
+
+            {cartCount === 0 ? (
+              <div className="px-6 py-10 text-center flex flex-col items-center justify-center">
+                <div className="text-[14px] font-bold text-slate-800 mb-0.5">Your next coffee belongs here.</div>
+                <div className="text-[13px] font-medium text-slate-500">Add an item to get started.</div>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-y-auto flex-1 p-2">
+                  {cartItems.map(line => {
+                    const key = cartLineKey(line);
+                    const extras = [...(line.variation ? [line.variation.name] : []), ...(line.options ?? []).map(o => o.name), ...(line.addons ?? []).map(a => a.name)];
+                    const unit = line.price + (line.addons ?? []).reduce((s, a) => s + a.price, 0) + (line.options ?? []).reduce((s, o) => s + o.price, 0);
+                    return (
+                      <div key={key} className="p-4 bg-white hover:bg-slate-50 rounded-xl transition-colors mb-1 group">
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[14.5px] font-bold text-slate-800 leading-snug">{line.name}</div>
+                            {extras.length > 0 && <div className="text-[12px] font-medium text-slate-500 mt-1 line-clamp-2">{extras.join(' · ')}</div>}
+                            <div className="text-[14px] font-bold text-slate-900 mt-2">{inr(unit * line.quantity)}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 mt-3">
+                          <div className="flex items-center bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                            <button onClick={() => updateQty(key, line.quantity - 1)} className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"><MS name="remove" size={16} /></button>
+                            <span className="w-6 text-center text-[13.5px] font-bold text-slate-800">{line.quantity}</span>
+                            <button onClick={() => guardedAdd(line.menu_item_id, () => updateQty(key, line.quantity + 1))} className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"><MS name="add" size={16} /></button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="p-5 bg-slate-50 border-t border-slate-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-[14px] font-bold text-slate-500">Subtotal</span>
+                    <span className="text-[18px] font-extrabold text-slate-900">{inr(cartTotal())}</span>
+                  </div>
+                  <Link href={`/${slug}/cart`} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#0055D4] text-white text-[14px] font-extrabold uppercase tracking-wide transition-all shadow-sm hover:shadow-md hover:bg-[#0040A1] active:scale-[0.98]">
+                    Pick a pickup slot <MS name="arrow_forward" size={18} />
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </aside>
+
+      </div>
+
+      {/* ========================================================= */}
+      {/* MOBILE STICKY CART BOTTOM BAR                             */}
+      {/* ========================================================= */}
+      {cartCount > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/0 pointer-events-none pb-[calc(16px+env(safe-area-inset-bottom))]">
+          <Link href={`/${slug}/cart`} className="pointer-events-auto w-full h-[60px] bg-[#0055D4] text-white rounded-[16px] px-5 flex items-center justify-between shadow-[0_8px_24px_rgba(0,85,212,0.25)] active:scale-[0.98] transition-transform">
+            <div className="flex items-center gap-3">
+              <span className="text-[14px] font-bold">{cartCount} ITEM{cartCount !== 1 ? 'S' : ''}</span>
+              <span className="w-1 h-1 rounded-full bg-white/50" />
+              <span className="text-[14px] font-bold">{inr(cartTotal())}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[14px] font-extrabold uppercase tracking-wide">
+              View Order <MS name="arrow_forward" size={18} />
+            </div>
+          </Link>
         </div>
       )}
 
-      {showSortSheet && (
-        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowSortSheet(false)}>
-          <div className="gb-glass-sheet gb-sheet-in" style={{ borderRadius: '22px 22px 0 0', padding: '14px 20px calc(20px + env(safe-area-inset-bottom))', width: '100%', maxWidth: 448, margin: '0 auto' }} onClick={(e) => e.stopPropagation()}>
-            <div className="gb-sheet-handle" />
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)', marginBottom: 14 }}>Sort & filter</div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {SORT_MODES.map(m => {
-                const active = sortMode === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => { setSortMode(m.id); setShowSortSheet(false); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '13px 6px', border: 'none',
-                      background: 'transparent', cursor: 'pointer', borderBottom: '1px solid var(--gb-line)',
-                      fontSize: 14.5, fontWeight: active ? 800 : 600, color: active ? 'var(--gb-primary)' : 'var(--gb-text)',
-                    }}
-                  >
-                    <MS name={m.icon} size={18} color={active ? 'var(--gb-primary)' : 'var(--gb-muted-2)'} />
-                    <span style={{ flex: 1, textAlign: 'left' }}>{m.label}</span>
-                    {active && <MS name="check" size={18} color="var(--gb-primary)" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* ========================================================= */}
+      {/* MODALS & OVERLAYS                                         */}
+      {/* ========================================================= */}
+      
+      {/* Clear Confirmation */}
       {showClearConfirm && (
-        <div className="gb-scrim-in" style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(20,12,8,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowClearConfirm(false)}>
-          <div className="gb-glass-sheet gb-dialog-in" style={{ borderRadius: 'var(--gb-r-lg)', padding: 22, width: '100%', maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--gb-text)' }}>Clear cart?</div>
-            <div style={{ fontSize: 14, color: 'var(--gb-muted)', marginTop: 6, lineHeight: 1.4 }}>Your {cartCount} item{cartCount > 1 ? 's' : ''} will be removed.</div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-              <button onClick={() => setShowClearConfirm(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 'var(--gb-r-sm)', border: '1px solid var(--gb-line-2)', background: '#fff', color: 'var(--gb-text)', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>No</button>
-              <button onClick={() => { clearCart(); setShowClearConfirm(false); }} style={{ flex: 1, padding: '12px 0', borderRadius: 'var(--gb-r-sm)', border: 'none', background: 'var(--gb-ink)', color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer' }}>Yes</button>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowClearConfirm(false)}>
+          <div className="bg-white rounded-[24px] p-6 w-full max-w-[340px] shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[20px] font-bold text-slate-900 mb-2">Clear cart?</h3>
+            <p className="text-[14.5px] text-slate-500 font-medium mb-6">Your {cartCount} item{cartCount > 1 ? 's' : ''} will be removed.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowClearConfirm(false)} className="flex-1 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors">Cancel</button>
+              <button onClick={() => { clearCart(); setShowClearConfirm(false); }} className="flex-1 py-3 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition-colors">Clear</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Customization Sheet */}
       {customizeItem && (
         <CustomizeSheet
           item={customizeItem}
@@ -899,12 +552,14 @@ export default function MenuClient({ slug, cafe, items, addons, variations = [],
           groups={groupsFor(customizeItem)}
           addons={addonsFor(customizeItem)}
           items={items}
-          cafeOpen={open}
+          cafeOpen={acceptingOrders}
           onClose={() => setCustomizeItem(null)}
           onAdd={selection => confirmCustomization(customizeItem, selection)}
         />
       )}
 
     </div>
+    <LandingFooter />
+    </>
   );
 }

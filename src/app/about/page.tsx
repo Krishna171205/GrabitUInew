@@ -1,24 +1,24 @@
 import type { Metadata } from 'next';
 import LandingNav from '@/components/landing/LandingNav';
-import HowItWorks from '@/components/landing/HowItWorks';
-import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
+import LandingFooter from '@/components/landing/LandingFooter';
+import AboutPeppermintSection from '@/components/landing/AboutPeppermintSection';
 import { SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'How Grabbit Works | LetsGrabbit — Cafe Pre-order Platform',
-  description: 'Browse nearby cafes, customize your order, and walk in and grab it. No lines, no waiting.',
+  title: 'About Grabbit | Pre-Order from Campus Cafes in Minutes',
+  description: 'Skip the line, grab food in seconds. Discover how Grabbit eliminates campus queue friction with instant pre-ordering and honest live prep times.',
   alternates: { canonical: `${SITE_URL}/about` },
   robots: { index: true, follow: true },
 };
 
 export default function AboutPage() {
   return (
-    <div className="gb-app" style={{ background: 'var(--gb-surface)', color: 'var(--gb-text-strong)' }}>
+    <div className="gb-app min-h-screen bg-[#0A0F1E] text-white">
       <LandingNav />
-      <main style={{ paddingTop: 68 }}>
-        <HowItWorks />
+      <main>
+        <AboutPeppermintSection />
       </main>
-      <ReadyToJoinRitual />
+      <LandingFooter />
     </div>
   );
 }

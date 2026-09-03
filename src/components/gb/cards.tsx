@@ -30,14 +30,32 @@ export interface RealCafe {
   /** The owner's pin from Omega. Null until they drop one. */
   latitude?: number | string | null;
   longitude?: number | string | null;
+  /** Enhanced attributes for editorial discovery */
+  tags?: string[];
+  prepTimeMinutes?: number | string;
+  rating?: number;
+  reviewCount?: number;
 }
 
 /* ---------- Real café card (live data, honest signals only) ---------- */
-export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { cafe: RealCafe; cta?: string; coverHeight?: number }) {
+export function RealCafeCard({
+  cafe,
+  cta = 'View menu',
+  coverHeight = 220,
+  compact = false,
+  isSelected = false
+}: {
+  cafe: RealCafe;
+  cta?: string;
+  coverHeight?: number;
+  compact?: boolean;
+  isSelected?: boolean;
+}) {
   const { favorite, toggle } = useFavoriteCafe(cafe);
-  // Omega's store-status toggle, on top of scheduled hours. Seeded server-side (cafe.acceptingOrders)
-  // so the card is correct on first paint; only re-fetch client-side if the server didn't know.
   const [acceptingOrders, setAcceptingOrders] = useState(cafe.acceptingOrders !== false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  
   useEffect(() => {
     if (cafe.acceptingOrders !== undefined) return;
     fetch(`/api/proxy/grabit/cafes/${cafe.slug}/status`)
@@ -45,59 +63,144 @@ export function RealCafeCard({ cafe, cta = 'View menu', coverHeight = 132 }: { c
       .then(d => { if (d) setAcceptingOrders(d.acceptingOrders !== false); })
       .catch(() => {});
   }, [cafe.slug, cafe.acceptingOrders]);
-  // Open or closed is the cafe's own toggle in Omega, nothing else. Scheduled hours are
-  // information for the customer: staff close early, open late, and the toggle is the
-  // only thing that knows. Unknown status stays open (fail-open), as before.
+
   const open = acceptingOrders;
-  const today = todayHours(cafe.hours);
-  const hours = today
-    ? `${fmtTime12(today.opens)} – ${fmtTime12(today.closes)}`
-    : cafe.opening_time && cafe.closing_time ? `${fmtTime12(cafe.opening_time)} – ${fmtTime12(cafe.closing_time)}` : null;
   const initial = cafe.name.trim().charAt(0).toUpperCase();
-  // localStorage is read after mount so the server and first client render agree.
   const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
   useEffect(() => { setMe(getSavedCoords()); }, []);
+  
   const area = cafe.distanceKm != null
     ? `${cafe.distanceKm.toFixed(1)} km away`
     : distanceLabel(cafe, me) ?? cafe.city ?? cafe.address ?? null;
+
+  const prepTime = cafe.prepTimeMinutes ? `${cafe.prepTimeMinutes} min prep` : open ? '5–8 min prep' : null;
+  const tagsList = cafe.tags && cafe.tags.length > 0 ? cafe.tags : ['Coffee', 'Quick Bites'];
+
   return (
-    <Link href={`/${cafe.slug}`} style={{ display: 'block', background: 'var(--gb-card)', border: '1px solid var(--gb-line-2)', borderRadius: 'var(--gb-r-lg)', overflow: 'hidden', marginTop: 16, boxShadow: 'var(--gb-elev-2)' }}>
-      {/* The cafe's own storefront photo when it has supplied one. Otherwise the branded
-          placeholder: still no stock food photo standing in for a cafe we can't vouch for. */}
-      <div style={{ position: 'relative', height: coverHeight, background: 'linear-gradient(135deg, var(--gb-primary) 0%, #7A2E17 100%)', display: 'grid', placeItems: 'center', overflow: 'hidden', filter: open ? 'none' : 'grayscale(1)' }}>
-        {cafe.cover_url ? (
-          <>
-            <Image src={cafe.cover_url} alt="" fill sizes="(max-width: 480px) 100vw, 448px" style={{ objectFit: 'cover' }} />
-            {/* The status pill and bookmark sit on top of an unknown photo, so the corners
-                they live in get darkened rather than trusting the image to be quiet there. */}
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,12,6,.42) 0%, rgba(20,12,6,0) 45%)' }} />
-          </>
-        ) : (
-          <span className="gb-serif" style={{ fontSize: 64, fontWeight: 600, color: 'rgba(255,255,255,.22)', lineHeight: 1 }}>{initial}</span>
-        )}
-        <div style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,.94)', padding: '5px 10px', borderRadius: 999 }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: open ? 'var(--gb-green)' : 'var(--gb-muted-2)' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gb-ink)' }}>{open ? 'Open now' : 'Closed'}</span>
+    <Link href={`/${cafe.slug}`} className="block transition-all duration-300 ease-out" style={{ textDecoration: 'none' }}>
+      <div 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`bg-white rounded-[20px] overflow-hidden border cursor-pointer transition-all duration-300 ease-out group ${
+          isSelected ? 'ring-2 ring-[#0055D4] border-transparent shadow-lg' : 'border-black/[0.06]'
+        }`}
+        style={{ 
+          textDecoration: 'none',
+          transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+          boxShadow: isHovered 
+            ? '0 16px 36px -4px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(0, 85, 212, 0.06)' 
+            : '0 2px 12px rgba(0,0,0,0.03)',
+          borderColor: isHovered ? 'rgba(0, 85, 212, 0.2)' : isSelected ? '#0055D4' : 'rgba(0,0,0,0.06)'
+        }}
+      >
+        <div style={{ position: 'relative', height: compact ? 150 : coverHeight, overflow: 'hidden', background: '#F1F5F9' }}>
+          {!imgError && cafe.cover_url ? (
+            <div
+              style={{ 
+                width: '100%', height: '100%', position: 'relative',
+                transform: isHovered ? 'scale(1.025)' : 'scale(1)',
+                transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+            >
+              <Image 
+                src={cafe.cover_url} 
+                alt={cafe.name} 
+                fill 
+                sizes="(max-width: 480px) 100vw, (max-width: 1024px) 50vw, 448px" 
+                style={{ objectFit: 'cover' }} 
+                unoptimized={true}
+                onError={() => setImgError(true)} 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/20 pointer-events-none" />
+            </div>
+          ) : (
+            <div className="w-full h-full bg-[#0055D4] flex flex-col items-center justify-center relative overflow-hidden group-hover:bg-[#004bbd] transition-colors duration-500">
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+              <MS name="local_cafe" size={48} className="text-white/90 mb-2 drop-shadow-md transform group-hover:scale-110 transition-transform duration-500" />
+              <span className="text-white/90 font-extrabold tracking-widest text-[12px] uppercase z-10 px-4 text-center leading-tight drop-shadow-sm">{cafe.name}</span>
+            </div>
+          )}
+          
+          {/* Top Badges */}
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+             {/* Status Badge */}
+             <div className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">
+                <span className={`w-2 h-2 rounded-full ${open ? 'bg-[#10B981] animate-pulse' : 'bg-[#94A3B8]'}`} />
+                <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#0F172A]">{open ? 'Open Now' : 'Closed'}</span>
+             </div>
+
+             {/* Action Buttons (Bookmark) */}
+             <div className="flex items-center pointer-events-auto">
+               <button 
+                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }} 
+                 className={`w-[36px] h-[36px] rounded-full flex items-center justify-center transition-all duration-200 shadow-sm active:scale-90 ${
+                   favorite 
+                     ? 'bg-[#0055D4] text-white scale-105' 
+                     : 'bg-white/90 backdrop-blur-md hover:bg-white text-[#0F172A]'
+                 }`}
+                 aria-label={favorite ? 'Remove bookmark' : 'Bookmark'}
+                 title={favorite ? 'Saved' : 'Save cafe'}
+               >
+                 <MS name={favorite ? "favorite" : "favorite_border"} size={18} fill={favorite} color={favorite ? '#ffffff' : '#0F172A'} />
+               </button>
+             </div>
+          </div>
+
+          {/* Prep time buffer floating badge at bottom left of cover */}
+          {prepTime && (
+            <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-white text-[10.5px] font-semibold tracking-tight shadow-sm">
+              <span className="text-amber-400">⚡</span>
+              <span>{prepTime}</span>
+            </div>
+          )}
+
+          {/* Optional Rating badge at bottom right */}
+          {cafe.rating && (
+            <div className="absolute bottom-3 right-3 inline-flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full text-[#0F172A] text-[11px] font-bold shadow-sm">
+              <span className="text-[#0055D4]">★</span>
+              <span>{cafe.rating.toFixed(1)}</span>
+            </div>
+          )}
         </div>
-        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }} aria-label={favorite ? 'Remove bookmark' : 'Bookmark'} style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, border: 'none', borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <MS name="bookmark" size={17} fill={favorite} color={favorite ? 'var(--gb-primary)' : 'var(--gb-ink)'} />
-        </button>
-        {/* Where it is, before deciding to open it. Escapes the card's own link the
-            same way the bookmark does. */}
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(directionsUrl(cafe), '_blank', 'noopener,noreferrer'); }}
-          aria-label={`Directions to ${cafe.name}`}
-          style={{ position: 'absolute', top: 12, right: 50, width: 30, height: 30, border: 'none', borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-        >
-          <MS name="directions" size={17} color="var(--gb-ink)" />
-        </button>
-      </div>
-      <div style={{ padding: '13px 16px' }}>
-        <div className="gb-serif" style={{ fontSize: 20, fontWeight: 500, color: 'var(--gb-text)', lineHeight: 1.1 }}>{cafe.name}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, color: '#7A6E60', fontSize: 12.5, fontWeight: 600 }}>
-          {area && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}><MS name="near_me" size={15} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{area}</span></span>}
-          {hours && <><span style={{ width: 3, height: 3, borderRadius: '50%', background: '#C9BCA9', flex: 'none' }} /><span style={{ whiteSpace: 'nowrap' }}>{hours}</span></>}
-          <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--gb-primary)', fontWeight: 700, flex: 'none' }}>{cta}<MS name="arrow_forward" size={17} /></span>
+
+        {/* Card Body */}
+        <div className="p-4 sm:p-5 flex flex-col gap-1.5">
+           <div className="flex items-start justify-between gap-2">
+             <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0F172A] tracking-tight leading-snug group-hover:text-[#0055D4] transition-colors" style={{ fontFamily: 'var(--font-ui)' }}>
+               {cafe.name}
+             </h3>
+           </div>
+           
+           {/* Location and Category Metadata */}
+           <div className="flex flex-wrap items-center gap-2 text-[12.5px] sm:text-[13px] font-medium text-[#64748B]">
+             {area && (
+               <span className="inline-flex items-center gap-1 font-semibold text-[#0055D4]">
+                 <MS name="near_me" size={13} />
+                 {area}
+               </span>
+             )}
+             {area && <span className="w-1 h-1 rounded-full bg-[#CBD5E1]" />}
+             <span className="truncate">{tagsList.slice(0, 2).join(' · ')}</span>
+           </div>
+
+           {/* Interactive CTA Footnote */}
+           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-[11px] font-bold tracking-wider uppercase text-[#64748B]">
+                {open ? 'Available for pickup' : 'Opens tomorrow'}
+              </span>
+              <div className="flex items-center text-[#0055D4] text-[13.5px] sm:text-[14px] font-bold transition-all">
+                <span>{isHovered ? 'Order ahead' : 'View menu'}</span>
+                <div
+                  style={{ 
+                    transform: isHovered ? 'translateX(4px)' : 'translateX(0)',
+                    transition: 'transform 0.2s ease-out'
+                  }}
+                  className="ml-1 flex items-center"
+                >
+                  <MS name="arrow_forward" size={16} />
+                </div>
+              </div>
+           </div>
         </div>
       </div>
     </Link>

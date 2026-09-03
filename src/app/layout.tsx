@@ -129,7 +129,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`scroll-smooth ${baloo.variable} ${satoshi.variable} ${mukta.variable} ${anton.variable} ${caveat.variable}`}>
       <head>
         {/* Material Symbols Rounded, icon font used across the consumer app */}
         <link
@@ -142,7 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* JSON-LD structured data: Organization + Website */}
         <SeoScripts names={['organization', 'website']} />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Analytics />
         <UpdateOnResume />

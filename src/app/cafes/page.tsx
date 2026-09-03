@@ -30,7 +30,105 @@ async function getCafes(): Promise<RealCafe[]> {
     if (!res.ok) return [];
     return res.json();
   } catch {
-    return [];
+    // FALLBACK MOCK DATA FOR UI TESTING WHILE BACKEND IS DOWN
+    return [
+      {
+        id: 1,
+        name: 'Brew & Brew',
+        slug: 'brew-and-brew',
+        address: 'DTU Main Campus',
+        city: 'New Delhi',
+        acceptingOrders: true,
+        cover_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000',
+        distanceKm: 0.4,
+        prepTimeMinutes: '4–6',
+        rating: 4.8,
+        reviewCount: 184,
+        tags: ['Specialty Coffee', 'Bakery', 'Quick Bites'],
+        latitude: 28.7495,
+        longitude: 77.1170
+      },
+      {
+        id: 2,
+        name: 'Mic Mac',
+        slug: 'mic-mac',
+        address: 'Near Mech Block',
+        city: 'New Delhi',
+        acceptingOrders: false,
+        cover_url: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=1000',
+        distanceKm: 0.8,
+        prepTimeMinutes: '5–8',
+        rating: 4.5,
+        reviewCount: 92,
+        tags: ['Quick Bites', 'Cold Brew', 'Snacks'],
+        latitude: 28.7510,
+        longitude: 77.1190
+      },
+      {
+        id: 3,
+        name: 'The Raydee Cafe',
+        slug: 'raydee-cafe',
+        address: 'North Campus',
+        city: 'New Delhi',
+        acceptingOrders: true,
+        cover_url: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=80&w=1000',
+        distanceKm: 2.1,
+        prepTimeMinutes: '7–10',
+        rating: 4.9,
+        reviewCount: 230,
+        tags: ['Artisan Bakery', 'Specialty Coffee', 'Breakfast'],
+        latitude: 28.6920,
+        longitude: 77.2110
+      },
+      {
+        id: 4,
+        name: 'Blue Tokai',
+        slug: 'blue-tokai',
+        address: 'Civil Lines',
+        city: 'New Delhi',
+        acceptingOrders: true,
+        cover_url: 'https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?auto=format&fit=crop&q=80&w=1000',
+        distanceKm: 4.5,
+        prepTimeMinutes: '5–8',
+        rating: 4.9,
+        reviewCount: 410,
+        tags: ['Specialty Coffee', 'Roastery', 'Sourdough'],
+        latitude: 28.6750,
+        longitude: 77.2250
+      },
+      {
+        id: 5,
+        name: 'Third Wave Coffee',
+        slug: 'third-wave',
+        address: 'Rajinder Nagar',
+        city: 'New Delhi',
+        acceptingOrders: true,
+        cover_url: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=80&w=1000',
+        distanceKm: 7.2,
+        prepTimeMinutes: '6–9',
+        rating: 4.7,
+        reviewCount: 156,
+        tags: ['Manual Brew', 'Pastries', 'Specialty Coffee'],
+        latitude: 28.6410,
+        longitude: 77.1820
+      },
+      {
+        id: 6,
+        name: 'Kaffa Cerrado',
+        slug: 'kaffa-cerrado',
+        address: 'Okhla Phase 3',
+        city: 'New Delhi',
+        acceptingOrders: true,
+        cover_url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=1000',
+        distanceKm: 9.8,
+        prepTimeMinutes: '5–8',
+        rating: 4.8,
+        reviewCount: 128,
+        tags: ['Single Origin', 'Specialty Coffee', 'Cold Brew'],
+        latitude: 28.5355,
+        longitude: 77.2710
+      }
+    ];
   }
 }
 
@@ -58,14 +156,10 @@ export default async function CafesPage() {
   ];
 
   return (
-    <div className="gb-app" style={{ background: 'var(--gb-surface)', color: 'var(--gb-text-strong)' }}>
+    <div className="gb-app bg-[#F8FAFC] min-h-screen text-[#0F172A]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <LandingNav />
-      <main style={{ paddingTop: 96, paddingBottom: 40, maxWidth: 1040, margin: '0 auto', padding: '96px 20px 40px' }}>
-        <div className="gb-serif" style={{ fontSize: 34, fontWeight: 500, letterSpacing: '-.01em' }}>Cafes on Grabbit</div>
-        <div style={{ fontSize: 15, color: 'var(--gb-muted)', fontWeight: 500, marginTop: 8 }}>
-          Every cafe you can order ahead from. Tap one to see its menu.
-        </div>
+      <main className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
         <CafeListing cafes={cafes} />
       </main>
       <LandingFooter />

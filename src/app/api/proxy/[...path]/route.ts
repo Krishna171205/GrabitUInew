@@ -31,18 +31,23 @@ async function proxyRequest(req: NextRequest, pathParts: string[], method: strin
 
   const body = ['POST', 'PATCH'].includes(method) ? await req.text() : undefined;
 
-  const res = await fetch(url, { method, headers, body });
-  // Null-body statuses (204/205/304): the Response constructor throws if a body
-  // is passed alongside one of these, so forward status with no body untouched.
-  if (res.status === 204 || res.status === 205 || res.status === 304) {
-    return new NextResponse(null, { status: res.status });
-  }
-  const contentType = res.headers.get('content-type') || '';
-  const data = contentType.includes('application/json')
-    ? await res.json()
-    : await res.text();
+  try {
+    const res = await fetch(url, { method, headers, body });
+    // Null-body statuses (204/205/304): the Response constructor throws if a body
+    // is passed alongside one of these, so forward status with no body untouched.
+    if (res.status === 204 || res.status === 205 || res.status === 304) {
+      return new NextResponse(null, { status: res.status });
+    }
+    const contentType = res.headers.get('content-type') || '';
+    const data = contentType.includes('application/json')
+      ? await res.json()
+      : await res.text();
 
-  return NextResponse.json(data, { status: res.status });
+    return NextResponse.json(data, { status: res.status });
+  } catch (error: any) {
+    console.error(`[Proxy Error] ${method} ${url}:`, error.message);
+    return NextResponse.json({ error: 'Gateway Timeout' }, { status: 504 });
+  }
 }
 
 export async function GET(

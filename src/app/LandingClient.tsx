@@ -10,6 +10,8 @@ import ScrollParallaxBackground from '@/components/landing/ScrollParallaxBackgro
 import LandingFooter from '@/components/landing/LandingFooter';
 import SmoothScrollProvider from '@/components/SmoothScroll';
 
+
+
 export default function LandingClient() {
   return (
     <SmoothScrollProvider>
@@ -28,6 +30,7 @@ export default function LandingClient() {
           <ScrollParallaxBackground />
 
           <Hero />
+
           <AppShowcase />
           <FinalCTA />
         </main>
