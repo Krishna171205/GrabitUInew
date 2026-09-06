@@ -45,7 +45,7 @@ async function proxyRequest(req: NextRequest, pathParts: string[], method: strin
 
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
-    console.error(`[Proxy Error] ${method} ${url}:`, error.message);
+    console.error('[Proxy Error]', method, url + ':', error.message);
     return NextResponse.json({ error: 'Gateway Timeout' }, { status: 504 });
   }
 }
