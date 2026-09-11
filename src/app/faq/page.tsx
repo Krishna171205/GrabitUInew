@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import LandingNav from '@/components/landing/LandingNav';
 import FAQSection from '@/components/landing/FAQSection';
-import { ReadyToJoinRitual } from '@/components/ReadyToJoinRitual';
+import LandingFooter from '@/components/landing/LandingFooter';
 import { SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default function FAQPage() {
       <main style={{ paddingTop: 68 }}>
         <FAQSection />
       </main>
-      <ReadyToJoinRitual />
+      <LandingFooter />
     </div>
   );
 }

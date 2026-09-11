@@ -29,8 +29,8 @@ export function MS({
 const TABS = [
   { href: '/home', icon: 'home', label: 'Home' },
   { href: '/explore', icon: 'search', label: 'Explore' },
-  { href: '/orders', icon: 'receipt_long', label: 'Orders' },
-  { href: '/profile', icon: 'person', label: 'Profile' },
+  { href: '/saved', icon: 'favorite', label: 'Saved' },
+  { href: '/more', icon: 'menu', label: 'More' },
 ] as const;
 
 export function BottomNav() {
@@ -70,7 +70,8 @@ export function NavSpacer() {
    navigation at all. */
 export function DesktopTopNav({ signedIn = true }: { signedIn?: boolean }) {
   const pathname = usePathname();
-  const tabs = signedIn ? TABS : TABS.filter((t) => t.href === '/home' || t.href === '/explore');
+  if (pathname === '/home') return null;
+  const tabs = TABS.filter(t => t.href !== '/more'); // Desktop shows Home, Explore, Saved
   return (
     <nav className="gb-topnav">
       {/* The wordmark goes to the marketing site, the way a brand mark does everywhere

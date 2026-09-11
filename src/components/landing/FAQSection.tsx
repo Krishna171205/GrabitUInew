@@ -1,8 +1,9 @@
-// grabit/src/components/landing/FAQSection.tsx
 'use client';
-import { motion } from 'framer-motion';
 
-const faqs: Array<{ q: string; a: string }> = [
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const faqs = [
   {
     q: 'How does Grabbit work?',
     a: 'Browse menus from cafes near you, customize your order, choose a pickup time, and pay online with UPI, card, or netbanking. Your order is ready when you arrive — no queue.',
@@ -29,57 +30,88 @@ const faqs: Array<{ q: string; a: string }> = [
   },
 ];
 
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 200, damping: 24 } },
-};
-
 export default function FAQSection() {
-  return (
-    <section style={{ background: 'var(--gb-surface)', padding: '88px 22px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <motion.div
-          initial="hidden" animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } } }}
-          style={{ textAlign: 'center', marginBottom: 56 }}
-        >
-          <motion.span variants={item} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gb-primary-soft)', color: '#0F172A', fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, marginBottom: 18 }}>
-            FAQs
-          </motion.span>
-          <motion.h2 variants={item} className="gb-serif" style={{ fontSize: 'clamp(28px, 5vw, 46px)', fontWeight: 600, lineHeight: 1.1, margin: '0 0 16px', color: 'var(--gb-text-strong)' }}>
-            Questions about Grabbit
-          </motion.h2>
-          <motion.p variants={item} style={{ color: 'var(--gb-muted)', fontSize: 16, lineHeight: 1.5, maxWidth: 560, margin: '0 auto' }}>
-            Everything you need to know about ordering coffee ahead with Grabbit (LetsGrabbit).
-          </motion.p>
-        </motion.div>
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-        <div style={{ display: 'grid', gap: 12 }}>
-          {faqs.map((f, i) => (
-            <motion.div
-              key={f.q}
-              variants={item}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
-              transition={{ delay: i * 0.05 }}
-              style={{
-                background: 'var(--gb-card)',
-                border: '1px solid var(--gb-line-2)',
-                borderRadius: 16,
-                padding: '20px 24px',
-                boxShadow: 'var(--gb-shadow-card)',
-              }}
-            >
-              <h3 className="gb-serif" style={{ fontSize: 17, fontWeight: 600, margin: 0, color: 'var(--gb-text-strong)', lineHeight: 1.4 }}>
-                {f.q}
-              </h3>
-              <p style={{ color: 'var(--gb-muted)', fontSize: 14.5, lineHeight: 1.6, margin: '8px 0 0' }}>
-                {f.a}
-              </p>
-            </motion.div>
-          ))}
+  const toggleOpen = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <section className="pt-12 pb-24 md:pt-16 md:pb-32 bg-[#FAFAF7] relative text-[#111317] selection:bg-[#0757D5] selection:text-white border-b border-slate-200/60">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:pl-12 lg:pr-12 relative z-10 flex flex-col lg:flex-row items-start min-h-[720px] lg:min-h-[850px]">
+
+        {/* Left Column: Headline */}
+        <div className="w-full lg:w-[42%] flex flex-col z-20 py-12 lg:py-0 pr-0 lg:pr-12 lg:sticky lg:top-32">
+          <h2
+            className="text-[14vw] min-[380px]:text-[64px] sm:text-[76px] lg:text-[88px] xl:text-[96px] leading-[1.05] tracking-[0.02em] font-normal uppercase text-[#111317] mb-6 lg:mb-8"
+            style={{ fontFamily: 'var(--font-anton)' }}
+          >
+            <span>YOU ASK,</span><br />
+            <span className="text-[#0757D5]">WE ANSWER!</span>
+          </h2>
+          <p className="text-[16px] lg:text-[17px] text-[#4A4E58] font-medium leading-[1.6] max-w-[420px] border-l-2 border-[#0757D5]/30 pl-4">
+            Everything you need to know about skipping the queue and pre-ordering your coffee with Grabbit.
+          </p>
         </div>
+
+        {/* Right Column: Accordions */}
+        <div className="w-full lg:w-[58%] flex flex-col gap-4 mt-8 lg:mt-0 z-20">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <motion.div
+                key={index}
+                initial={false}
+                animate={{ borderRadius: isOpen ? 16 : 48 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className={`border-2 overflow-hidden transition-colors duration-300 ${isOpen
+                    ? 'border-[#0757D5] bg-[#0757D5]/[0.02]'
+                    : 'border-slate-200 bg-white hover:border-[#0757D5]/40'
+                  }`}
+              >
+                <button
+                  onClick={() => toggleOpen(index)}
+                  className="w-full flex items-center justify-between text-left px-6 py-5 sm:px-8 sm:py-6 cursor-pointer focus:outline-none"
+                >
+                  <span
+                    className={`text-[18px] sm:text-[22px] tracking-wide uppercase transition-colors duration-300 ${isOpen ? 'text-[#0757D5]' : 'text-slate-900'}`}
+                    style={{ fontFamily: 'var(--font-anton)' }}
+                  >
+                    {faq.q}
+                  </span>
+
+                  {/* Plus/Minus Icon */}
+                  <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ml-4 ${isOpen ? 'bg-[#0757D5] text-white' : 'bg-slate-100 text-slate-900'}`}>
+                    <motion.div
+                      animate={{ rotate: isOpen ? 45 : 0 }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className="text-xl font-light leading-none"
+                    >
+                      +
+                    </motion.div>
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <div className="px-6 pb-6 sm:px-8 sm:pb-8 text-slate-600 font-medium text-[15px] leading-relaxed max-w-2xl pt-2">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
+
       </div>
     </section>
   );

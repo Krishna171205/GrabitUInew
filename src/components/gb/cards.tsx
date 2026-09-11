@@ -149,7 +149,6 @@ export function RealCafeCard({
           {/* Prep time buffer floating badge at bottom left of cover */}
           {prepTime && (
             <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-white text-[10.5px] font-semibold tracking-tight shadow-sm">
-              <span className="text-amber-400">⚡</span>
               <span>{prepTime}</span>
             </div>
           )}

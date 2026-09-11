@@ -16,11 +16,11 @@ const staggerContainer = {
 
 const cardVariant = {
   hidden: { opacity: 0, y: 16, scale: 0.98 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
+  show: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    transition: { type: 'spring', stiffness: 300, damping: 26 } 
+    transition: { type: 'spring', stiffness: 300, damping: 26 }
   },
   exit: { opacity: 0, scale: 0.96, transition: { duration: 0.15 } }
 };
@@ -45,25 +45,25 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
 
   const filters: FilterOption[] = [
     { id: 'all', label: 'ALL', icon: 'storefront' },
-    { 
-      id: 'open', 
-      label: 'OPEN NOW', 
+    {
+      id: 'open',
+      label: 'OPEN NOW',
       icon: 'bolt',
-      countBadge: (list) => list.filter(c => c.acceptingOrders !== false).length 
+      countBadge: (list) => list.filter(c => c.acceptingOrders !== false).length
     },
-    { 
-      id: 'near', 
-      label: 'NEAR ME', 
+    {
+      id: 'near',
+      label: 'NEAR ME',
       icon: 'near_me',
-      countBadge: (list) => list.filter(c => (c.distanceKm ?? 99) <= 1.0).length 
+      countBadge: (list) => list.filter(c => (c.distanceKm ?? 99) <= 1.0).length
     },
     { id: 'specialty', label: 'SPECIALTY COFFEE', icon: 'local_cafe' },
     { id: 'bakery', label: 'BAKERY & BITES', icon: 'bakery_dining' },
-    { 
-      id: 'rated', 
-      label: 'TOP RATED', 
+    {
+      id: 'rated',
+      label: 'TOP RATED',
       icon: 'star',
-      countBadge: (list) => list.filter(c => (c.rating ?? 0) >= 4.8).length 
+      countBadge: (list) => list.filter(c => (c.rating ?? 0) >= 4.8).length
     },
   ];
 
@@ -74,7 +74,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
 
     // 1. Text Query Matching
     if (query) {
-      result = result.filter(c => 
+      result = result.filter(c =>
         c.name.toLowerCase().includes(query) ||
         c.address?.toLowerCase().includes(query) ||
         c.city?.toLowerCase().includes(query) ||
@@ -91,12 +91,12 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
         result = result.filter(c => (c.distanceKm ?? 99) <= 1.0);
         break;
       case 'specialty':
-        result = result.filter(c => 
+        result = result.filter(c =>
           c.tags?.some(t => t.toLowerCase().includes('specialty') || t.toLowerCase().includes('roastery'))
         );
         break;
       case 'bakery':
-        result = result.filter(c => 
+        result = result.filter(c =>
           c.tags?.some(t => t.toLowerCase().includes('bakery') || t.toLowerCase().includes('pastries') || t.toLowerCase().includes('bites'))
         );
         break;
@@ -135,19 +135,19 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
     }
   };
 
-  const selectedCafe = useMemo(() => 
+  const selectedCafe = useMemo(() =>
     filteredCafes.find(c => c.id === selectedCafeId) || filteredCafes[0],
     [filteredCafes, selectedCafeId]
   );
 
   return (
     <div className="flex flex-col w-full font-sans pb-16 sm:pb-24">
-      
+
       {/* 1. EDITORIAL HEADER & BRAND VIBE */}
       <div className="relative flex flex-col items-center justify-center text-center mt-6 sm:mt-12 mb-8 sm:mb-12 px-4">
-        
+
         {/* Decorative Floating Stickers */}
-        <motion.div 
+        <motion.div
           className="absolute -left-2 sm:left-12 lg:left-[12%] -top-6 sm:top-0 block pointer-events-none select-none drop-shadow-xl z-20"
           initial={{ opacity: 0, rotate: -20, scale: 0.5, y: 20 }}
           animate={{ opacity: 0.95, rotate: -12, scale: 1, y: 0 }}
@@ -158,7 +158,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="absolute -right-2 sm:right-12 lg:right-[12%] -top-2 sm:top-10 block pointer-events-none select-none drop-shadow-xl z-20"
           initial={{ opacity: 0, rotate: 20, scale: 0.5, y: -20 }}
           animate={{ opacity: 0.95, rotate: 15, scale: 1, y: 0 }}
@@ -171,7 +171,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
 
         {/* Hero Title */}
         <div className="relative inline-flex flex-col items-center z-30">
-          <h1 
+          <h1
             className="text-[38px] sm:text-[76px] lg:text-[92px] font-black tracking-normal leading-[0.9] uppercase text-[#0F172A] drop-shadow-sm flex flex-wrap justify-center gap-x-2 sm:gap-x-4"
             style={{ fontFamily: 'var(--font-anton)' }}
           >
@@ -180,7 +180,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
           </h1>
 
           {/* Cursive Annotation placed cleanly below the title */}
-          <motion.div 
+          <motion.div
             className="absolute -bottom-7 sm:-bottom-9 right-0 sm:right-2 text-[#0055D4] -rotate-[5deg] pointer-events-none select-none"
             style={{ fontFamily: 'var(--font-caveat)', fontSize: 'clamp(22px, 3.6vw, 30px)' }}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -200,13 +200,13 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
       <div className="relative max-w-[680px] mx-auto w-full z-30 px-4 mb-6 sm:mb-8">
         <div className={`
           flex items-center gap-3 bg-white border 
-          ${isSearchFocused 
-            ? 'border-[#0055D4] shadow-[0_8px_30px_rgba(0,85,212,0.12)] ring-4 ring-[#0055D4]/10' 
+          ${isSearchFocused
+            ? 'border-[#0055D4] shadow-[0_8px_30px_rgba(0,85,212,0.12)] ring-4 ring-[#0055D4]/10'
             : 'border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'} 
           rounded-[20px] px-4 sm:px-5 py-3.5 sm:py-4 transition-all duration-300 ease-out relative
         `}>
           <MS name="search" size={22} color={isSearchFocused ? "#0055D4" : "#64748B"} />
-          
+
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -220,7 +220,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
           />
 
           {q && (
-            <button 
+            <button
               onClick={() => setQ('')}
               className="p-1 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
               aria-label="Clear search"
@@ -270,8 +270,8 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {cafes.slice(0, 4).map(c => (
-                          <div 
-                            key={c.id} 
+                          <div
+                            key={c.id}
                             onMouseDown={() => setQ(c.name)}
                             className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors text-left"
                           >
@@ -290,8 +290,8 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
                       Matching Results ({filteredCafes.length})
                     </div>
                     {filteredCafes.slice(0, 4).map(c => (
-                      <div 
-                        key={c.id} 
+                      <div
+                        key={c.id}
                         onMouseDown={() => setQ(c.name)}
                         className="py-2 px-3 rounded-lg hover:bg-slate-50 cursor-pointer flex items-center justify-between"
                       >
@@ -310,7 +310,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
       {/* 3. HORIZONTAL FILTER RAIL (TOUCH-FRIENDLY & SCROLLABLE) */}
       <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8">
         <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-          
+
           {/* Scrollable Filter Chips */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 w-full sm:w-auto scrollbar-none [&::-webkit-scrollbar]:hidden touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
             {filters.map(filter => {
@@ -321,24 +321,22 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
                 <button
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
-                  className={`flex-none inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full text-[12.5px] sm:text-[13px] font-bold tracking-tight transition-all duration-200 border select-none active:scale-95 ${
-                    isActive 
-                      ? 'bg-[#0055D4] text-white border-[#0055D4] shadow-md shadow-[#0055D4]/20 scale-[1.02]' 
-                      : 'bg-white/90 text-[#334155] border-black/[0.08] hover:border-black/[0.15] hover:bg-white'
-                  }`}
+                  className={`flex-none inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full text-[12.5px] sm:text-[13px] font-bold tracking-tight transition-all duration-200 border select-none active:scale-95 ${isActive
+                    ? 'bg-[#0055D4] text-white border-[#0055D4] shadow-md shadow-[#0055D4]/20 scale-[1.02]'
+                    : 'bg-white/90 text-[#334155] border-black/[0.08] hover:border-black/[0.15] hover:bg-white'
+                    }`}
                 >
                   {filter.icon && (
-                    <MS 
-                      name={filter.icon} 
-                      size={15} 
-                      color={isActive ? "#ffffff" : "#64748B"} 
+                    <MS
+                      name={filter.icon}
+                      size={15}
+                      color={isActive ? "#ffffff" : "#64748B"}
                     />
                   )}
                   <span>{filter.label}</span>
                   {badgeCount != null && badgeCount > 0 && (
-                    <span className={`text-[10.5px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                    }`}>
+                    <span className={`text-[10.5px] px-1.5 py-0.2 rounded-full font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                      }`}>
                       {badgeCount}
                     </span>
                   )}
@@ -364,13 +362,12 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
             </div>
 
             {/* Desktop Map Toggle */}
-            <button 
+            <button
               onClick={() => setMapMode(!mapMode)}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-bold tracking-wide border transition-all duration-200 ${
-                mapMode 
-                  ? 'bg-[#0F172A] text-white border-[#0F172A]' 
-                  : 'bg-white text-[#0055D4] border-[#0055D4]/30 hover:border-[#0055D4]'
-              }`}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-bold tracking-wide border transition-all duration-200 ${mapMode
+                ? 'bg-[#0F172A] text-white border-[#0F172A]'
+                : 'bg-white text-[#0055D4] border-[#0055D4]/30 hover:border-[#0055D4]'
+                }`}
             >
               <MS name={mapMode ? "view_list" : "map"} size={16} />
               <span>{mapMode ? 'HIDE MAP' : 'VIEW MAP'}</span>
@@ -386,12 +383,11 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
           <span className="text-[#94A3B8] font-semibold ml-2 normal-case tracking-normal hidden sm:inline">· Updated just now</span>
           {activeFilter !== 'all' && <span className="text-[#0055D4] ml-2 hidden sm:inline">· Filter Active</span>}
         </div>
-        
         {/* Mobile sort summary */}
         <div className="sm:hidden flex items-center gap-1 text-[#334155]">
           <span>Sorted by</span>
-          <select 
-            value={sortBy} 
+          <select
+            value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="bg-transparent font-bold text-[#0055D4] underline outline-none"
           >
@@ -404,10 +400,10 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
 
       {/* 5. MAIN CONTENT AREA: DESKTOP SPLIT MAP OR STANDARD GRID */}
       <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Empty State */}
         {filteredCafes.length === 0 ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-20 px-4 bg-white/60 rounded-[24px] border border-black/[0.06] text-center"
@@ -419,7 +415,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
             <p className="text-slate-500 text-[14px] max-w-sm mb-4">
               Try adjusting your search query or reset your filters to see all available campus cafes.
             </p>
-            <button 
+            <button
               onClick={() => { setQ(''); setActiveFilter('all'); }}
               className="bg-[#0055D4] text-white px-5 py-2.5 rounded-full text-[13.5px] font-bold hover:bg-[#0044ab] transition-colors shadow-sm"
             >
@@ -429,29 +425,28 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
         ) : (
           /* Responsive Layout */
           <div className="flex flex-col lg:flex-row gap-8 items-start relative">
-            
+
             {/* Cards Grid */}
-            <motion.div 
+            <motion.div
               className={`w-full transition-all duration-500 ${mapMode ? 'lg:w-[58%]' : 'w-full'}`}
               variants={staggerContainer}
               initial="hidden"
               animate="show"
             >
-              <div className={`grid gap-5 sm:gap-6 ${
-                mapMode 
-                  ? 'grid-cols-1 sm:grid-cols-2' 
-                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
-              }`}>
+              <div className={`grid gap-5 sm:gap-6 ${mapMode
+                ? 'grid-cols-1 sm:grid-cols-2'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
+                }`}>
                 {filteredCafes.map(cafe => (
-                  <motion.div 
-                    key={cafe.id} 
-                    variants={cardVariant} 
+                  <motion.div
+                    key={cafe.id}
+                    variants={cardVariant}
                     layout
                     onMouseEnter={() => setSelectedCafeId(cafe.id)}
                   >
-                    <RealCafeCard 
-                      cafe={cafe} 
-                      coverHeight={mapMode ? 190 : 210} 
+                    <RealCafeCard
+                      cafe={cafe}
+                      coverHeight={mapMode ? 190 : 210}
                       isSelected={selectedCafeId === cafe.id && mapMode}
                     />
                   </motion.div>
@@ -461,7 +456,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
 
             {/* DESKTOP SPLIT MAP CONTAINER */}
             {mapMode && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 40 }}
@@ -511,14 +506,12 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
                       animate={{ scale: isSelected ? 1.15 : 1 }}
                       whileHover={{ scale: 1.2 }}
                     >
-                      <div className={`flex items-center justify-center rounded-full shadow-lg transition-all border ${
-                        isSelected 
-                          ? 'bg-[#0055D4] text-white border-white ring-4 ring-[#0055D4]/25 shadow-xl px-2.5 py-1.5 gap-1 z-50' 
-                          : 'bg-[#0055D4] text-white border-white ring-2 ring-white/50 w-8 h-8 hover:scale-110 z-40 hover:z-50'
-                      }`}>
+                      <div className={`flex items-center justify-center rounded-full shadow-lg transition-all border ${isSelected
+                        ? 'bg-[#0055D4] text-white border-white ring-4 ring-[#0055D4]/25 shadow-xl px-2.5 py-1.5 gap-1 z-50'
+                        : 'bg-[#0055D4] text-white border-white ring-2 ring-white/50 w-8 h-8 hover:scale-110 z-40 hover:z-50'
+                        }`}>
                         {isSelected ? (
                           <>
-                            <span className="text-amber-300 text-[11px]">⚡</span>
                             <span className="text-[11.5px] font-extrabold whitespace-nowrap tracking-wide">
                               {cafe.prepTimeMinutes ? cafe.prepTimeMinutes.toString().split('–')[0] + 'm' : '5m'}
                             </span>
@@ -562,7 +555,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
       {/* 6. MOBILE FULL-SCREEN MAP MODAL & SWIPEABLE CARD DOCK */}
       <AnimatePresence>
         {mapMode && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
@@ -623,16 +616,14 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
                   <div
                     key={cafe.id}
                     onClick={() => handlePinSelect(cafe.id)}
-                    className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20 transition-all ${
-                      isSelected ? 'scale-110 z-30' : 'scale-95'
-                    }`}
+                    className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20 transition-all ${isSelected ? 'scale-110 z-30' : 'scale-95'
+                      }`}
                     style={{ top: `${topPos}%`, left: `${leftPos}%` }}
                   >
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg border transition-all ${
-                      isSelected 
-                        ? 'bg-[#0055D4] text-white border-white ring-4 ring-[#0055D4]/30' 
-                        : 'bg-white text-[#0F172A] border-black/[0.08]'
-                    }`}>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg border transition-all ${isSelected
+                      ? 'bg-[#0055D4] text-white border-white ring-4 ring-[#0055D4]/30'
+                      : 'bg-white text-[#0F172A] border-black/[0.08]'
+                      }`}>
                       <span className={`w-2 h-2 rounded-full ${cafe.acceptingOrders !== false ? 'bg-[#10B981]' : 'bg-slate-400'}`} />
                       <span className="text-[11.5px] font-bold whitespace-nowrap">{cafe.name}</span>
                     </div>
@@ -642,7 +633,7 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
             </div>
 
             {/* Docked Snap-Carousel of Café Cards on Mobile Map */}
-            <div 
+            <div
               ref={mobileCarouselRef}
               className="w-full bg-gradient-to-t from-[#0F172A]/40 via-transparent to-transparent pb-6 pt-4 px-4 overflow-x-auto snap-x snap-mandatory flex gap-3 scrollbar-none z-30"
             >
@@ -653,8 +644,8 @@ export default function CafeListing({ cafes }: { cafes: RealCafe[] }) {
                   onClick={() => setSelectedCafeId(cafe.id)}
                   className="snap-center flex-none w-[82vw] max-w-[320px]"
                 >
-                  <RealCafeCard 
-                    cafe={cafe} 
+                  <RealCafeCard
+                    cafe={cafe}
                     compact={true}
                     isSelected={selectedCafeId === cafe.id}
                   />

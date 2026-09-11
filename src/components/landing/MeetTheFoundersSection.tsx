@@ -45,8 +45,8 @@ export default function MeetTheFoundersSection() {
               className="absolute -top-6 -right-12 sm:-top-10 sm:-right-24 rotate-[4deg]"
             >
               <span 
-                className="text-[#0055D4] text-[16px] sm:text-[20px] tracking-wide" 
-                style={{ fontFamily: "'Caveat', 'Cedarville Cursive', cursive" }}
+                className="text-[#0757D5] text-[18px] sm:text-[22px] tracking-wide font-bold" 
+                style={{ fontFamily: 'var(--font-caveat), cursive' }}
               >
                 the people behind your break
               </span>
@@ -69,16 +69,14 @@ export default function MeetTheFoundersSection() {
           >
             {/* Founder 01 Info */}
             <motion.div variants={textVariants} className="flex-1 flex flex-col items-start text-left max-w-lg w-full md:pr-10">
-              <span className="text-[20px] text-[#0055D4] mb-6" style={{ fontFamily: 'var(--font-anton)' }}>01</span>
-              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-2">01 / The Builder</span>
               <h3 className="text-[38px] sm:text-[48px] lg:text-[64px] uppercase tracking-tight text-[#020617] leading-none mb-3" style={{ fontFamily: 'var(--font-anton)' }}>
-                Shriyansh Sharma
+                Sumit
               </h3>
               <div className="text-[13px] font-bold uppercase tracking-widest text-[#0055D4] mb-8">
-                Co-Founder
+                Co-Founder · CEO
               </div>
               <p className="text-[16px] md:text-[18px] text-slate-500 font-medium leading-relaxed mb-8 max-w-[400px]">
-                Building Grabbit around one simple idea — your coffee break should actually feel like a break.
+                Drives strategy, partnerships, and growth. Previously co-ran The Raydee Cafe, Gradient's first tenant and the reason the product is shaped the way it is. DTU alumnus.
               </p>
               <div className="flex flex-col gap-1.5 border-l-2 border-[#EFF6FF] pl-4">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Based in Delhi</span>
@@ -94,11 +92,11 @@ export default function MeetTheFoundersSection() {
                 {/* Image Container */}
                 <div className="relative w-full h-full rounded-full overflow-hidden bg-[#FAFAFA] border border-slate-100 shadow-[0_12px_40px_rgba(0,10,30,0.03)] z-10">
                   <img 
-                    src="/about/founder-1.jpg" 
-                    alt="Shriyansh Sharma"
+                    src="/founders/sumit.jpeg" 
+                    alt="Sumit"
                     className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=Shriyansh+Sharma&background=F8FAFC&color=0055D4&size=512";
+                      (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=Sumit&background=F8FAFC&color=0055D4&size=512";
                     }}
                   />
                 </div>
@@ -136,7 +134,7 @@ export default function MeetTheFoundersSection() {
                 
                 {/* Optional tiny handwritten note near image */}
                 <motion.div variants={textVariants} className="absolute -left-6 bottom-12 rotate-[-8deg] z-20 hidden md:block">
-                  <span className="text-[#020617] text-[18px] tracking-wide" style={{ fontFamily: "'Caveat', 'Cedarville Cursive', cursive" }}>
+                  <span className="text-[#0757D5] text-[20px] font-bold tracking-wide" style={{ fontFamily: 'var(--font-caveat), cursive' }}>
                     yep, that's us.
                   </span>
                 </motion.div>
@@ -144,11 +142,11 @@ export default function MeetTheFoundersSection() {
                 {/* Image Container */}
                 <div className="relative w-full h-full rounded-full overflow-hidden bg-[#FAFAFA] border border-slate-100 shadow-[0_12px_40px_rgba(0,10,30,0.03)] z-10">
                   <img 
-                    src="/about/founder-2.jpg" 
-                    alt="Co-Founder"
+                    src="/founders/sahil.jpeg" 
+                    alt="Sahil"
                     className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=Co+Founder&background=F8FAFC&color=0055D4&size=512";
+                      (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=Sahil&background=F8FAFC&color=0055D4&size=512";
                     }}
                   />
                 </div>
@@ -157,16 +155,14 @@ export default function MeetTheFoundersSection() {
 
             {/* Founder 02 Info */}
             <motion.div variants={textVariants} className="flex-1 flex flex-col items-start text-left max-w-lg w-full md:pl-10">
-              <span className="text-[20px] text-[#0055D4] mb-6" style={{ fontFamily: 'var(--font-anton)' }}>02</span>
-              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-2">02 / The Dreamer</span>
               <h3 className="text-[38px] sm:text-[48px] lg:text-[64px] uppercase tracking-tight text-[#020617] leading-none mb-3" style={{ fontFamily: 'var(--font-anton)' }}>
-                [Founder Name]
+                Sahil
               </h3>
               <div className="text-[13px] font-bold uppercase tracking-widest text-[#0055D4] mb-8">
-                Co-Founder
+                Co-Founder · Engineering
               </div>
               <p className="text-[16px] md:text-[18px] text-slate-500 font-medium leading-relaxed mb-8 max-w-[400px]">
-                Making sure every order is smooth, every cafe is ready, and every student gets their food on time.
+                Builds the platform end-to-end: backend, all four portals, and the supplier privacy walls. Previously on logistics infrastructure at Jumbotail. DTU alumnus.
               </p>
               <div className="flex flex-col gap-1.5 border-l-2 border-[#EFF6FF] pl-4">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Based in Delhi</span>

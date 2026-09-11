@@ -35,7 +35,7 @@ export default function LandingNav() {
     >
       <nav
         style={{
-          maxWidth: 1240,
+          maxWidth: 1460,
           margin: '0 auto',
           height: 76,
           padding: '0 24px',
@@ -54,11 +54,11 @@ export default function LandingNav() {
           }}
           className="hover:opacity-90 active:scale-95"
         >
-          <Image 
-            src="/new-logo.svg" 
-            alt="Grabbit Logo" 
-            width={120} 
-            height={40} 
+          <Image
+            src="/new-logo.svg"
+            alt="Grabbit Logo"
+            width={120}
+            height={40}
             className="object-contain"
             style={{ filter: 'brightness(0) invert(1)' }}
           />
@@ -78,8 +78,8 @@ export default function LandingNav() {
               link.href === '/'
                 ? pathname === '/'
                 : isHash
-                ? false
-                : pathname === link.href;
+                  ? false
+                  : pathname === link.href;
 
             const handleClick = (e: React.MouseEvent) => {
               if (pathname === '/') {
@@ -269,7 +269,7 @@ export default function LandingNav() {
                   </motion.div>
                 );
               })}
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

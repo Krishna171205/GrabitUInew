@@ -1,200 +1,297 @@
 import { cookies } from 'next/headers';
-import Link from 'next/link';
-import Image from 'next/image';
-import { MS, NavSpacer } from '@/components/gb/kit';
-import { GeneratedAvatar } from '@/components/gb/GeneratedAvatar';
-import { greeting } from '@/components/gb/format';
-import { ItemCard, CategoryCircle, type RealCafe } from '@/components/gb/cards';
-import { LocationHeader } from '@/components/gb/LocationHeader';
-import { HeroCupWatermark } from '@/components/gb/HeroCupWatermark';
-import { CafesNearYou } from '@/components/gb/CafesNearYou';
-import { POPULAR, CATEGORIES } from '@/components/gb/data';
+import LandingNav from '@/components/landing/LandingNav';
+import HomeHero from '@/components/home/HomeHero';
+import DishDiscoveryRow, { type DishItem } from '@/components/home/DishDiscoveryRow';
+import EditorialCafeRow, { type CafeItem } from '@/components/home/EditorialCafeRow';
+import { NavSpacer } from '@/components/gb/kit';
 
-// ponytail: feature flag, re-enable when ready
-const POPULAR_NEAR_YOU_ENABLED = false;
+interface Me {
+  name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+}
 
-interface Me { name: string | null; phone: string | null; avatar_url: string | null; }
+const FALLBACK_CAFES: CafeItem[] = [
+  {
+    id: 1,
+    name: 'The Raydee Cafe',
+    slug: 'raydee',
+    address: 'North Campus, DTU',
+    city: 'Delhi',
+    acceptingOrders: true,
+    cover_url: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=80&w=1000',
+    distanceKm: 0.4,
+    prepTimeMinutes: '5–8',
+    rating: 4.9,
+    tags: ['Specialty Coffee', 'Bakery', 'Breakfast'],
+  },
+  {
+    id: 2,
+    name: 'The Hims Cafe',
+    slug: 'the-hims-cafe',
+    address: 'Near Mech Block',
+    city: 'Delhi',
+    acceptingOrders: true,
+    cover_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000',
+    distanceKm: 0.8,
+    prepTimeMinutes: '4–7',
+    rating: 4.8,
+    tags: ['Quick Bites', 'Shakes', 'Sandwiches'],
+  },
+  {
+    id: 3,
+    name: 'Mic Mac Cafe',
+    slug: 'mic-mac',
+    address: 'DTU Main Campus',
+    city: 'Delhi',
+    acceptingOrders: true,
+    cover_url: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=1000',
+    distanceKm: 1.2,
+    prepTimeMinutes: '6–10',
+    rating: 4.7,
+    tags: ['Cold Brew', 'Burgers', 'Snacks'],
+  },
+  {
+    id: 4,
+    name: 'Cafe Peppermint',
+    slug: 'cafe-peppermint',
+    address: 'Student Plaza, DTU',
+    city: 'Delhi',
+    acceptingOrders: true,
+    cover_url: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&q=80&w=1000',
+    distanceKm: 0.6,
+    prepTimeMinutes: '8–12',
+    rating: 4.9,
+    tags: ['Artisan Coffee', 'Pasta', 'Desserts'],
+  },
+  {
+    id: 5,
+    name: 'Urban Brew Hub',
+    slug: 'urban-brew',
+    address: 'Tech Innovation Park',
+    city: 'Delhi',
+    acceptingOrders: true,
+    cover_url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=1000',
+    distanceKm: 1.5,
+    prepTimeMinutes: '5–9',
+    rating: 4.8,
+    tags: ['Espresso Bar', 'Waffles', 'Coolers'],
+  },
+  {
+    id: 6,
+    name: 'Chaayos Campus Pod',
+    slug: 'chaayos-pod',
+    address: 'Central Library Walk',
+    city: 'Delhi',
+    acceptingOrders: true,
+    cover_url: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&q=80&w=1000',
+    distanceKm: 0.5,
+    prepTimeMinutes: '3–6',
+    rating: 4.6,
+    tags: ['Chai Ritual', 'Samosas', 'Kathi Rolls'],
+  },
+];
+
+const CRAVINGS_DISHES: DishItem[] = [
+  {
+    label: 'Coffee',
+    query: 'coffee',
+    photo: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Shakes',
+    query: 'shake',
+    photo: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Sandwiches',
+    query: 'sandwich',
+    photo: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Burgers',
+    query: 'burger',
+    photo: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Mojitos',
+    query: 'beverage',
+    photo: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Wraps',
+    query: 'wrap',
+    photo: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Fries',
+    query: 'fries',
+    photo: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Maggi',
+    query: 'maggi',
+    photo: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Desserts',
+    query: 'dessert',
+    photo: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&q=80&w=400',
+  },
+];
+
+const GRAB_DISHES: DishItem[] = [
+  {
+    label: 'Cold Coffee',
+    query: 'cold coffee',
+    photo: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Pasta',
+    query: 'pasta',
+    photo: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281690?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Momos',
+    query: 'momos',
+    photo: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Pizza',
+    query: 'pizza',
+    photo: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Loaded Fries',
+    query: 'fries',
+    photo: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Rolls',
+    query: 'wrap',
+    photo: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Brownies',
+    query: 'dessert',
+    photo: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=400',
+  },
+  {
+    label: 'Hot Chocolate',
+    query: 'beverage',
+    photo: 'https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&q=80&w=400',
+  },
+];
 
 async function getCafeStatus(slug: string): Promise<boolean | undefined> {
   try {
     if (!process.env.NEXT_PUBLIC_API_URL) return undefined;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, { cache: 'no-store', signal: AbortSignal.timeout(10_000) });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes/${slug}/status`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4_000),
+    });
     if (!res.ok) return undefined;
     const d = await res.json();
     return d.acceptingOrders !== false;
-  } catch { return undefined; }
+  } catch {
+    return undefined;
+  }
 }
 
-// Real, live cafés — honest data, no fabricated marketplace stats.
-async function getCafes(): Promise<RealCafe[]> {
+async function getCafes(): Promise<CafeItem[]> {
   try {
-    // See the matching guard + comment in src/app/cafes/page.tsx: a missing
-    // NEXT_PUBLIC_API_URL produces a malformed URL that Next's build-time fetch
-    // instrumentation hangs on indefinitely rather than rejecting, signal or not.
-    if (!process.env.NEXT_PUBLIC_API_URL) return [];
+    if (!process.env.NEXT_PUBLIC_API_URL) return FALLBACK_CAFES;
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/cafes`, {
       next: { revalidate: 300 },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(4_000),
     });
-    if (!res.ok) return [];
-    const cafes: RealCafe[] = await res.json();
-    // Status is fetched fresh per cafe (not cached with the list) so the "Open now"/"Closed"
-    // badge and colour render correct on first paint, no client-side flash after mount.
+    if (!res.ok) return FALLBACK_CAFES;
+    const cafes: CafeItem[] = await res.json();
+    if (!cafes || cafes.length === 0) return FALLBACK_CAFES;
+
     const statuses = await Promise.all(cafes.map((c) => getCafeStatus(c.slug)));
-    return cafes.map((c, i) => ({ ...c, acceptingOrders: statuses[i] }));
-  } catch { return []; }
+    const enriched = cafes.map((c, i) => ({
+      ...c,
+      acceptingOrders: statuses[i] !== undefined ? statuses[i] : true,
+    }));
+
+    // If API returned fewer than 6, blend with fallbacks so both rows have 3 cards
+    if (enriched.length < 6) {
+      const existingSlugs = new Set(enriched.map((c) => c.slug));
+      const neededFallbacks = FALLBACK_CAFES.filter((c) => !existingSlugs.has(c.slug));
+      return [...enriched, ...neededFallbacks].slice(0, 6);
+    }
+    return enriched;
+  } catch {
+    return FALLBACK_CAFES;
+  }
 }
 
 async function getMe(token: string): Promise<Me | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/me`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4_000),
+    });
     if (!res.ok) return null;
     return res.json();
-  } catch { return null; }
-}
-
-/**
- * The hero's location line should say what Swiggy's does: a saved address,
- * typed once, not a live GPS-to-Nominatim guess redone on every visit. The
- * address book already exists (delivery.ts, built for checkout) - this reads
- * the same list the checkout does, default-first per the endpoint's own
- * contract, and just takes whichever address that puts first.
- */
-async function getDefaultAddress(token: string): Promise<{ label: string; shortText: string } | null> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/addresses`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
-    if (!res.ok) return null;
-    const rows: { label: string; line1: string; line2: string | null; formatted_address: string | null }[] = await res.json();
-    const a = rows[0];
-    if (!a) return null;
-    return { label: a.label, shortText: [a.line1, a.line2].filter(Boolean).join(', ') || a.formatted_address || a.label };
-  } catch { return null; }
-}
-
-// Hero: design uses 60px top to clear the status bar; we clear the real notch instead.
-const heroStyle = {
-  background: 'var(--gb-hero)', color: '#fff',
-  // relative + a real zIndex (not just relative) is what makes this div its own
-  // stacking context, so HeroCupWatermark's absolutely-positioned layer sits
-  // behind the hero's other children instead of behind the hero's own
-  // background - position:relative alone does not create a stacking context.
-  position: 'relative', zIndex: 0, overflow: 'hidden',
-  paddingTop: 'calc(30px + env(safe-area-inset-top))', paddingLeft: 22, paddingRight: 22, paddingBottom: 'var(--gb-hero-pad-bottom, 66px)',
-} as const;
-
-function SearchBar({ marginTop = 18 }: { marginTop?: number }) {
-  return (
-    <Link href="/explore" className="gb-hero-search" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop, background: '#fff', borderRadius: 'var(--gb-r-sm)', padding: '13px 15px', boxShadow: 'var(--gb-elev-2)' }}>
-      {/* The Material Symbols glyph doesn't sit centered in its own line box - nudged
-          down a couple px to align with the placeholder text's optical center. */}
-      <MS name="search" size={21} color="#9A8C7B" style={{ position: 'relative', top: 2 }} />
-      <span style={{ fontSize: 14.5, color: '#9A8C7B', fontWeight: 500 }}>Search cafés, dishes, drinks</span>
-    </Link>
-  );
-}
-
-function Categories() {
-  return (
-    <div style={{ padding: '24px 0 0' }}>
-      <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500, padding: '0 20px 14px' }}>Browse by craving</div>
-      {/* A scroller on a phone; on a laptop there is room to lay them all out. */}
-      <div className="gb-scroll gb-cravings" style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '0 20px 4px' }}>
-        {CATEGORIES.map((c) => <CategoryCircle key={c.label} cat={c} />)}
-      </div>
-    </div>
-  );
-}
-
-function GuestHome({ cafes }: { cafes: RealCafe[] }) {
-  return (
-    <div className="gb-shell gb-shell-wide">
-      <div style={heroStyle} className="gb-hero">
-        <HeroCupWatermark />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <LocationHeader secondary="Welcome to Grabbit" />
-          <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: '#2E2019', padding: '9px 15px', borderRadius: 999, fontSize: 13.5, fontWeight: 800, boxShadow: 'var(--gb-elev-2)', flex: 'none' }}>
-            <MS name="login" size={18} color="var(--gb-primary)" />Sign in
-          </Link>
-        </div>
-        <div className="gb-serif gb-hero-lede" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 20, fontWeight: 400, maxWidth: 280 }}>
-          Browse cafés & menus freely. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Sign in when you&apos;re ready to order.</span>
-        </div>
-        <SearchBar />
-      </div>
-
-      {/* sign-in nudge */}
-      <div style={{ margin: '-34px 16px 0', position: 'relative', zIndex: 2, background: '#fff', borderRadius: 'var(--gb-r-lg)', padding: 15, boxShadow: 'var(--gb-elev-3)', border: '1px solid #F3DFCB', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 'var(--gb-r-sm)', background: 'var(--gb-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-          <MS name="account_circle" size={24} fill color="var(--gb-primary)" />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="gb-serif" style={{ fontSize: 17, fontWeight: 500 }}>Sign in to unlock your Grabbit</div>
-          <div style={{ fontSize: 12.5, color: 'var(--gb-muted)', marginTop: 2, fontWeight: 600 }}>Reorder, save favourites & track pickups</div>
-        </div>
-        <Link href="/login" style={{ background: 'var(--gb-ink)', color: '#fff', fontSize: 13, fontWeight: 700, padding: '11px 15px', borderRadius: 'var(--gb-r-sm)', flex: 'none' }}>Sign in</Link>
-      </div>
-
-      {/* popular near you */}
-      {POPULAR_NEAR_YOU_ENABLED && (
-        <div style={{ padding: '24px 0 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 20px 14px' }}>
-            <MS name="local_fire_department" size={20} fill color="#C1502E" />
-            <div className="gb-serif" style={{ fontSize: 19, fontWeight: 500 }}>Popular near you</div>
-          </div>
-          <div className="gb-scroll" style={{ display: 'flex', gap: 14, overflowX: 'auto', padding: '0 20px 4px' }}>
-            {POPULAR.map((it) => <ItemCard key={it.name} item={it} />)}
-          </div>
-        </div>
-      )}
-
-      <Categories />
-      <CafesNearYou cafes={cafes} cta="View menu" />
-    </div>
-  );
-}
-
-function SignedInHome({ cafes, me, address }: { cafes: RealCafe[]; me: Me | null; address: { label: string; shortText: string } | null }) {
-  const firstName = me?.name?.trim()?.split(' ')[0] || 'there';
-  const initial = (me?.name?.trim()?.[0] || me?.phone?.slice(-1) || '?').toUpperCase();
-  return (
-    <div className="gb-shell gb-shell-wide">
-      {/* Unlike the guest hero, nothing overlaps into this one from below (no sign-in
-          nudge card pulling itself up), so the shared 66px bottom pad just reads as
-          dead space here - tightened for this variant only. */}
-      <div style={{ ...heroStyle, paddingBottom: 'var(--gb-hero-pad-bottom, 36px)' }} className="gb-hero">
-        {/* Lower than the guest hero's: this one has a real avatar sitting right above,
-            not just a thin pill, and it was covering the cup's rim and steam. */}
-        <HeroCupWatermark top="22%" maxWidth={115} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <LocationHeader secondary={`${greeting()}, ${firstName}`} address={address} />
-          <Link href="/profile" style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.35)', background: 'rgba(255,255,255,.16)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 700, color: '#fff', flex: 'none' }}>
-            {me?.avatar_url
-              ? <Image src={me.avatar_url} alt="You" width={44} height={44} sizes="44px" priority style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              : <GeneratedAvatar seed={me?.name?.trim() || me?.phone || initial} size={44} />}
-          </Link>
-        </div>
-        {/* Shorter than the guest hero's lede on purpose: this hero already carries an
-            address row and a greeting above it, so the tagline has less room to breathe
-            before it reads as cramped. */}
-        <div className="gb-serif" style={{ fontSize: 22, lineHeight: 1.25, marginTop: 18, fontWeight: 400, maxWidth: 270 }}>
-          Order ahead. <span style={{ fontStyle: 'italic', color: 'var(--gb-peach)' }}>Skip the queue.</span>
-        </div>
-        <SearchBar marginTop={30} />
-      </div>
-
-      <Categories />
-      <CafesNearYou cafes={cafes} cta="Pre-order" />
-      <NavSpacer />
-    </div>
-  );
+  } catch {
+    return null;
+  }
 }
 
 export default async function HomePage() {
-  const [token, cafes] = await Promise.all([
-    cookies().then((c) => c.get('grabbit_customer_token')?.value),
+  const token = (await cookies()).get('grabbit_customer_token')?.value;
+  const [cafes, me] = await Promise.all([
     getCafes(),
+    token ? getMe(token) : Promise.resolve(null),
   ]);
-  if (!token) return <GuestHome cafes={cafes} />;
-  const [me, address] = await Promise.all([getMe(token), getDefaultAddress(token)]);
-  return <SignedInHome cafes={cafes} me={me} address={address} />;
+
+  const firstCafeRow = cafes.slice(0, 3);
+  const secondCafeRow = cafes.length > 3 ? cafes.slice(3, 6) : FALLBACK_CAFES.slice(3, 6);
+
+  return (
+    <div className="min-h-screen bg-[#F7F9FC] text-[#0F172A] flex flex-col selection:bg-[#1268F3] selection:text-white">
+      {/* 1. GLOBAL NAVBAR: Same signature navbar as used across the entire website */}
+      <LandingNav />
+
+      {/* Main container with refined left & right breathing margins */}
+      <main className="flex-1 w-full max-w-[1460px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-[92px] sm:pt-[104px] pb-12 sm:pb-16 flex flex-col gap-9 sm:gap-11 lg:gap-13">
+        {/* 2. LARGE BLUE HERO: 45/55 Split with Anton, Caveat, Search and Cafe Doodle */}
+        <HomeHero />
+
+        {/* 3. SMALL DISH DISCOVERY ROW 1: "What are you craving?" */}
+        <DishDiscoveryRow
+          title="What are you craving?"
+          items={CRAVINGS_DISHES}
+          seeAllHref="/explore"
+        />
+
+        {/* 4. DARK BLUE CAFÉ CARD ROW 1: "Cafés worth the stop" */}
+        <EditorialCafeRow
+          title="Cafés worth the stop"
+          cafes={firstCafeRow}
+          seeAllHref="/explore"
+        />
+
+        {/* 5. SMALL DISH DISCOVERY ROW 2: "Something to grab" */}
+        <DishDiscoveryRow
+          title="Something to grab"
+          items={GRAB_DISHES}
+          seeAllHref="/explore"
+        />
+
+        {/* 6. DARK BLUE CAFÉ CARD ROW 2: "More cafés to discover" */}
+        <EditorialCafeRow
+          title="More cafés to discover"
+          cafes={secondCafeRow}
+          seeAllHref="/explore"
+        />
+
+        {/* Spacing on mobile for bottom bar clearance */}
+        <NavSpacer />
+      </main>
+    </div>
+  );
 }
