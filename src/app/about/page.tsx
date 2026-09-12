@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="gb-app min-h-screen bg-[#0A0F1E] text-white">
+    <div className="gb-app min-h-screen bg-[#FAFAF7] text-[#111317]">
       <LandingNav />
-      <main>
+      <main style={{ paddingTop: 76 }}>
         <AboutPeppermintSection />
       </main>
       <LandingFooter />

@@ -1,5 +1,4 @@
 import { cookies } from 'next/headers';
-import LandingNav from '@/components/landing/LandingNav';
 import HomeHero from '@/components/home/HomeHero';
 import DishDiscoveryRow, { type DishItem } from '@/components/home/DishDiscoveryRow';
 import EditorialCafeRow, { type CafeItem } from '@/components/home/EditorialCafeRow';
@@ -126,17 +125,12 @@ const CRAVINGS_DISHES: DishItem[] = [
   {
     label: 'Fries',
     query: 'fries',
-    photo: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&q=80&w=400',
+    photo: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&q=80&w=400',
   },
   {
     label: 'Maggi',
     query: 'maggi',
     photo: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&q=80&w=400',
-  },
-  {
-    label: 'Desserts',
-    query: 'dessert',
-    photo: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&q=80&w=400',
   },
 ];
 
@@ -241,11 +235,30 @@ async function getMe(token: string): Promise<Me | null> {
   }
 }
 
+async function getDefaultAddress(token: string): Promise<{ label: string; shortText: string } | null> {
+  try {
+    if (!process.env.NEXT_PUBLIC_API_URL) return null;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grabit/addresses`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4_000),
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    const a = rows[0];
+    if (!a) return null;
+    return { label: a.label, shortText: [a.line1, a.line2].filter(Boolean).join(', ') || a.formatted_address || a.label };
+  } catch {
+    return null;
+  }
+}
+
 export default async function HomePage() {
   const token = (await cookies()).get('grabbit_customer_token')?.value;
-  const [cafes, me] = await Promise.all([
+  const [cafes, me, address] = await Promise.all([
     getCafes(),
     token ? getMe(token) : Promise.resolve(null),
+    token ? getDefaultAddress(token) : Promise.resolve(null),
   ]);
 
   const firstCafeRow = cafes.slice(0, 3);
@@ -253,36 +266,33 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] text-[#0F172A] flex flex-col selection:bg-[#1268F3] selection:text-white">
-      {/* 1. GLOBAL NAVBAR: Same signature navbar as used across the entire website */}
-      <LandingNav />
+      {/* Main container with refined breathing margins */}
+      <main className="flex-1 w-full max-w-[1460px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-3 md:pt-6 pb-12 md:pb-16 flex flex-col gap-6 sm:gap-11 lg:gap-13">
+        {/* 1. LARGE BLUE HERO: Mobile Image 1 layout + Image 2 data / Desktop 38/62 Split */}
+        <HomeHero me={me} address={address} />
 
-      {/* Main container with refined left & right breathing margins */}
-      <main className="flex-1 w-full max-w-[1460px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-[92px] sm:pt-[104px] pb-12 sm:pb-16 flex flex-col gap-9 sm:gap-11 lg:gap-13">
-        {/* 2. LARGE BLUE HERO: 45/55 Split with Anton, Caveat, Search and Cafe Doodle */}
-        <HomeHero />
-
-        {/* 3. SMALL DISH DISCOVERY ROW 1: "What are you craving?" */}
+        {/* 3. DISH DISCOVERY ROW 1: "Browse by craving" matching Image 1 & 2 */}
         <DishDiscoveryRow
-          title="What are you craving?"
+          title="Browse by craving"
           items={CRAVINGS_DISHES}
           seeAllHref="/explore"
         />
 
-        {/* 4. DARK BLUE CAFÉ CARD ROW 1: "Cafés worth the stop" */}
+        {/* 4. BLUE TICKET CAFÉ CARDS: "Cafes near you in Delhi" matching Image 1 & 2 */}
         <EditorialCafeRow
-          title="Cafés worth the stop"
+          title="Cafes near you in Delhi"
           cafes={firstCafeRow}
           seeAllHref="/explore"
         />
 
-        {/* 5. SMALL DISH DISCOVERY ROW 2: "Something to grab" */}
+        {/* 5. DISH DISCOVERY ROW 2: "Something to grab" */}
         <DishDiscoveryRow
           title="Something to grab"
           items={GRAB_DISHES}
           seeAllHref="/explore"
         />
 
-        {/* 6. DARK BLUE CAFÉ CARD ROW 2: "More cafés to discover" */}
+        {/* 6. CAFÉ CARD ROW 2: "More cafés to discover" */}
         <EditorialCafeRow
           title="More cafés to discover"
           cafes={secondCafeRow}

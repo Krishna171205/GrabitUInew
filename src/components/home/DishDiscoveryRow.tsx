@@ -34,33 +34,34 @@ export default function DishDiscoveryRow({ title, items, seeAllHref = '/explore'
         )}
       </div>
 
-      {/* Mobile Swipe Rail (<md): showing ~4.2 cards with smooth swipe */}
-      <div className="md:hidden flex items-center gap-3 overflow-x-auto pb-2 pt-1 -mx-4 px-4 scrollbar-none snap-x snap-mandatory">
+      {/* Mobile Swipe Rail (<md): showing ~4.4 cards with smooth swipe, perfectly aligned with section heading */}
+      <div className="md:hidden flex items-center gap-2.5 overflow-x-auto pb-2 pt-0.5 scrollbar-none snap-x snap-mandatory">
         {items.map((dish) => (
           <Link
             key={dish.label}
             href={`/explore?q=${encodeURIComponent(dish.query)}`}
-            className="group flex-none w-[88px] sm:w-[102px] flex flex-col items-center gap-2 cursor-pointer snap-start transition-all duration-200"
+            className="group flex-none w-[84px] sm:w-[96px] flex flex-col items-center gap-1.5 cursor-pointer snap-start transition-all duration-200 active:scale-95"
           >
-            <div className="w-full aspect-square bg-white rounded-[18px] sm:rounded-[20px] border-2 border-[#D6E6FE] group-hover:border-[#1268F3] p-2 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] group-hover:shadow-[0_6px_20px_rgba(18,104,243,0.14)] transition-all duration-200 overflow-hidden">
-              <div className="relative w-full h-full rounded-[14px] overflow-hidden bg-slate-50">
+            {/* The Light-Blue Card Box from Image 1 */}
+            <div className="w-full aspect-[4/4.9] bg-[#EAF2FE] hover:bg-[#DDEBFE] rounded-[18px] border-2 border-[#BED8FE] group-hover:border-[#0055D4] p-1.5 flex flex-col items-center justify-between shadow-[0_2px_8px_rgba(0,85,212,0.06)] group-hover:shadow-[0_4px_14px_rgba(0,85,212,0.18)] transition-all duration-200 overflow-hidden">
+              <div className="relative w-full aspect-square rounded-[13px] overflow-hidden bg-white shadow-2xs">
                 <Image
                   src={dish.photo}
                   alt={dish.label}
                   fill
-                  sizes="90px"
-                  className="object-cover transition-transform duration-250 group-hover:scale-106"
+                  sizes="96px"
+                  className="object-cover transition-transform duration-250 group-hover:scale-108"
                 />
               </div>
+              <span className="text-[11px] font-extrabold text-[#1E293B] group-hover:text-[#0055D4] text-center truncate w-full px-0.5 pb-0.5 transition-colors">
+                {dish.label}
+              </span>
             </div>
-            <span className="text-[12px] font-bold text-[#334155] group-hover:text-[#1268F3] text-center truncate w-full transition-colors">
-              {dish.label}
-            </span>
           </Link>
         ))}
       </div>
 
-      {/* Desktop Grid (≥md): evenly distributed to fill 100% of the section width */}
+      {/* Desktop Grid (≥md): matching the mobile version cards with light-blue rounded container, inner image & label */}
       <div
         className="hidden md:grid gap-3.5 lg:gap-4.5 xl:gap-5 w-full"
         style={{
@@ -71,22 +72,23 @@ export default function DishDiscoveryRow({ title, items, seeAllHref = '/explore'
           <Link
             key={dish.label}
             href={`/explore?q=${encodeURIComponent(dish.query)}`}
-            className="group flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:-translate-y-1"
+            className="group flex flex-col cursor-pointer transition-all duration-200"
           >
-            <div className="w-full aspect-square bg-white rounded-[20px] lg:rounded-[24px] border-2 border-[#D6E6FE] group-hover:border-[#1268F3] p-2.5 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] group-hover:shadow-[0_8px_24px_rgba(18,104,243,0.16)] transition-all duration-200 overflow-hidden">
-              <div className="relative w-full h-full rounded-[15px] lg:rounded-[18px] overflow-hidden bg-slate-50">
+            {/* The Light-Blue Card Box matching Mobile Version */}
+            <div className="w-full aspect-[4/4.9] bg-[#EAF2FE] hover:bg-[#DDEBFE] rounded-[22px] lg:rounded-[26px] border-2 border-[#BED8FE] group-hover:border-[#0055D4] p-2 lg:p-2.5 flex flex-col items-center justify-between shadow-[0_4px_16px_rgba(0,85,212,0.06)] group-hover:shadow-[0_12px_28px_rgba(0,85,212,0.18)] group-hover:-translate-y-1.5 transition-all duration-300 overflow-hidden">
+              <div className="relative w-full aspect-square rounded-[16px] lg:rounded-[20px] overflow-hidden bg-white shadow-2xs">
                 <Image
                   src={dish.photo}
                   alt={dish.label}
                   fill
                   sizes="160px"
-                  className="object-cover transition-transform duration-250 group-hover:scale-108"
+                  className="object-cover transition-transform duration-300 group-hover:scale-108"
                 />
               </div>
+              <span className="text-[13px] lg:text-[14.5px] font-extrabold text-[#1E293B] group-hover:text-[#0055D4] text-center truncate w-full px-1 pt-1.5 pb-0.5 transition-colors">
+                {dish.label}
+              </span>
             </div>
-            <span className="text-[13px] lg:text-[14px] font-bold text-[#334155] group-hover:text-[#1268F3] text-center truncate w-full transition-colors">
-              {dish.label}
-            </span>
           </Link>
         ))}
       </div>

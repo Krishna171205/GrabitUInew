@@ -7,6 +7,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CSSProperties, ReactNode } from 'react';
+import CampusLinkNavBar from '@/components/navigation/CampusLinkNavBar';
 
 /* ---------- Material Symbol ---------- */
 export function MS({
@@ -29,33 +30,12 @@ export function MS({
 const TABS = [
   { href: '/home', icon: 'home', label: 'Home' },
   { href: '/explore', icon: 'search', label: 'Explore' },
-  { href: '/saved', icon: 'favorite', label: 'Saved' },
-  { href: '/more', icon: 'menu', label: 'More' },
+  { href: '/orders', icon: 'receipt_long', label: 'Orders' },
+  { href: '/profile', icon: 'person', label: 'Profile' },
 ] as const;
 
 export function BottomNav() {
-  const pathname = usePathname();
-  return (
-    <nav
-      className="gb-bottomnav gb-glass"
-      style={{ padding: '11px 14px calc(26px + env(safe-area-inset-bottom))' }}
-    >
-      {TABS.map((t) => {
-        const active = pathname === t.href || pathname.startsWith(t.href + '/');
-        const color = active ? 'var(--gb-primary)' : 'var(--gb-nav-inactive)';
-        return (
-          <Link
-            key={t.href}
-            href={t.href}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
-          >
-            <MS name={t.icon} size={25} fill={active} color={color} />
-            <span style={{ fontSize: 10.5, fontWeight: 700, color }}>{t.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  return <CampusLinkNavBar />;
 }
 
 /** Spacer so scrollable content clears the fixed BottomNav (mobile only, desktop uses DesktopTopNav). */
@@ -70,8 +50,9 @@ export function NavSpacer() {
    navigation at all. */
 export function DesktopTopNav({ signedIn = true }: { signedIn?: boolean }) {
   const pathname = usePathname();
-  if (pathname === '/home') return null;
-  const tabs = TABS.filter(t => t.href !== '/more'); // Desktop shows Home, Explore, Saved
+  const tabRoutes = ['/home', '/explore', '/orders', '/profile'];
+  if (tabRoutes.some((r) => pathname === r || pathname.startsWith(r + '/'))) return null;
+  const tabs = TABS;
   return (
     <nav className="gb-topnav">
       {/* The wordmark goes to the marketing site, the way a brand mark does everywhere
