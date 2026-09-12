@@ -143,7 +143,7 @@ const GRAB_DISHES: DishItem[] = [
   {
     label: 'Pasta',
     query: 'pasta',
-    photo: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281690?auto=format&fit=crop&q=80&w=400',
+    photo: '/dishes/pasta.jpg',
   },
   {
     label: 'Momos',

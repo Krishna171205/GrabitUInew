@@ -163,8 +163,12 @@ function DesktopPassCafeCard({ cafe, index }: { cafe: CafeItem; index: number })
         </div>
       </div>
 
-      {/* Lower Section: Perforation Line + Blue Barcode + Royal Blue CTA Button */}
-      <div className="border-t border-dashed border-[#BED8FE] pt-2.5 mt-2.5 flex items-center justify-between">
+      {/* Lower Section: Perforation Line + Side Notches + Blue Barcode + Royal Blue CTA Button */}
+      <div className="relative border-t border-dashed border-[#BED8FE] pt-2.5 mt-2.5 flex items-center justify-between">
+        {/* Semi-circular Ticket Notches on the sides (exact alignment with perforation line) */}
+        <span className="absolute -left-[23px] -top-[9px] w-4.5 h-4.5 rounded-full bg-[#F7F9FC] border border-[#BED8FE] shadow-inner pointer-events-none z-20" />
+        <span className="absolute -right-[23px] -top-[9px] w-4.5 h-4.5 rounded-full bg-[#F7F9FC] border border-[#BED8FE] shadow-inner pointer-events-none z-20" />
+
         <TicketBarcode code={ticketCode} />
 
         <span className="bg-[#0055D4] text-white hover:bg-[#0040A1] active:scale-95 font-extrabold text-[12px] px-4 py-1.5 rounded-full shadow-[0_3px_10px_rgba(0,85,212,0.25)] inline-flex items-center gap-1 transition-all group-hover:translate-x-0.5">
@@ -190,7 +194,10 @@ function MobilePassCafeCard({ cafe, index }: { cafe: CafeItem; index: number }) 
   return (
     <Link
       href={`/${cafe.slug}`}
-      className="group relative w-full bg-gradient-to-br from-[#D7E7FE] via-[#E2EEFE] to-[#EFF6FF] hover:from-[#CCE0FE] hover:to-[#E5EFFF] rounded-[24px] p-3 shadow-[0_4px_16px_rgba(0,85,212,0.08)] border-2 border-[#BED8FE] flex items-stretch gap-3.5 transition-all active:scale-[0.99] cursor-pointer overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, #D5E7FE 0%, #E6F0FD 52%, #EFF4FB 100%)',
+      }}
+      className="group relative w-full rounded-[24px] p-3 shadow-[0_4px_16px_rgba(0,85,212,0.08)] border-2 border-[#BED8FE] flex items-stretch gap-3.5 transition-all active:scale-[0.99] cursor-pointer overflow-hidden"
     >
       {/* Left: Clean Café Photo (~42% width) */}
       <div className="relative w-[42%] min-h-[135px] rounded-[18px] overflow-hidden bg-slate-900 shrink-0 shadow-2xs">
